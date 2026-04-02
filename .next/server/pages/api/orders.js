@@ -1,0 +1,12 @@
+"use strict";(()=>{var e={};e.id=722,e.ids=[722],e.modules={145:e=>{e.exports=require("next/dist/compiled/next-server/pages-api.runtime.prod.js")},8678:e=>{e.exports=import("pg")},6249:(e,t)=>{Object.defineProperty(t,"l",{enumerable:!0,get:function(){return function e(t,r){return r in t?t[r]:"then"in t&&"function"==typeof t.then?t.then(t=>e(t,r)):"function"==typeof t&&"default"===r?t:void 0}}})},7612:(e,t,r)=>{r.a(e,async(e,o)=>{try{r.r(t),r.d(t,{config:()=>c,default:()=>u,routeModule:()=>l});var i=r(1802),n=r(7153),a=r(6249),d=r(7989),s=e([d]);d=(s.then?(await s)():s)[0];let u=(0,a.l)(d,"default"),c=(0,a.l)(d,"config"),l=new i.PagesAPIRouteModule({definition:{kind:n.x.PAGES_API,page:"/api/orders",pathname:"/api/orders",bundlePath:"",filename:""},userland:d});o()}catch(e){o(e)}})},1262:(e,t,r)=>{r.a(e,async(e,o)=>{try{r.d(t,{I:()=>a});var i=r(8678),n=e([i]);let d=new(i=(n.then?(await n)():n)[0]).Pool({connectionString:process.env.NEON_DATABASE_URL,ssl:{rejectUnauthorized:!1}});async function a(e,t){let r=await d.connect();try{return await r.query(e,t)}finally{r.release()}}o()}catch(e){o(e)}})},7989:(e,t,r)=>{r.a(e,async(e,o)=>{try{r.r(t),r.d(t,{default:()=>a});var i=r(1262),n=e([i]);async function a(e,t){if("GET"!==e.method)return t.status(405).json({error:"Method not allowed"});try{let{telegram_id:r}=e.query;if(!r)return t.status(400).json({error:"telegram_id required"});let o=(await (0,i.I)(`SELECT o.*, json_agg(json_build_object(
+         'product_id', oi.product_id,
+         'name', p.name,
+         'quantity', oi.quantity,
+         'price', oi.price
+       ) ORDER BY oi.id) FILTER (WHERE oi.id IS NOT NULL) as items
+       FROM orders o
+       LEFT JOIN order_items oi ON o.id = oi.order_id
+       LEFT JOIN products p ON oi.product_id = p.id
+       WHERE o.user_telegram_id = $1
+       GROUP BY o.id
+       ORDER BY o.created_at DESC`,[r])).rows.map(e=>({...e,total:parseFloat(e.total),items:e.items.filter(e=>null!==e.product_id)}));t.status(200).json({orders:o})}catch(e){t.status(500).json({error:"Ошибка загрузки заказов"})}}i=(n.then?(await n)():n)[0],o()}catch(e){o(e)}})},7153:(e,t)=>{var r;Object.defineProperty(t,"x",{enumerable:!0,get:function(){return r}}),function(e){e.PAGES="PAGES",e.PAGES_API="PAGES_API",e.APP_PAGE="APP_PAGE",e.APP_ROUTE="APP_ROUTE"}(r||(r={}))},1802:(e,t,r)=>{e.exports=r(145)}};var t=require("../../webpack-api-runtime.js");t.C(e);var r=t(t.s=7612);module.exports=r})();
