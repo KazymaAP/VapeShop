@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useTelegramWebApp, useMainButton, hapticImpact, hapticSuccess } from '../lib/telegram';
+import { useTelegramWebApp, useMainButton, hapticImpact, hapticSuccess, hapticError } from '../lib/telegram';
 
 interface CartItem {
   product_id: string;
@@ -10,6 +10,19 @@ interface CartItem {
   quantity: number;
   image?: string;
   stock: number;
+}
+
+interface PickupPoint {
+  id: string;
+  name: string;
+  address: string;
+  active: boolean;
+}
+
+interface SavedAddress {
+  id: string;
+  address: string;
+  is_default: boolean;
 }
 
 export async function getServerSideProps() {
@@ -26,11 +39,46 @@ export default function CartPage() {
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'courier'>('pickup');
   const [deliveryDate, setDeliveryDate] = useState('');
   const [address, setAddress] = useState('');
+  const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
+  const [selectedPickupPointId, setSelectedPickupPointId] = useState<string | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [loadingDelivery, setLoadingDelivery] = useState(false);
+  const [saveAddressChecked, setSaveAddressChecked] = useState(false);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [deliveryError, setDeliveryError] = useState('');
+  const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     fetchCart();
+    fetchDeliveryOptions();
   }, [user]);
+
+  const fetchDeliveryOptions = async () => {
+    setLoadingDelivery(true);
+    try {
+      const [pickupRes, addressesRes] = await Promise.all([
+        fetch('/api/pickup-points?active=true'),
+        fetch(`/api/addresses?telegram_id=${user?.id}`),
+      ]);
+
+      if (pickupRes.ok) {
+        const pickupData = await pickupRes.json();
+        setPickupPoints(pickupData.pickup_points || []);
+        if (pickupData.pickup_points?.length > 0) {
+          setSelectedPickupPointId(pickupData.pickup_points[0].id);
+        }
+      }
+
+      if (addressesRes.ok) {
+        const addressesData = await addressesRes.json();
+        setSavedAddresses(addressesData.addresses || []);
+      }
+    } catch (err) {
+      console.error('Error fetching delivery options:', err);
+    }
+    setLoadingDelivery(false);
+  };
 
   const fetchCart = async () => {
     if (!user) return;
@@ -61,15 +109,24 @@ export default function CartPage() {
   };
 
   const applyPromo = async () => {
-    const res = await fetch('/api/promocodes/apply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: promoCode, total }),
-    });
-    const data = await res.json();
-    if (data.valid) {
-      setPromoDiscount(data.discount);
-      hapticSuccess();
+    try {
+      const res = await fetch('/api/promocodes/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode, total: subtotal }),
+      });
+      const data = await res.json();
+      
+      if (data.valid) {
+        setPromoDiscount(data.discount);
+        hapticSuccess();
+      } else {
+        hapticError();
+        alert(data.error || 'Промокод недействителен');
+      }
+    } catch (err) {
+      hapticError();
+      alert('Ошибка применения промокода');
     }
   };
 
@@ -78,37 +135,87 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (!user || items.length === 0) return;
-    hapticImpact('heavy');
 
-    const res = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        telegram_id: user.id,
-        items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, price: i.price })),
-        delivery_method: deliveryMethod,
-        delivery_date: deliveryDate || null,
-        address: deliveryMethod === 'courier' ? address : null,
-        promo_code: promoCode || null,
-        discount: promoDiscount,
-      }),
-    });
+    setDeliveryError('');
 
-    const data = await res.json();
-    if (data.invoice_url) {
-      window.Telegram?.WebApp?.openInvoice?.(data.invoice_url, (status) => {
-        if (status === 'paid') {
-          hapticSuccess();
-          router.push('/profile');
-        }
-      });
+    // Validate delivery method
+    if (deliveryMethod === 'pickup') {
+      if (!selectedPickupPointId) {
+        setDeliveryError('Выберите пункт самовывоза');
+        hapticError();
+        return;
+      }
+    } else if (deliveryMethod === 'courier') {
+      if (address.trim().length < 10) {
+        setDeliveryError('Введите полный адрес (минимум 10 символов)');
+        hapticError();
+        return;
+      }
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const selectedDate = new Date(deliveryDate);
+      if (!deliveryDate || selectedDate < tomorrow) {
+        setDeliveryError('Выберите дату доставки (не ранее завтра)');
+        hapticError();
+        return;
+      }
     }
+
+    hapticImpact('heavy');
+    setCheckingOut(true);
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_id: user.id,
+          items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, price: i.price })),
+          delivery_method: deliveryMethod,
+          pickup_point_id: deliveryMethod === 'pickup' ? selectedPickupPointId : null,
+          delivery_date: deliveryMethod === 'courier' ? deliveryDate : null,
+          address: deliveryMethod === 'courier' ? address : null,
+          save_address: deliveryMethod === 'courier' && saveAddressChecked,
+          promo_code: promoCode || null,
+          discount: promoDiscount,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.invoice_url) {
+        window.Telegram?.WebApp?.openInvoice?.(data.invoice_url, (status) => {
+          if (status === 'paid') {
+            hapticSuccess();
+            router.push('/profile');
+          }
+        });
+      } else if (data.error) {
+        setDeliveryError(data.error);
+        hapticError();
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      setDeliveryError('Ошибка оформления заказа');
+      hapticError();
+    } finally {
+      setCheckingOut(false);
+    }
+  };
+
+  const getTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
+  const getSelectedPickupPoint = () => {
+    return pickupPoints.find((p) => p.id === selectedPickupPointId);
   };
 
   useMainButton(
     `Оформить заказ — ${total.toLocaleString('ru-RU')} ₽`,
     handleCheckout,
-    items.length > 0
+    items.length > 0 && !checkingOut
   );
 
   if (loading) {
@@ -220,10 +327,13 @@ export default function CartPage() {
 
         {/* Delivery Method */}
         <div className="bg-cardBg border border-border rounded-2xl p-4">
-          <h3 className="font-semibold text-textPrimary mb-3">Способ доставки</h3>
-          <div className="flex gap-2">
+          <h3 className="font-semibold text-textPrimary mb-3">Доставка</h3>
+          <div className="flex gap-2 mb-4">
             <button
-              onClick={() => setDeliveryMethod('pickup')}
+              onClick={() => {
+                setDeliveryMethod('pickup');
+                setDeliveryError('');
+              }}
               className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors ${
                 deliveryMethod === 'pickup'
                   ? 'bg-neon text-white'
@@ -233,7 +343,10 @@ export default function CartPage() {
               Самовывоз
             </button>
             <button
-              onClick={() => setDeliveryMethod('courier')}
+              onClick={() => {
+                setDeliveryMethod('courier');
+                setDeliveryError('');
+              }}
               className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition-colors ${
                 deliveryMethod === 'courier'
                   ? 'bg-neon text-white'
@@ -245,25 +358,105 @@ export default function CartPage() {
           </div>
 
           {deliveryMethod === 'pickup' && (
-            <p className="text-textSecondary text-sm mt-3">ул. Примерная, д. 1 (ежедневно 10:00–22:00)</p>
+            <div className="space-y-3">
+              {loadingDelivery ? (
+                <div className="text-center py-4">
+                  <div className="inline-block w-6 h-6 border-2 border-neon border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : pickupPoints.length === 0 ? (
+                <p className="text-textSecondary text-sm">Пункты самовывоза не найдены</p>
+              ) : (
+                <div className="space-y-2">
+                  {pickupPoints.map((point) => (
+                    <label
+                      key={point.id}
+                      className="flex items-start gap-3 p-3 rounded-xl bg-bgDark border border-border hover:border-neon cursor-pointer transition-colors"
+                    >
+                      <input
+                        type="radio"
+                        name="pickup-point"
+                        value={point.id}
+                        checked={selectedPickupPointId === point.id}
+                        onChange={(e) => setSelectedPickupPointId(e.target.value)}
+                        className="mt-1 w-4 h-4 accent-neon"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-textPrimary font-medium text-sm">{point.name}</p>
+                        <p className="text-textSecondary text-xs">{point.address}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+              {getSelectedPickupPoint() && (
+                <p className="text-success text-xs mt-2">
+                  ✓ Выбрана точка: {getSelectedPickupPoint()?.name}
+                </p>
+              )}
+            </div>
           )}
 
           {deliveryMethod === 'courier' && (
-            <>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Адрес доставки"
-                className="w-full mt-3 bg-bgDark border border-border rounded-xl px-4 py-2.5 text-sm text-textPrimary placeholder-textSecondary focus:outline-none focus:border-neon"
-              />
-              <input
-                type="date"
-                value={deliveryDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                className="w-full mt-2 bg-bgDark border border-border rounded-xl px-4 py-2.5 text-sm text-textPrimary focus:outline-none focus:border-neon"
-              />
-            </>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-textSecondary block mb-1">Мои адреса</label>
+                {loadingDelivery ? (
+                  <div className="text-center py-2">
+                    <div className="inline-block w-5 h-5 border-2 border-neon border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : savedAddresses.length > 0 ? (
+                  <select
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full bg-bgDark border border-border rounded-xl px-3 py-2.5 text-sm text-textPrimary focus:outline-none focus:border-neon"
+                  >
+                    <option value="">Выберите адрес</option>
+                    {savedAddresses.map((addr) => (
+                      <option key={addr.id} value={addr.address}>
+                        {addr.address} {addr.is_default ? '(основной)' : ''}
+                      </option>
+                    ))}
+                    <option value="">Добавить новый адрес</option>
+                  </select>
+                ) : null}
+              </div>
+
+              <div>
+                <label className="text-xs text-textSecondary block mb-1">Адрес доставки</label>
+                <textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Улица, дом, квартира, город"
+                  className="w-full bg-bgDark border border-border rounded-xl px-3 py-2.5 text-sm text-textPrimary placeholder-textSecondary focus:outline-none focus:border-neon resize-none"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-textSecondary block mb-1">Дата доставки</label>
+                <input
+                  type="date"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  min={getTomorrow()}
+                  className="w-full bg-bgDark border border-border rounded-xl px-3 py-2.5 text-sm text-textPrimary focus:outline-none focus:border-neon"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 p-3 rounded-xl bg-bgDark border border-border cursor-pointer hover:border-neon transition-colors">
+                <input
+                  type="checkbox"
+                  checked={saveAddressChecked}
+                  onChange={(e) => setSaveAddressChecked(e.target.checked)}
+                  className="w-4 h-4 accent-neon"
+                />
+                <span className="text-sm text-textSecondary">Сохранить адрес в профиль</span>
+              </label>
+            </div>
+          )}
+
+          {deliveryError && (
+            <p className="text-danger text-xs mt-3 px-3 py-2 bg-danger/10 rounded-lg">{deliveryError}</p>
           )}
         </div>
 

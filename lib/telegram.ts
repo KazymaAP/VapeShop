@@ -60,6 +60,7 @@ export function useTelegramWebApp() {
     last_name?: string;
     username?: string;
   } | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -70,10 +71,11 @@ export function useTelegramWebApp() {
       if (tg.initDataUnsafe.user) {
         setUser(tg.initDataUnsafe.user);
       }
+      setIsReady(true);
     }
   }, []);
 
-  return { webapp: typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined, user };
+  return { webapp: typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined, user, isReady };
 }
 
 export function useMainButton(text: string, onClick: () => void, visible = true) {

@@ -1,0 +1,485 @@
+// Пример обновления pages/cart.tsx для интеграции с платежами Telegram Stars
+// Вставьте эти изменения в существующий файл
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { useTelegramWebApp, useMainButton, hapticImpact, hapticSuccess } from '../../lib/telegram';
+import { createOrderWithPayment } from '../../lib/utils/payments';
+
+interface CartItem {
+  product_id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  stock: number;
+}
+
+interface DeliveryOption {
+  value: 'pickup' | 'courier';
+  label: string;
+}
+
+export async function getServerSideProps() {
+  return { props: {} };
+}
+
+export default function CartPage() {
+  const router = useRouter();
+  const { user, MainButton, isReady } = useTelegramWebApp();
+  
+  // Состояние корзины
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  
+  // Состояние доставки
+  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'courier'>('pickup');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [address, setAddress] = useState('');
+  const [pickupPointId, setPickupPointId] = useState('');
+  const [pickupPoints, setPickupPoints] = useState<any[]>([]);
+  
+  // Состояние промокода
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState('');
+  
+  // Состояние ошибок
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    fetchCart();
+    fetchPickupPoints();
+  }, [user]);
+
+  // Установка текста и обработчика MainButton
+  useEffect(() => {
+    if (!isReady || !MainButton) return;
+
+    const total = calculateTotal();
+    const validationError = getValidationError();
+
+    MainButton.setText(`Оплатить ${Math.round(total)} ⭐️`);
+    
+    if (validationError || items.length === 0) {
+      MainButton.disable();
+    } else {
+      MainButton.enable();
+    }
+
+    MainButton.onClick(() => handleCheckout());
+
+    return () => {
+      MainButton.offClick(() => handleCheckout());
+    };
+  }, [isReady, MainButton, items, deliveryMethod, deliveryDate, address, pickupPointId]);
+
+  const fetchCart = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/cart?telegram_id=${user.id}`);
+      const data = await res.json();
+      setItems(data.items || []);
+    } catch (err) {
+      console.error('Fetch cart error:', err);
+      setError('Не удалось загрузить корзину');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPickupPoints = async () => {
+    try {
+      const res = await fetch('/api/pickup-points');
+      const data = await res.json();
+      setPickupPoints(data.points || []);
+    } catch (err) {
+      console.error('Fetch pickup points error:', err);
+    }
+  };
+
+  const applyPromoCode = async () => {
+    if (!promoCode.trim()) {
+      setPromoError('Введите промокод');
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoError('');
+
+    try {
+      const res = await fetch('/api/promocodes/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: promoCode,
+          total: calculateTotal(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPromoError(data.error || 'Промокод не найден');
+        return;
+      }
+
+      setPromoDiscount(data.discount || 0);
+      hapticSuccess();
+    } catch (err) {
+      console.error('Apply promo error:', err);
+      setPromoError('Ошибка при применении промокода');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const calculateSubtotal = () => {
+    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  };
+
+  const calculateDeliveryFee = () => {
+    if (deliveryMethod === 'pickup') return 0;
+    if (calculateSubtotal() > 500) return 0; // Бесплатная доставка при сумме > 500 звёзд
+    return 50; // Обычная доставка 50 звёзд
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const deliveryFee = calculateDeliveryFee();
+    return Math.max(0, subtotal + deliveryFee - promoDiscount);
+  };
+
+  const getValidationError = (): string | null => {
+    if (items.length === 0) return 'Корзина пуста';
+    if (!deliveryDate) return 'Выберите дату доставки';
+    if (deliveryMethod === 'courier' && !address) return 'Укажите адрес доставки';
+    if (deliveryMethod === 'pickup' && !pickupPointId) return 'Выберите точку самовывоза';
+    return null;
+  };
+
+  const handleCheckout = async () => {
+    setError('');
+    setSubmitting(true);
+
+    const validationError = getValidationError();
+    if (validationError) {
+      setError(validationError);
+      setSubmitting(false);
+      hapticImpact('light');
+      return;
+    }
+
+    if (!user) {
+      setError('Не удалось определить пользователя');
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      hapticImpact('medium');
+
+      // Формируем массив товаров для заказа
+      const orderItems = items.map(item => ({
+        product_id: item.product_id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      }));
+
+      // Создаём заказ и отправляем инвойс
+      const result = await createOrderWithPayment(
+        user.id,
+        orderItems,
+        deliveryMethod,
+        deliveryDate,
+        deliveryMethod === 'courier' ? address : null,
+        promoCode || undefined,
+        promoDiscount
+      );
+
+      hapticSuccess();
+
+      // Показываем сообщение об успехе
+      const total = calculateTotal();
+      alert(
+        `✅ Заказ создан!\n\n` +
+        `Номер: #${result.order_id.slice(0, 8).toUpperCase()}\n` +
+        `Сумма: ${Math.round(total)} ⭐️\n\n` +
+        `Перейдите в бота для оплаты.`
+      );
+
+      // Очищаем корзину
+      setItems([]);
+      setPromoCode('');
+      setPromoDiscount(0);
+
+      // Редиректим на профиль для просмотра заказов
+      setTimeout(() => {
+        router.push('/profile?tab=orders');
+      }, 1000);
+    } catch (err) {
+      console.error('Checkout error:', err);
+      setError(err instanceof Error ? err.message : 'Ошибка при оформлении заказа');
+      hapticImpact('heavy');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const updateQuantity = async (productId: string, quantity: number) => {
+    if (quantity < 1) {
+      removeItem(productId);
+      return;
+    }
+
+    const newItems = items.map(item =>
+      item.product_id === productId ? { ...item, quantity } : item
+    );
+    setItems(newItems);
+
+    try {
+      await fetch('/api/cart', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_id: user?.id, product_id: productId, quantity }),
+      });
+    } catch (err) {
+      console.error('Update cart error:', err);
+    }
+  };
+
+  const removeItem = async (productId: string) => {
+    setItems(items.filter(item => item.product_id !== productId));
+
+    try {
+      await fetch('/api/cart', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_id: user?.id, product_id: productId }),
+      });
+    } catch (err) {
+      console.error('Remove item error:', err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bgDark flex items-center justify-center">
+        <p className="text-textSecondary">Загрузка корзины...</p>
+      </div>
+    );
+  }
+
+  const subtotal = calculateSubtotal();
+  const deliveryFee = calculateDeliveryFee();
+  const total = calculateTotal();
+
+  return (
+    <div className="min-h-screen bg-bgDark text-textPrimary pb-24">
+      {/* Header */}
+      <div className="sticky top-0 bg-bgDark border-b border-border p-4 z-10">
+        <h1 className="text-2xl font-bold">🛒 Корзина</h1>
+      </div>
+
+      <div className="p-4 space-y-4 max-w-2xl mx-auto">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-danger/20 border border-danger rounded-lg p-3 text-danger">
+            ⚠️ {error}
+          </div>
+        )}
+
+        {/* Items */}
+        {items.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-textSecondary mb-4">Корзина пуста</p>
+            <Link href="/">
+              <span className="bg-neon text-bgDark px-6 py-2 rounded-lg font-semibold cursor-pointer hover:bg-neon/80 transition">
+                Продолжить покупки
+              </span>
+            </Link>
+          </div>
+        ) : (
+          <>
+            {items.map(item => (
+              <div key={item.product_id} className="bg-cardBg border border-border rounded-lg p-4 flex gap-4">
+                {/* Image placeholder */}
+                <div className="w-20 h-20 bg-border rounded-lg flex-shrink-0" />
+
+                <div className="flex-1">
+                  <h3 className="font-semibold">{item.name}</h3>
+                  <p className="text-textSecondary text-sm">{item.price} ⭐️</p>
+
+                  {/* Quantity controls */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+                      className="w-6 h-6 bg-border rounded text-center text-xs hover:bg-neon/50 transition"
+                    >
+                      −
+                    </button>
+                    <span className="w-6 text-center text-sm">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+                      className="w-6 h-6 bg-border rounded text-center text-xs hover:bg-neon/50 transition"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Remove button */}
+                <button
+                  onClick={() => removeItem(item.product_id)}
+                  className="text-danger hover:text-danger/80 transition"
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+
+            {/* Promo code */}
+            <div className="bg-cardBg border border-border rounded-lg p-4">
+              <label className="block text-sm font-semibold mb-2">Промокод</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="SPRING20"
+                  className="flex-1 bg-bgDark border border-border rounded px-3 py-2 text-textPrimary placeholder-textSecondary focus:border-neon outline-none"
+                />
+                <button
+                  onClick={applyPromoCode}
+                  disabled={promoLoading}
+                  className="bg-neon text-bgDark px-4 py-2 rounded font-semibold hover:bg-neon/80 transition disabled:opacity-50"
+                >
+                  {promoLoading ? '...' : 'Применить'}
+                </button>
+              </div>
+              {promoError && <p className="text-danger text-sm mt-1">{promoError}</p>}
+              {promoDiscount > 0 && (
+                <p className="text-success text-sm mt-1">✅ Скидка: {promoDiscount} ⭐️</p>
+              )}
+            </div>
+
+            {/* Delivery method */}
+            <div className="bg-cardBg border border-border rounded-lg p-4">
+              <label className="block text-sm font-semibold mb-3">Способ доставки</label>
+
+              <label className="flex items-center mb-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="delivery"
+                  value="pickup"
+                  checked={deliveryMethod === 'pickup'}
+                  onChange={(e) => setDeliveryMethod(e.target.value as 'pickup')}
+                  className="mr-2"
+                />
+                <span>🏪 Самовывоз (бесплатно)</span>
+              </label>
+
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="delivery"
+                  value="courier"
+                  checked={deliveryMethod === 'courier'}
+                  onChange={(e) => setDeliveryMethod(e.target.value as 'courier')}
+                  className="mr-2"
+                />
+                <span>🚚 Курьер ({deliveryFee === 0 ? 'бесплатно' : `${deliveryFee} ⭐️`})</span>
+              </label>
+            </div>
+
+            {/* Delivery options */}
+            {deliveryMethod === 'pickup' ? (
+              <div className="bg-cardBg border border-border rounded-lg p-4">
+                <label className="block text-sm font-semibold mb-2">Точка самовывоза</label>
+                <select
+                  value={pickupPointId}
+                  onChange={(e) => setPickupPointId(e.target.value)}
+                  className="w-full bg-bgDark border border-border rounded px-3 py-2 text-textPrimary focus:border-neon outline-none"
+                >
+                  <option value="">Выберите точку...</option>
+                  {pickupPoints.map(point => (
+                    <option key={point.id} value={point.id}>
+                      {point.name} — {point.address}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="bg-cardBg border border-border rounded-lg p-4 space-y-2">
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Адрес доставки</label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="ул. Ленина, д. 1, кв. 5"
+                    className="w-full bg-bgDark border border-border rounded px-3 py-2 text-textPrimary placeholder-textSecondary focus:border-neon outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Дата доставки</label>
+                  <input
+                    type="date"
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full bg-bgDark border border-border rounded px-3 py-2 text-textPrimary focus:border-neon outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Order date */}
+            {deliveryMethod === 'pickup' && (
+              <div className="bg-cardBg border border-border rounded-lg p-4">
+                <label className="block text-sm font-semibold mb-1">Дата получения</label>
+                <input
+                  type="date"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full bg-bgDark border border-border rounded px-3 py-2 text-textPrimary focus:border-neon outline-none"
+                />
+              </div>
+            )}
+
+            {/* Order summary */}
+            <div className="bg-cardBg border border-border rounded-lg p-4 space-y-2">
+              <div className="flex justify-between text-textSecondary">
+                <span>Товары:</span>
+                <span>{subtotal} ⭐️</span>
+              </div>
+              {deliveryFee > 0 && (
+                <div className="flex justify-between text-textSecondary">
+                  <span>Доставка:</span>
+                  <span>{deliveryFee} ⭐️</span>
+                </div>
+              )}
+              {promoDiscount > 0 && (
+                <div className="flex justify-between text-success">
+                  <span>Скидка:</span>
+                  <span>−{promoDiscount} ⭐️</span>
+                </div>
+              )}
+              <div className="border-t border-border pt-2 flex justify-between text-lg font-bold text-neon">
+                <span>Итого:</span>
+                <span>{Math.round(total)} ⭐️</span>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

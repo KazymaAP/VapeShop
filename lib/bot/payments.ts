@@ -1,54 +1,169 @@
 import { Context } from 'grammy';
 import { query } from '../db';
 
+/**
+ * Обработчик pre_checkout_query — подтверждает, что заказ может быть оплачен
+ */
 export async function handlePreCheckout(ctx: Context) {
-  await ctx.answerPreCheckoutQuery(true);
+  try {
+    const preCheckout = ctx.preCheckoutQuery;
+    if (!preCheckout) return;
+
+    const orderId = preCheckout.invoice_payload;
+    const telegramId = ctx.from?.id;
+
+    if (!orderId || !telegramId) {
+      await ctx.answerPreCheckoutQuery(false, 'Ошибка: не найден заказ');
+      return;
+    }
+
+    // Проверяем, что заказ существует и его статус 'pending'
+    const orderRes = await query(
+      'SELECT * FROM orders WHERE id = $1 AND user_telegram_id = $2 AND status = $3',
+      [orderId, telegramId, 'pending']
+    );
+
+    if (orderRes.rows.length === 0) {
+      await ctx.answerPreCheckoutQuery(false, 'Заказ не найден или уже оплачен');
+      return;
+    }
+
+    // Подтверждаем возможность оплаты
+    await ctx.answerPreCheckoutQuery(true);
+  } catch (err) {
+    console.error('Pre-checkout error:', err);
+    await ctx.answerPreCheckoutQuery(false, 'Технаическая ошибка');
+  }
 }
 
+/**
+ * Обработчик successful_payment — срабатывает после успешной оплаты
+ */
 export async function handlePaymentSuccess(ctx: Context) {
-  const payment = ctx.message?.successful_payment;
-  if (!payment) return;
-
-  const orderId = payment.invoice_payload;
-  const telegramId = ctx.from?.id;
-
-  if (!orderId || !telegramId) return;
-
-  await query(
-    `UPDATE orders SET status = 'confirmed', paid_at = NOW() WHERE id = $1`,
-    [orderId]
-  );
-
-  const order = await query('SELECT * FROM orders WHERE id = $1', [orderId]);
-  if (order.rows.length === 0) return;
-
-  const total = parseFloat(order.rows[0].total);
-
-  await ctx.reply(
-    `✅ Оплата прошла успешно!\n\n` +
-    `Заказ #${orderId.slice(0, 8)} на сумму ${total.toLocaleString('ru-RU')} ₽ подтверждён.\n\n` +
-    `Мы уведомим вас о смене статуса.`,
-    {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '🛍️ Открыть магазин', web_app: { url: process.env.WEBAPP_URL || '' } }],
-        ],
-      },
+  try {
+    const payment = ctx.message?.successful_payment;
+    if (!payment) {
+      console.error('No payment data found');
+      return;
     }
-  );
 
-  const orderRow = order.rows[0];
-  const referredBy = await query('SELECT referred_by FROM users WHERE telegram_id = $1', [telegramId]);
-  if (referredBy.rows[0]?.referred_by) {
-    const bonusAmount = total * 0.1;
-    await query(
-      `INSERT INTO referral_bonuses (user_telegram_id, amount, source_order_id)
-       VALUES ($1, $2, $3)`,
-      [referredBy.rows[0].referred_by, bonusAmount, orderId]
+    const orderId = payment.invoice_payload;
+    const telegramId = ctx.from?.id;
+    const totalAmount = payment.total_amount;
+
+    if (!orderId || !telegramId) {
+      console.error('Missing orderId or telegramId');
+      return;
+    }
+
+    // Проверяем, что заказ со статусом 'pending'
+    const orderCheckRes = await query(
+      'SELECT * FROM orders WHERE id = $1 AND user_telegram_id = $2 AND status = $3',
+      [orderId, telegramId, 'pending']
     );
+
+    if (orderCheckRes.rows.length === 0) {
+      await ctx.reply('⚠️ Заказ не найден или уже был оплачен.');
+      return;
+    }
+
+    // Генерируем 6-значный код (100000-999999)
+    const code6digit = Math.floor(100000 + Math.random() * 900000);
+    const codeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    // Обновляем статус заказа на 'new' (активный, ожидает комплектации)
+    // и сохраняем информацию об оплате
     await query(
-      `UPDATE users SET bonus_balance = bonus_balance + $1 WHERE telegram_id = $2`,
-      [bonusAmount, referredBy.rows[0].referred_by]
+      `UPDATE orders 
+       SET status = $1, 
+           paid_at = NOW(), 
+           code_6digit = $2, 
+           code_expires_at = $3 
+       WHERE id = $4`,
+      ['new', code6digit, codeExpiresAt, orderId]
     );
+
+    const order = orderCheckRes.rows[0];
+    const total = parseFloat(order.total);
+
+    // Отправляем уведомление пользователю
+    await ctx.reply(
+      `✅ Спасибо! Ваш заказ оплачен\n\n` +
+      `📦 Заказ #${orderId.slice(0, 8).toUpperCase()}\n` +
+      `💰 Сумма: ${totalAmount / 100} ⭐️\n` +
+      `📍 Способ доставки: ${order.delivery_method === 'pickup' ? 'Самовывоз' : 'Курьер'}\n\n` +
+      `🔐 Код доставки: <code>${code6digit}</code>\n` +
+      `⏰ Действителен 24 часа\n\n` +
+      `Ожидайте готовности вашего заказа!`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🛍️ Открыть магазин', web_app: { url: process.env.WEBAPP_URL || '' } }],
+            [{ text: '❓ Помощь', callback_data: 'help' }],
+          ],
+        },
+      }
+    );
+
+    // Логируем успешный платёж (позже заменим на real notifications)
+    console.log(`[PAYMENT SUCCESS] Order #${orderId.slice(0, 8).toUpperCase()} paid by user ${telegramId}`);
+
+    // Отправляем уведомление админам (пока в console.log, позже — в отдельное сообщение)
+    const adminIds = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(Number);
+    for (const adminId of adminIds) {
+      if (adminId) {
+        try {
+          await ctx.api.sendMessage(
+            adminId,
+            `💰 Новая оплата!\n\n` +
+            `📦 Заказ #${orderId.slice(0, 8).toUpperCase()}\n` +
+            `👤 Пользователь: ${ctx.from?.first_name} (@${ctx.from?.username || 'N/A'})\n` +
+            `💵 Сумма: ${totalAmount / 100} ⭐️\n` +
+            `📦 Код доставки: ${code6digit}`,
+            {
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: 'Открыть админ-панель', web_app: { url: `${process.env.WEBAPP_URL}/admin/orders` || '' } }],
+                ],
+              },
+            }
+          );
+        } catch (adminErr) {
+          console.error(`Failed to notify admin ${adminId}:`, adminErr);
+        }
+      }
+    }
+
+    // Обновляем реферальные бонусы
+    const userRes = await query(
+      'SELECT referred_by FROM users WHERE telegram_id = $1',
+      [telegramId]
+    );
+
+    if (userRes.rows.length > 0 && userRes.rows[0].referred_by) {
+      const referredBy = userRes.rows[0].referred_by;
+      const bonusAmount = Math.round(total * 0.1); // 10% от суммы заказа
+
+      try {
+        await query(
+          `INSERT INTO referral_bonuses (user_telegram_id, amount, source_order_id, created_at)
+           VALUES ($1, $2, $3, NOW())`,
+          [referredBy, bonusAmount, orderId]
+        );
+
+        await query(
+          `UPDATE users SET bonus_balance = bonus_balance + $1 WHERE telegram_id = $2`,
+          [bonusAmount, referredBy]
+        );
+
+        console.log(`[REFERRAL] User ${referredBy} received ${bonusAmount} bonus for referral`);
+      } catch (refErr) {
+        console.error('Referral bonus error:', refErr);
+      }
+    }
+  } catch (err) {
+    console.error('Payment success handler error:', err);
+    await ctx.reply('❌ Произошла ошибка при обработке платежа. Пожалуйста, свяжитесь с поддержкой.');
   }
 }

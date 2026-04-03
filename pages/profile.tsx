@@ -31,6 +31,12 @@ interface UserProfile {
   referral_code: string | null;
 }
 
+interface Address {
+  id: string;
+  address: string;
+  is_default: boolean;
+}
+
 const statusLabels: Record<string, string> = {
   new: 'Новый',
   confirmed: 'Подтверждён',
@@ -59,15 +65,22 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [favorites, setFavorites] = useState<FavoriteProduct[]>([]);
-  const [activeTab, setActiveTab] = useState<'orders' | 'favorites' | 'referral' | 'settings'>('orders');
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [activeTab, setActiveTab] = useState<'orders' | 'favorites' | 'addresses' | 'referral' | 'settings'>('orders');
   const [loading, setLoading] = useState(true);
   const [referralStats, setReferralStats] = useState({ count: 0, earned: 0 });
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [formAddress, setFormAddress] = useState('');
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [addressError, setAddressError] = useState('');
 
   useEffect(() => {
     if (!user) return;
     fetchProfile();
     fetchOrders();
     fetchFavorites();
+    fetchAddresses();
   }, [user]);
 
   const fetchProfile = async () => {
@@ -87,6 +100,19 @@ export default function ProfilePage() {
     const res = await fetch(`/api/favorites?telegram_id=${user?.id}`);
     const data = await res.json();
     setFavorites(data.products || []);
+  };
+
+  const fetchAddresses = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/addresses?telegram_id=${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAddresses(data.addresses || []);
+      }
+    } catch (err) {
+      console.error('Error fetching addresses:', err);
+    }
   };
 
   const removeFavorite = async (productId: string) => {
@@ -116,6 +142,86 @@ export default function ProfilePage() {
       });
     }
     router.push('/cart');
+  };
+
+  const handleAddAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddressError('');
+
+    if (formAddress.trim().length < 10) {
+      setAddressError('Адрес должен быть не менее 10 символов');
+      return;
+    }
+
+    setSavingAddress(true);
+
+    try {
+      const method = editingAddressId ? 'PUT' : 'POST';
+      const url = editingAddressId
+        ? `/api/addresses/${editingAddressId}`
+        : '/api/addresses';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_id: user?.id,
+          address: formAddress.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        resetAddressForm();
+        fetchAddresses();
+      } else {
+        const data = await res.json();
+        setAddressError(data.error || 'Ошибка сохранения');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      setAddressError('Ошибка сохранения адреса');
+    }
+
+    setSavingAddress(false);
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!confirm('Удалить этот адрес?')) return;
+
+    try {
+      const res = await fetch(`/api/addresses/${addressId}`, {
+        method: 'DELETE',
+        headers: { 'X-Telegram-Id': String(user?.id) },
+      });
+
+      if (res.ok) {
+        fetchAddresses();
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  const handleSetDefaultAddress = async (addressId: string) => {
+    try {
+      const res = await fetch(`/api/addresses/${addressId}/default`, {
+        method: 'PUT',
+        headers: { 'X-Telegram-Id': String(user?.id) },
+      });
+
+      if (res.ok) {
+        fetchAddresses();
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  const resetAddressForm = () => {
+    setFormAddress('');
+    setEditingAddressId(null);
+    setShowAddressForm(false);
+    setAddressError('');
   };
 
   const referralLink = profile?.referral_code
@@ -167,6 +273,7 @@ export default function ProfilePage() {
         {([
           { key: 'orders', label: 'Заказы' },
           { key: 'favorites', label: 'Избранное' },
+          { key: 'addresses', label: 'Мои адреса' },
           { key: 'referral', label: 'Рефералы' },
           { key: 'settings', label: 'Настройки' },
         ] as const).map((tab) => (
@@ -279,6 +386,103 @@ export default function ProfilePage() {
           </div>
         )}
 
+        {/* Addresses */}
+        {activeTab === 'addresses' && (
+          <div className="space-y-3">
+            <button
+              onClick={() => setShowAddressForm(true)}
+              className="w-full bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium hover:shadow-neon transition-all mb-4"
+            >
+              + Добавить адрес
+            </button>
+
+            {showAddressForm && (
+              <div className="bg-cardBg border border-neon/30 rounded-2xl p-4 mb-4">
+                <h3 className="font-semibold text-textPrimary mb-3">
+                  {editingAddressId ? 'Редактировать адрес' : 'Добавить новый адрес'}
+                </h3>
+                <form onSubmit={handleAddAddress} className="space-y-3">
+                  <textarea
+                    value={formAddress}
+                    onChange={(e) => setFormAddress(e.target.value)}
+                    placeholder="Улица, дом, квартира, город"
+                    className="w-full bg-bgDark border border-border rounded-xl px-4 py-3 text-textPrimary placeholder-textSecondary focus:outline-none focus:border-neon resize-none"
+                    rows={3}
+                    required
+                  />
+                  {addressError && (
+                    <p className="text-danger text-xs px-2">{addressError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={resetAddressForm}
+                      className="flex-1 px-4 py-2 rounded-xl border border-border text-textSecondary hover:border-neon hover:text-textPrimary transition-colors"
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingAddress}
+                      className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-[#7c3aed] to-neon text-white font-medium hover:shadow-neon transition-all disabled:opacity-50"
+                    >
+                      {savingAddress ? 'Сохранение...' : 'Сохранить'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {addresses.length === 0 ? (
+              <div className="text-center py-12 text-textSecondary">
+                <svg className="w-16 h-16 mx-auto mb-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+                <p>Адреса не добавлены</p>
+              </div>
+            ) : (
+              addresses.map((addr) => (
+                <div key={addr.id} className="bg-cardBg border border-border rounded-2xl p-4 flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-textPrimary font-medium">{addr.address}</p>
+                      {addr.is_default && (
+                        <span className="bg-neon/20 text-neon text-xs px-2 py-1 rounded-full">⭐ Основной</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-2">
+                    {!addr.is_default && (
+                      <button
+                        onClick={() => handleSetDefaultAddress(addr.id)}
+                        className="text-sm px-2 py-1 rounded-lg bg-bgDark border border-border text-textSecondary hover:border-neon hover:text-neon transition-colors"
+                      >
+                        По умолчанию
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        setFormAddress(addr.address);
+                        setEditingAddressId(addr.id);
+                        setShowAddressForm(true);
+                      }}
+                      className="text-sm px-2 py-1 rounded-lg bg-bgDark border border-border text-textSecondary hover:border-neon hover:text-neon transition-colors"
+                    >
+                      Редактировать
+                    </button>
+                    <button
+                      onClick={() => handleDeleteAddress(addr.id)}
+                      className="text-sm px-2 py-1 rounded-lg bg-danger/10 border border-danger/30 text-danger hover:bg-danger/20 transition-colors"
+                    >
+                      Удалить
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
         {/* Referral */}
         {activeTab === 'referral' && (
           <div className="space-y-4">
@@ -321,15 +525,15 @@ export default function ProfilePage() {
         {/* Settings */}
         {activeTab === 'settings' && (
           <div className="space-y-3">
-            <Link
-              href="/profile"
-              className="block bg-cardBg border border-border rounded-2xl p-4 flex items-center justify-between hover:border-neon transition-colors"
+            <button
+              onClick={() => setActiveTab('addresses')}
+              className="w-full bg-cardBg border border-border rounded-2xl p-4 flex items-center justify-between hover:border-neon transition-colors text-left"
             >
               <span className="text-textPrimary">Мои адреса</span>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-textSecondary">
                 <path d="M9 18l6-6-6-6" />
               </svg>
-            </Link>
+            </button>
             <button className="w-full bg-cardBg border border-border rounded-2xl p-4 flex items-center justify-between hover:border-neon transition-colors text-left">
               <span className="text-textPrimary">Уведомления</span>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-textSecondary">
