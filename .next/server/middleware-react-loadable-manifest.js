@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST='{"pages\\\\admin\\\\pages\\\\edit\\\\[slug].tsx -> react-quill":{"id":1167,"files":["static/chunks/a1ffd009.24bfebc81326c92f.js","static/chunks/156.dee9104bbe2a648e.js"]}}';
