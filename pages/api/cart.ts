@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json({ items });
     } catch (err) {
-      res.status(200).json({ items: [] });
+      res.status(500).json({ error: 'Ошибка загрузки корзины' });
     }
   } else if (method === 'POST') {
     try {
@@ -121,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { telegram_id, product_id } = req.query;
 
       // Проверяем принадлежность
-      if (telegram_id && parseInt(telegram_id as string) !== currentTelegramId) {
+      if (telegram_id && Number(telegram_id) !== currentTelegramId) {
         return res.status(403).json({ error: 'Forbidden' });
       }
 

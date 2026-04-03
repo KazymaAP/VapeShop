@@ -268,7 +268,30 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Tabs */}
+      {/* Quick Actions */}
+      <div className="px-4 py-4 grid grid-cols-3 gap-2">
+        <button
+          onClick={() => setActiveTab('orders')}
+          className="bg-cardBg border border-border rounded-xl py-3 text-center text-xs font-medium text-textPrimary hover:border-neon transition-colors"
+        >
+          <span className="block text-lg mb-1">📋</span>
+          Заказы
+        </button>
+        <button
+          onClick={() => setActiveTab('favorites')}
+          className="bg-cardBg border border-border rounded-xl py-3 text-center text-xs font-medium text-textPrimary hover:border-neon transition-colors"
+        >
+          <span className="block text-lg mb-1">❤️</span>
+          Избранное ({favorites.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('addresses')}
+          className="bg-cardBg border border-border rounded-xl py-3 text-center text-xs font-medium text-textPrimary hover:border-neon transition-colors"
+        >
+          <span className="block text-lg mb-1">📍</span>
+          Адреса ({addresses.length})
+        </button>
+      </div>
       <div className="flex border-b border-border overflow-x-auto">
         {([
           { key: 'orders', label: 'Заказы' },

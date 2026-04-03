@@ -84,22 +84,64 @@ export default function Home() {
     setCartCount(count);
   };
 
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPage(1);
+    fetchProducts();
+  };
+
   useEffect(() => {
+    // Восстанавливаем фильтры из localStorage
+    if (typeof window !== 'undefined') {
+      const savedFilters = localStorage.getItem('catalogFilters');
+      if (savedFilters) {
+        try {
+          const filters = JSON.parse(savedFilters);
+          setSelectedCategory(filters.category || '');
+          setSelectedBrand(filters.brand || '');
+          setSortBy(filters.sortBy || 'created_at');
+          setSortOrder(filters.sortOrder || 'desc');
+          setPriceMin(filters.priceMin || '');
+          setPriceMax(filters.priceMax || '');
+        } catch (err) {
+          console.error('Ошибка восстановления фильтров:', err);
+        }
+      }
+    }
     fetchFilters();
   }, []);
 
   useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (search) {
+        setPage(1);
+        fetchProducts();
+      }
+    }, 300);
+    
+    return () => clearTimeout(debounceTimer);
+  }, [search]);
+
+  useEffect(() => {
     fetchProducts();
+    saveFilters();
   }, [page, sortBy, sortOrder, selectedCategory, selectedBrand]);
 
   useEffect(() => {
     fetchCartCount();
   }, [user]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-    fetchProducts();
+  const saveFilters = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('catalogFilters', JSON.stringify({
+        category: selectedCategory,
+        brand: selectedBrand,
+        sortBy,
+        sortOrder,
+        priceMin,
+        priceMax,
+      }));
+    }
   };
 
   const handleAddToCart = async (productId: string) => {

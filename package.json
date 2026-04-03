@@ -13,14 +13,16 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
     "formidable": "^3.5.1",
     "grammy": "^1.27.0",
     "next": "^14.2.5",
-    "pg": "^8.12.0",
+    "pg": "^8.20.0",
     "quill": "^2.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-quill": "^2.0.0"
+    "react-quill": "^2.0.0",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@types/formidable": "^3.4.5",
@@ -34,5 +36,23 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.0"
-  }
+  },
+  "description": "",
+  "main": "import-csv.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KazymaAP/VapeShop.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/KazymaAP/VapeShop/issues"
+  },
+  "homepage": "https://github.com/KazymaAP/VapeShop#readme"
 }

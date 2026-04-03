@@ -146,8 +146,10 @@ export default function CartPage() {
         return;
       }
     } else if (deliveryMethod === 'courier') {
-      if (address.trim().length < 10) {
-        setDeliveryError('Введите полный адрес (минимум 10 символов)');
+      // Проверка формата адреса - должен быть в формате "Город, Улица, № дома"
+      const addressRegex = /^[а-яёА-ЯЁ\s,№\-\d]{10,}$/;
+      if (!address.trim() || address.trim().length < 10 || !addressRegex.test(address)) {
+        setDeliveryError('Адрес должен содержать: город, улицу, номер дома (минимум 10 символов)');
         hapticError();
         return;
       }

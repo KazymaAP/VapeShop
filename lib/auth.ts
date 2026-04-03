@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
 import crypto from 'crypto';
 
-export type UserRole = 'admin' | 'manager' | 'seller' | 'buyer';
+export type UserRole = 'super_admin' | 'admin' | 'manager' | 'support' | 'courier' | 'seller' | 'customer' | 'buyer';
 
 /**
  * Извлекает telegram_id из запроса
@@ -226,6 +226,48 @@ export function requireAuth(
  */
 export function getTelegramId(req: NextApiRequest): number {
   return (req as any).telegramId || 0;
+}
+
+/**
+ * Проверяет, является ли пользователь super-администратором
+ */
+export async function isSuperAdmin(telegramId: number): Promise<boolean> {
+  return hasRequiredRole(telegramId, ['super_admin']);
+}
+
+/**
+ * Проверяет, является ли пользователь администратором (admin или super_admin)
+ */
+export async function isAdmin(telegramId: number): Promise<boolean> {
+  return hasRequiredRole(telegramId, ['admin', 'super_admin']);
+}
+
+/**
+ * Проверяет, является ли пользователь менеджером
+ */
+export async function isManager(telegramId: number): Promise<boolean> {
+  return hasRequiredRole(telegramId, ['manager']);
+}
+
+/**
+ * Проверяет, является ли пользователь сотрудником поддержки
+ */
+export async function isSupport(telegramId: number): Promise<boolean> {
+  return hasRequiredRole(telegramId, ['support']);
+}
+
+/**
+ * Проверяет, является ли пользователь курьером
+ */
+export async function isCourier(telegramId: number): Promise<boolean> {
+  return hasRequiredRole(telegramId, ['courier']);
+}
+
+/**
+ * Проверяет, является ли пользователь обычным покупателем
+ */
+export async function isCustomer(telegramId: number): Promise<boolean> {
+  return hasRequiredRole(telegramId, ['customer', 'buyer']);
 }
 
 /**

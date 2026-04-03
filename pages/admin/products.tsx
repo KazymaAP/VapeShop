@@ -42,8 +42,12 @@ export default function AdminProducts() {
 
   useEffect(() => {
     if (!user) return;
-    fetchProducts();
-  }, [user]);
+    const debounceTimer = setTimeout(() => {
+      fetchProducts();
+    }, 300);
+    
+    return () => clearTimeout(debounceTimer);
+  }, [user, search]);
 
   const fetchProducts = async () => {
     const params = search ? `?search=${search}` : '';
