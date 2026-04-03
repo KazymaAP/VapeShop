@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../lib/db';
+import { requireAuth } from '../../../lib/auth';
 import { Bot } from 'grammy';
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
@@ -13,7 +14,7 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Отменён',
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const result = await query(
@@ -90,3 +91,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
+
+export default requireAuth(handler, ['admin', 'manager']);

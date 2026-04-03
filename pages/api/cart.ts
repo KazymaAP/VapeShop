@@ -1,8 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../lib/db';
+import { getTelegramIdFromRequest } from '../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
+
+  // Получаем текущего пользователя для проверки принадлежности
+  const currentTelegramId = await getTelegramIdFromRequest(req);
+  if (!currentTelegramId && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   if (method === 'GET') {
     try {
@@ -36,6 +43,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { telegram_id, product_id, quantity } = req.body;
       if (!telegram_id || !product_id) return res.status(400).json({ error: 'Missing fields' });
 
+      // Проверяем принадлежность и валидность quantity
+      if (telegram_id !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      if (!quantity || typeof quantity !== 'number' || quantity <= 0) {
+        return res.status(400).json({ error: 'Invalid quantity' });
+      }
+
       const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [telegram_id]);
 
       if (cartRes.rows.length === 0) {
@@ -68,6 +84,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { telegram_id, product_id, quantity } = req.body;
       if (!telegram_id || !product_id) return res.status(400).json({ error: 'Missing fields' });
 
+      // Проверяем принадлежность и валидность quantity
+      if (telegram_id !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      if (quantity !== undefined && (typeof quantity !== 'number' || quantity < 0)) {
+        return res.status(400).json({ error: 'Invalid quantity' });
+      }
+
       const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [telegram_id]);
       if (cartRes.rows.length === 0) return res.status(404).json({ error: 'Cart not found' });
 
@@ -94,6 +119,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (method === 'DELETE') {
     try {
       const { telegram_id, product_id } = req.query;
+
+      // Проверяем принадлежность
+      if (telegram_id && parseInt(telegram_id as string) !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
 
       if (!product_id) {
         await query('DELETE FROM carts WHERE user_telegram_id = $1', [telegram_id]);

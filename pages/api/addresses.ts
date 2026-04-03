@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../lib/db';
+import { getTelegramIdFromRequest } from '../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Получаем текущего пользователя
+  const currentTelegramId = await getTelegramIdFromRequest(req);
+  if (!currentTelegramId && (req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   if (req.method === 'GET') {
     try {
       const { telegram_id } = req.query;
@@ -39,6 +46,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id } = req.query;
       if (!id) return res.status(400).json({ error: 'id required' });
 
+      // Проверяем принадлежность адреса пользователю
+      const addrRes = await query('SELECT user_telegram_id FROM addresses WHERE id = $1', [id]);
+      if (!addrRes.rows[0] || addrRes.rows[0].user_telegram_id !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
       await query('DELETE FROM addresses WHERE id = $1', [id]);
 
       res.status(200).json({ success: true });
@@ -50,9 +63,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id, is_default } = req.body;
       if (!id) return res.status(400).json({ error: 'id required' });
 
+      // Проверяем принадлежность адреса пользователю
+      const addrRes = await query('SELECT user_telegram_id FROM addresses WHERE id = $1', [id]);
+      if (!addrRes.rows[0] || addrRes.rows[0].user_telegram_id !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
       if (is_default) {
-        const addr = await query('SELECT user_telegram_id FROM addresses WHERE id = $1', [id]);
-        await query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [addr.rows[0]?.user_telegram_id]);
+        await query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [currentTelegramId]);
       }
 
       await query('UPDATE addresses SET is_default = $1 WHERE id = $2', [is_default, id]);

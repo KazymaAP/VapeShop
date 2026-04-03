@@ -96,19 +96,55 @@ export default function ActivationModal({
       return false;
     }
 
-    if (!categoryId && !newCategoryName) {
+    // Валидация категории
+    const catName = newCategoryName?.trim() || '';
+    if (!categoryId && !catName) {
       setError('Выберите категорию или введите новую');
       return false;
     }
-
-    if (!brandId && !newBrandName) {
-      setError('Выберите бренд или введите новый');
+    if (catName && catName.length < 2) {
+      setError('Название категории должно быть минимум 2 символа');
+      return false;
+    }
+    if (catName && catName.length > 100) {
+      setError('Название категории не может быть больше 100 символов');
       return false;
     }
 
-    const validUrls = imageUrls.filter(url => url.trim());
+    // Валидация бренда
+    const brandName = newBrandName?.trim() || '';
+    if (!brandId && !brandName) {
+      setError('Выберите бренд или введите новый');
+      return false;
+    }
+    if (brandName && brandName.length < 2) {
+      setError('Название бренда должно быть минимум 2 символа');
+      return false;
+    }
+    if (brandName && brandName.length > 100) {
+      setError('Название бренда не может быть больше 100 символов');
+      return false;
+    }
+
+    // Валидация изображений
+    const validUrls = imageUrls.filter(url => {
+      try {
+        const trimmed = url.trim();
+        if (!trimmed) return false;
+        new URL(trimmed); // Проверка валидности URL
+        return true;
+      } catch {
+        return false;
+      }
+    });
+
     if (validUrls.length === 0) {
-      setError('Добавьте минимум одно изображение');
+      setError('Добавьте минимум одно корректное изображение (валидный URL)');
+      return false;
+    }
+
+    if (validUrls.length > 10) {
+      setError('Максимум 10 изображений');
       return false;
     }
 

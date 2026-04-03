@@ -38,11 +38,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await query('DELETE FROM carts WHERE user_telegram_id = $1', [telegram_id]);
 
     const invoicePayload = order.id;
+    const botId = process.env.TELEGRAM_BOT_ID || process.env.TELEGRAM_BOT_TOKEN!.split(':')[0];
     const invoiceUrl = await bot.api.createInvoiceLink(
       `Заказ #${order.id.slice(0, 8)}`,
       `Оплата заказа в VapeShop`,
       invoicePayload,
-      process.env.TELEGRAM_BOT_TOKEN!.split(':')[0],
+      botId,
       'XTR',
       [{ label: 'Итого', amount: Math.round(total) }]
     );

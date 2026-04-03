@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../lib/db';
+import { getTelegramIdFromRequest } from '../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Получаем текущего пользователя для проверки принадлежности
+  const currentTelegramId = await getTelegramIdFromRequest(req);
+  if (!currentTelegramId && (req.method === 'POST' || req.method === 'DELETE')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   if (req.method === 'GET') {
     try {
       const { telegram_id } = req.query;
@@ -27,6 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { telegram_id, product_id } = req.body;
       if (!telegram_id || !product_id) return res.status(400).json({ error: 'Missing fields' });
 
+      // Проверяем принадлежность
+      if (telegram_id !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
       await query(
         `INSERT INTO wishlist (user_telegram_id, product_id) VALUES ($1, $2)
          ON CONFLICT DO NOTHING`,
@@ -41,6 +53,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { telegram_id, product_id } = req.query;
       if (!telegram_id || !product_id) return res.status(400).json({ error: 'Missing fields' });
+
+      // Проверяем принадлежность
+      if (parseInt(telegram_id as string) !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
 
       await query('DELETE FROM wishlist WHERE user_telegram_id = $1 AND product_id = $2', [telegram_id, product_id]);
 

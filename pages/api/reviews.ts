@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../lib/db';
+import { getTelegramIdFromRequest } from '../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Получаем текущего пользователя для проверки принадлежности
+  const currentTelegramId = await getTelegramIdFromRequest(req);
+  if (!currentTelegramId && (req.method === 'POST' || req.method === 'DELETE')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   if (req.method === 'GET') {
     try {
       const { product_id } = req.query;
@@ -27,6 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Missing fields' });
       }
 
+      // Проверяем принадлежность - пользователь не может оставить отзыв от имени другого
+      if (user_telegram_id !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
       const result = await query(
         `INSERT INTO reviews (product_id, user_telegram_id, comment) VALUES ($1, $2, $3) RETURNING *`,
         [product_id, user_telegram_id, comment]
@@ -40,6 +52,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { id } = req.query;
       if (!id) return res.status(400).json({ error: 'id required' });
+
+      // Проверяем принадлежность - пользователь может удалить только свой отзыв
+      const reviewRes = await query('SELECT user_telegram_id FROM reviews WHERE id = $1', [id]);
+      if (!reviewRes.rows[0] || reviewRes.rows[0].user_telegram_id !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
 
       await query('DELETE FROM reviews WHERE id = $1', [id]);
 
