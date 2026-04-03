@@ -1,20 +1,14 @@
 import { Pool } from 'pg';
 
-const pool = new Pool({
-  connectionString: process.env.NEON_DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: true }
-    : { rejectUnauthorized: false },
-});
+const connectionString = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL;
 
-export async function query(text: string, params?: unknown[]) {
-  const client = await pool.connect();
-  try {
-    const res = await client.query(text, params);
-    return res;
-  } finally {
-    client.release();
-  }
+if (!connectionString) {
+  throw new Error('DATABASE_URL or NEON_DATABASE_URL is not defined');
 }
 
-export default pool;
+const pool = new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: false }, // обязательно для Neon
+});
+
+export const query = (text: string, params?: any[]) => pool.query(text, params);
