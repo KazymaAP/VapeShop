@@ -32,6 +32,9 @@ export default function ComparePage() {
       const products = await Promise.all(
         ids.map(async (id: string) => {
           const res = await fetch(`/api/products/${id}`);
+          if (!res.ok) {
+            throw new Error(`API Error: ${res.status}`);
+          }
           return res.json();
         })
       );

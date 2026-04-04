@@ -83,6 +83,9 @@ export default function CartPage() {
   const fetchCart = async () => {
     if (!user) return;
     const res = await fetch(`/api/cart?telegram_id=${user.id}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setItems(data.items || []);
     setLoading(false);
@@ -251,7 +254,7 @@ export default function CartPage() {
     <div className="min-h-screen bg-bgDark pb-32">
       <div className="sticky top-0 z-30 bg-bgDark/90 backdrop-blur-md border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="text-textSecondary hover:text-neon">
+          <button onClick={() => router.back()} className="text-textSecondary hover:text-neon" aria-label="Вернуться назад">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
@@ -262,7 +265,7 @@ export default function CartPage() {
 
       <div className="px-4 py-4 space-y-3">
         {items.map((item) => (
-          <div key={item.product_id} className="bg-cardBg border border-border rounded-2xl p-4 flex gap-4">
+          <div key={item.product_id} className="bg-cardBg border border-border rounded-2xl p-4 flex gap-4" role="listitem" aria-label={`Товар ${item.name}, количество ${item.quantity}, цена ${item.price.toLocaleString('ru-RU')} ₽`}>
             <div className="w-20 h-20 bg-gradient-to-br from-[#1f1f2a] to-[#131318] rounded-xl flex items-center justify-center flex-shrink-0">
               {item.image ? (
                 <img src={item.image} alt={item.name} className="w-full h-full object-contain rounded-xl" />
@@ -280,13 +283,15 @@ export default function CartPage() {
                   <button
                     onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
                     className="w-8 h-8 rounded-full bg-bgDark border border-border flex items-center justify-center text-textPrimary hover:border-neon"
+                    aria-label={`Уменьшить количество ${item.name}`}
                   >
                     −
                   </button>
-                  <span className="text-textPrimary font-semibold w-6 text-center">{item.quantity}</span>
+                  <span className="text-textPrimary font-semibold w-6 text-center" aria-label={`Количество: ${item.quantity}`}>{item.quantity}</span>
                   <button
                     onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                     className="w-8 h-8 rounded-full bg-bgDark border border-border flex items-center justify-center text-textPrimary hover:border-neon"
+                    aria-label={`Увеличить количество ${item.name}`}
                   >
                     +
                   </button>
@@ -294,6 +299,7 @@ export default function CartPage() {
                 <button
                   onClick={() => removeItem(item.product_id)}
                   className="text-danger hover:opacity-80"
+                  aria-label={`Удалить ${item.name} из корзины`}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
@@ -314,10 +320,12 @@ export default function CartPage() {
               onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
               placeholder="Введите промокод"
               className="flex-1 bg-bgDark border border-border rounded-xl px-4 py-2.5 text-sm text-textPrimary placeholder-textSecondary focus:outline-none focus:border-neon"
+              aria-label="Промокод"
             />
             <button
               onClick={applyPromo}
               className="bg-neon text-white rounded-xl px-4 py-2.5 text-sm font-medium ripple"
+              aria-label="Применить промокод"
             >
               Применить
             </button>
@@ -341,6 +349,8 @@ export default function CartPage() {
                   ? 'bg-neon text-white'
                   : 'bg-bgDark border border-border text-textSecondary'
               }`}
+              aria-pressed={deliveryMethod === 'pickup'}
+              aria-label="Самовывоз"
             >
               Самовывоз
             </button>
@@ -354,6 +364,8 @@ export default function CartPage() {
                   ? 'bg-neon text-white'
                   : 'bg-bgDark border border-border text-textSecondary'
               }`}
+              aria-pressed={deliveryMethod === 'courier'}
+              aria-label="Доставка курьером"
             >
               Курьер
             </button>

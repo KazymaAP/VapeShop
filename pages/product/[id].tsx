@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useTelegramWebApp, hapticImpact, hapticSuccess } from '../../lib/telegram';
 
+const DEFAULT_PRODUCT_IMAGE = '/no-image.png';
+
 interface Product {
   id: string;
   name: string;
@@ -44,6 +46,9 @@ export default function ProductPage() {
     if (!id) return;
     const fetchProduct = async () => {
       const res = await fetch(`/api/products/${id}`);
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setProduct(data);
       setLoading(false);
@@ -63,7 +68,10 @@ export default function ProductPage() {
   useEffect(() => {
     if (!id || !user) return;
     fetch(`/api/favorites?telegram_id=${user.id}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`API Error: ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         const favs = data.products || [];
         setIsInFavorites(favs.some((p: { id: string }) => p.id === id));
@@ -73,7 +81,10 @@ export default function ProductPage() {
   useEffect(() => {
     if (!product?.category_id) return;
     fetch(`/api/products?category=${product.category_id}&page=1&sort=created_at&order=desc`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`API Error: ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         const filtered = (data.products || []).filter((p: { id: string }) => p.id !== product.id);
         setAlsoBought(filtered.slice(0, 4));
@@ -83,7 +94,10 @@ export default function ProductPage() {
   useEffect(() => {
     if (!id) return;
     fetch(`/api/reviews?product_id=${id}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`API Error: ${r.status}`);
+        return r.json();
+      })
       .then((data) => setReviews(data.reviews || []));
   }, [id]);
 
@@ -95,7 +109,12 @@ export default function ProductPage() {
       body: JSON.stringify({ product_id: product.id, user_telegram_id: user.id, comment: newReview }),
     });
     setNewReview('');
-    fetch(`/api/reviews?product_id=${id}`).then((r) => r.json()).then((data) => setReviews(data.reviews || []));
+    fetch(`/api/reviews?product_id=${id}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`API Error: ${r.status}`);
+        return r.json();
+      })
+      .then((data) => setReviews(data.reviews || []));
     hapticSuccess();
   };
 
@@ -195,11 +214,18 @@ export default function ProductPage() {
               width={400}
               height={400}
               className="object-contain"
+              onError={(e) => {
+                e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
+              }}
             />
           ) : (
-            <svg className="w-1/2 h-1/2 text-neon opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M7 9H5L3 12L5 15H7M17 9H19L21 12L19 15H17M9 6L12 3L15 6L12 9L9 6ZM12 9V21" />
-            </svg>
+            <Image
+              src={DEFAULT_PRODUCT_IMAGE}
+              alt={product.name}
+              width={400}
+              height={400}
+              className="object-contain"
+            />
           )}
           {product.promotion && (
             <span className="absolute top-4 left-4 bg-danger text-white text-sm font-bold px-3 py-1.5 rounded-full">Акция</span>
@@ -223,7 +249,16 @@ export default function ProductPage() {
                   idx === currentImage ? 'border-neon' : 'border-border'
                 }`}
               >
-                <Image src={img} alt="" width={64} height={64} className="object-cover w-full h-full" />
+                <Image 
+                  src={img} 
+                  alt="" 
+                  width={64} 
+                  height={64} 
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
+                  }}
+                />
               </button>
             ))}
           </div>
@@ -315,11 +350,24 @@ export default function ProductPage() {
                 <Link key={p.id} href={`/product/${p.id}`} className="bg-cardBg border border-border rounded-2xl overflow-hidden hover:border-neon transition-colors">
                   <div className="aspect-square bg-gradient-to-br from-[#1f1f2a] to-[#131318] flex items-center justify-center">
                     {p.images?.[0] ? (
-                      <Image src={p.images[0]} alt={p.name} width={120} height={120} className="object-contain" />
+                      <Image 
+                        src={p.images[0]} 
+                        alt={p.name} 
+                        width={120} 
+                        height={120} 
+                        className="object-contain"
+                        onError={(e) => {
+                          e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
+                        }}
+                      />
                     ) : (
-                      <svg className="w-10 h-10 text-neon opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M7 9H5L3 12L5 15H7M17 9H19L21 12L19 15H17" />
-                      </svg>
+                      <Image 
+                        src={DEFAULT_PRODUCT_IMAGE} 
+                        alt={p.name} 
+                        width={120} 
+                        height={120} 
+                        className="object-contain"
+                      />
                     )}
                   </div>
                   <div className="p-3">

@@ -17,6 +17,9 @@ export default function SuperAdminDashboard() {
     try {
       // Получить последние логи
       const logsRes = await fetch('/api/admin/audit-logs?page=1&limit=5');
+      if (!logsRes.ok) {
+        throw new Error(`API Error: ${logsRes.status}`);
+      }
       const logsData = await logsRes.json();
       setLogs(logsData.data);
       setStats({

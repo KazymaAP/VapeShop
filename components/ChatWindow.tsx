@@ -35,10 +35,11 @@ export default function ChatWindow({ orderId, supportTicketId }: ChatWindowProps
         headers: { 'X-Telegram-Id': user?.id.toString() || '' }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data.data || []);
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
       }
+      const data = await response.json();
+      setMessages(data.data || []);
     } catch (err) {
       console.error('Failed to load messages:', err);
     } finally {
@@ -63,10 +64,11 @@ export default function ChatWindow({ orderId, supportTicketId }: ChatWindowProps
         body: JSON.stringify({ text: input })
       });
 
-      if (response.ok) {
-        setInput('');
-        loadMessages();
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
       }
+      setInput('');
+      loadMessages();
     } catch (err) {
       console.error('Failed to send message:', err);
     }
@@ -107,10 +109,12 @@ export default function ChatWindow({ orderId, supportTicketId }: ChatWindowProps
           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
           placeholder="Введите сообщение..."
           className="flex-1 px-3 py-2 bg-bgDark border border-border rounded text-textPrimary placeholder-textSecondary"
+          aria-label="Введите сообщение"
         />
         <button
           onClick={handleSendMessage}
           className="px-4 py-2 bg-neon text-white rounded hover:bg-opacity-90"
+          aria-label="Отправить сообщение"
         >
           Отправить
         </button>

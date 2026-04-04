@@ -15,6 +15,9 @@ export default function RolesManager() {
   const fetchRoles = async () => {
     try {
       const res = await fetch('/api/admin/rbac');
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setRoles(data.data);
     } catch (err) {
@@ -32,11 +35,12 @@ export default function RolesManager() {
         body: JSON.stringify(formData)
       });
       
-      if (res.ok) {
-        setFormData({ name: '', description: '', permissions: [] });
-        setShowForm(false);
-        fetchRoles();
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
       }
+      setFormData({ name: '', description: '', permissions: [] });
+      setShowForm(false);
+      fetchRoles();
     } catch (err) {
       console.error('Error creating role:', err);
     }

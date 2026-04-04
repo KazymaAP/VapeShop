@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
-import { requireAuth, getTelegramId } from '../../../lib/auth';
+import { query } from '@/lib/db';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
 /**
  * PUT/DELETE - обновление/удаление одного промокода

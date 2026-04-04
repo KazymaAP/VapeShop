@@ -63,6 +63,9 @@ export default function AdminOrders() {
     let url = '/api/admin/orders';
     if (status) url += `?status=${status}`;
     const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setOrders(data.orders || []);
     setLoading(false);
@@ -128,6 +131,7 @@ export default function AdminOrders() {
           <button
             onClick={exportCsv}
             className="bg-cardBg border border-border rounded-xl px-4 py-2 text-sm text-textSecondary hover:border-neon transition-colors"
+            aria-label="Экспортировать заказы в CSV формат"
           >
             Экспорт CSV
           </button>
@@ -163,9 +167,9 @@ export default function AdminOrders() {
           </div>
         ) : (
           <div className="bg-cardBg border border-border rounded-2xl overflow-x-auto">
-            <table className="w-full min-w-[700px]">
+            <table className="w-full min-w-[700px]" role="table">
               <thead>
-                <tr className="border-b border-border">
+                <tr className="border-b border-border" role="row">
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">ID</th>
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Клиент</th>
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Дата</th>
@@ -176,7 +180,7 @@ export default function AdminOrders() {
               </thead>
               <tbody>
                 {filtered.map((order) => (
-                  <tr key={order.id} className="border-b border-border/50 hover:bg-bgDark/50">
+                  <tr key={order.id} className="border-b border-border/50 hover:bg-bgDark/50" role="row">
                     <td className="p-4 text-textPrimary font-mono text-sm">#{order.id.slice(0, 8)}</td>
                     <td className="p-4 text-textPrimary">{order.user_name || order.user_telegram_id}</td>
                     <td className="p-4 text-textSecondary text-sm">{new Date(order.created_at).toLocaleDateString('ru-RU')}</td>
@@ -191,6 +195,7 @@ export default function AdminOrders() {
                         <button
                           onClick={() => openOrderDetails(order)}
                           className="bg-cardBg border border-border rounded-lg px-2 py-1 text-xs text-textSecondary hover:border-neon transition-colors"
+                          aria-label={`Просмотреть детали заказа ${order.id.slice(0, 8)}`}
                         >
                           Подробнее
                         </button>
@@ -204,7 +209,7 @@ export default function AdminOrders() {
                                     key={s}
                                     onClick={() => updateStatus(order.id, s)}
                                     className="bg-neon/20 text-neon rounded-lg px-2 py-1 text-xs hover:bg-neon/30 transition-colors"
-                                    title={statusLabels[s]}
+                                    aria-label={`Изменить статус заказа ${order.id.slice(0, 8)} на ${statusLabels[s]}`}
                                   >
                                     → {statusLabels[s]}
                                   </button>
@@ -215,6 +220,7 @@ export default function AdminOrders() {
                             <button
                               onClick={() => updateStatus(order.id, 'cancelled')}
                               className="bg-danger/20 text-danger rounded-lg px-2 py-1 text-xs hover:bg-danger/30 transition-colors"
+                              aria-label={`Отменить заказ ${order.id.slice(0, 8)}`}
                             >
                               ✕
                             </button>
@@ -231,12 +237,12 @@ export default function AdminOrders() {
 
         {/* Order Details Modal */}
         {selectedOrder && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)}>
-            <div className="bg-cardBg border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)} role="presentation">
+            <div className="bg-cardBg border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="order-dialog-title">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold gradient-text">Заказ #{selectedOrder.id.slice(0, 8)}</h2>
-                  <button onClick={() => setSelectedOrder(null)} className="text-textSecondary hover:text-textPrimary">✕</button>
+                  <h2 className="text-xl font-bold gradient-text" id="order-dialog-title">Заказ #{selectedOrder.id.slice(0, 8)}</h2>
+                  <button onClick={() => setSelectedOrder(null)} className="text-textSecondary hover:text-textPrimary" aria-label="Закрыть модальное окно">✕</button>
                 </div>
 
                 <div className="space-y-4">
@@ -308,6 +314,7 @@ export default function AdminOrders() {
                     <button
                       onClick={saveManagerNote}
                       className="mt-2 bg-neon text-white rounded-full px-4 py-2 text-sm font-medium ripple"
+                      aria-label="Сохранить заметку менеджера"
                     >
                       Сохранить
                     </button>

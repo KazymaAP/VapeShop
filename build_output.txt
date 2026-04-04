@@ -1,0 +1,22 @@
+
+> vape-shop-mini-app@1.0.0 build
+> next build
+
+  тЦ▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Linting and checking validity of types ...
+Failed to compile.
+
+./lib/useFetch.ts:34:52
+Type error: This expression is not callable.
+  Type 'never' has no call signatures.
+
+  32 |     try {
+  33 |       const mergedOptions = { ...options, ...opts };
+> 34 |       const fetchUrl = typeof url === 'function' ? url() : url;
+     |                                                    ^
+  35 |
+  36 |       const response = await window.fetch(fetchUrl, {
+  37 |         method: mergedOptions.method || 'GET',
+Next.js build worker exited with code: 1 and signal: null

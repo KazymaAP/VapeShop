@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
-import { requireAuth } from '../../../lib/auth';
+import { query } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -49,3 +49,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['customer']);
+

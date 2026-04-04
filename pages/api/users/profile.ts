@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
+import { query } from '@/lib/db';
+import { getTelegramIdFromRequest } from '@/lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -7,20 +8,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { telegram_id } = req.query;
+    // ⚠️ КРИТИЧНО: используем текущего пользователя, игнорируем telegram_id из query
+    const currentTelegramId = await getTelegramIdFromRequest(req);
 
-    if (!telegram_id) {
-      return res.status(400).json({ error: 'telegram_id required' });
+    if (!currentTelegramId) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const result = await query('SELECT * FROM users WHERE telegram_id = $1', [telegram_id]);
+    const result = await query('SELECT * FROM users WHERE telegram_id = $1', [currentTelegramId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.status(200).json(result.rows[0]);
+    // Не возвращаем чувствительные данные
+    const user = result.rows[0];
+    const safeUser = {
+      telegram_id: user.telegram_id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      username: user.username,
+      role: user.role,
+      is_blocked: user.is_blocked,
+      created_at: user.created_at,
+    };
+
+    res.status(200).json(safeUser);
   } catch (err) {
+    console.error('Get profile error:', err);
     res.status(500).json({ error: 'Ошибка загрузки профиля' });
   }
 }
+

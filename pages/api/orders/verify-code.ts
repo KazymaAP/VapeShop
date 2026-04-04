@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
+import { query } from '@/lib/db';
 
 /**
  * API для проверки 6-значного кода доставки
@@ -104,3 +104,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
+

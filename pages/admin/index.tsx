@@ -38,6 +38,9 @@ export default function AdminDashboard() {
 
   const fetchProfile = async () => {
     const res = await fetch(`/api/users/profile?telegram_id=${user?.id}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setProfile(data);
   };
@@ -45,6 +48,9 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const res = await fetch('/api/admin/stats');
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setStats(data);
     } catch {

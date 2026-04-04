@@ -25,15 +25,16 @@ export default function ExportOrders() {
 
       const res = await fetch(`/api/admin/orders/export?${params}`);
       
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `orders.${format === 'csv' ? 'csv' : 'xlsx'}`;
-        a.click();
-        window.URL.revokeObjectURL(url);
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
       }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders.${format === 'csv' ? 'csv' : 'xlsx'}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Export error:', err);
       alert('Export failed');

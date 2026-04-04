@@ -26,6 +26,9 @@ export default function FaqPage() {
   const fetchFaq = async () => {
     try {
       const res = await fetch('/api/faq');
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setFaq(data.faq || []);
     } catch {

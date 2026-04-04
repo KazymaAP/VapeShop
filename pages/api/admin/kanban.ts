@@ -1,0 +1,71 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import { query } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const userId = req.headers['x-telegram-id'] as string;
+
+  if (req.method === 'GET') {
+    try {
+      // Оптимизация: один запрос вместо 6, затем группируем в памяти
+      const result = await query(
+        `SELECT 
+          o.id, 
+          o.order_number, 
+          o.total, 
+          o.status, 
+          o.created_at,
+          u.first_name, 
+          u.phone,
+          json_agg(
+            json_build_object('name', oi.product_id, 'qty', oi.quantity)
+          ) FILTER (WHERE oi.id IS NOT NULL) as items
+         FROM orders o
+         LEFT JOIN order_items oi ON o.id = oi.order_id
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE (o.manager_id = $1 OR $1::bigint IS NULL)
+         GROUP BY o.id, o.order_number, o.total, o.status, o.created_at, u.first_name, u.phone
+         ORDER BY o.status ASC, o.created_at DESC`,
+        [userId]
+      );
+
+      // Группируем по статусам в памяти приложения
+      const statuses = ['pending', 'confirmed', 'in_progress', 'ready_for_pickup', 'on_delivery', 'completed'];
+      const orders: Record<string, any[]> = {};
+      
+      statuses.forEach(status => {
+        orders[status] = [];
+      });
+
+      result.rows.forEach((order) => {
+        const status = order.status || 'pending';
+        if (orders[status]) {
+          orders[status].push(order);
+        }
+      });
+
+      res.status(200).json({ data: orders });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Failed to fetch orders' });
+    }
+  } else if (req.method === 'PUT') {
+    const { orderId, newStatus, notes } = req.body;
+
+    try {
+      await query(
+        'UPDATE orders SET status = $1, manager_id = $2, manager_notes = $3, updated_at = NOW() WHERE id = $4',
+        [newStatus, userId, notes || '', orderId]
+      );
+
+      res.status(200).json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to update order' });
+    }
+  } else {
+    res.status(405).json({ error: 'Method not allowed' });
+  }
+}
+
+export default requireAuth(handler, ['manager', 'admin', 'super_admin']);
+

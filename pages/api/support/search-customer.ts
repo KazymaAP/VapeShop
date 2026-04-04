@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { requireAuth } from '../../../lib/auth';
-import { query } from '../../../lib/db';
+import { requireAuth } from '@/lib/auth';
+import { query } from '@/lib/db';
 
 export default requireAuth(async (req, res) => {
   if (req.method === 'GET') {
@@ -47,3 +47,4 @@ export default requireAuth(async (req, res) => {
     res.status(405).json({ error: 'Method not allowed' });
   }
 }, ['support', 'admin']);
+

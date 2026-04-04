@@ -42,6 +42,9 @@ export default function AdminPromocodes() {
   const fetchPromocodes = async () => {
     try {
       const res = await fetch('/api/promocodes');
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setPromocodes(data.promocodes || []);
     } catch {

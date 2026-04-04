@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
+import { query } from '@/lib/db';
 
 interface Page {
   slug: string;

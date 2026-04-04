@@ -57,23 +57,89 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
 }
 
 /**
- * Простой парсер initData от Telegram WebApp
- * На production ОБЯЗАТЕЛЬНО добавить верификацию подписи HMAC-SHA256
+ * Верифицирует подпись HMAC-SHA256 для initData от Telegram WebApp
+ * Это ОБЯЗАТЕЛЬНАЯ защита на production!
  * 
- * Формат initData: user=%7B%22id%22%3A123456789...
+ * Формат initData: user=%7B%22id%22%3A123456789...&hash=abc123...
  * 
- * TODO: Добавить верификацию подписи:
- * const bot_token = process.env.TELEGRAM_BOT_TOKEN;
- * const secret_key = crypto.createHmac('sha256', 'WebAppData').update(bot_token).digest();
- * const data_check_string = Object.entries(data)
- *   .sort()
- *   .map(([k, v]) => `${k}=${v}`)
- *   .join('\n');
- * const hash = crypto.createHmac('sha256', secret_key).update(data_check_string).digest('hex');
- * if (hash !== data.hash) { throw new Error('Invalid signature'); }
+ * Процесс верификации:
+ * 1. Получить secret_key из bot token (HMAC-SHA256 с ключом 'WebAppData')
+ * 2. Собрать data_check_string из всех параметров кроме 'hash'
+ * 3. Вычислить hash (HMAC-SHA256 с secret_key)
+ * 4. Сравнить с полученным hash
+ */
+function verifyTelegramInitData(initData: string): boolean {
+  try {
+    const bot_token = process.env.TELEGRAM_BOT_TOKEN;
+    
+    if (!bot_token) {
+      console.error('TELEGRAM_BOT_TOKEN not found in environment');
+      return false;
+    }
+
+    // Парсим параметры
+    const params = new URLSearchParams(initData);
+    const hash = params.get('hash');
+    
+    if (!hash) {
+      console.error('No hash found in initData');
+      return false;
+    }
+
+    // Создаём secret_key: HMAC-SHA256 от bot_token с ключом 'WebAppData'
+    const secret_key = crypto
+      .createHmac('sha256', 'WebAppData')
+      .update(bot_token)
+      .digest();
+
+    // Собираем data_check_string из параметров (кроме hash), отсортированные
+    const data_check_array: string[] = [];
+    params.forEach((value, key) => {
+      if (key !== 'hash') {
+        data_check_array.push(`${key}=${value}`);
+      }
+    });
+    data_check_array.sort();
+    const data_check_string = data_check_array.join('\n');
+
+    // Вычисляем ожидаемый hash
+    const computed_hash = crypto
+      .createHmac('sha256', secret_key)
+      .update(data_check_string)
+      .digest('hex');
+
+    // Сравниваем (используем timing-safe сравнение для защиты от timing attacks)
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(computed_hash, 'hex'),
+      Buffer.from(hash, 'hex')
+    );
+
+    if (!isValid) {
+      console.warn('Invalid initData signature. Computed:', computed_hash, 'Received:', hash);
+    }
+
+    return isValid;
+  } catch (err) {
+    console.error('verifyTelegramInitData error:', err);
+    return false;
+  }
+}
+
+/**
+ * Парсер initData от Telegram WebApp с верификацией подписи
+ * 
+ * Формат initData: user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22John%22%7D&chat_instance=...&hash=...
+ * 
+ * Возвращает распарсенные данные пользователя или null если подпись невалидна
  */
 function parseInitData(initData: string): { id: number } | null {
   try {
+    // Сначала проверяем подпись
+    if (!verifyTelegramInitData(initData)) {
+      console.error('initData verification failed');
+      return null;
+    }
+
     // initData приходит в формате URL-encoded строки
     // Пример: user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22John%22%7D&chat_instance=...
     

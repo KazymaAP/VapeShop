@@ -56,15 +56,18 @@ export default function DeliverySelector({
         fetch('/api/addresses'),
       ]);
 
-      if (pickupRes.ok) {
-        const pickupData = await pickupRes.json();
-        setPickupPoints(pickupData.pickup_points || []);
+      if (!pickupRes.ok) {
+        throw new Error(`API Error (pickup): ${pickupRes.status}`);
+      }
+      if (!addressesRes.ok) {
+        throw new Error(`API Error (addresses): ${addressesRes.status}`);
       }
 
-      if (addressesRes.ok) {
-        const addressesData = await addressesRes.json();
-        setSavedAddresses(addressesData.addresses || []);
-      }
+      const pickupData = await pickupRes.json();
+      setPickupPoints(pickupData.pickup_points || []);
+
+      const addressesData = await addressesRes.json();
+      setSavedAddresses(addressesData.addresses || []);
     } catch (err) {
       console.error('Error fetching delivery options:', err);
     }

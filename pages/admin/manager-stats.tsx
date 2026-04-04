@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../../lib/telegram';
+import { useTelegramWebApp } from '../../lib/telegram';
 
 interface ManagerStats {
   name: string;

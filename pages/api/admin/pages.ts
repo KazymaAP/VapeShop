@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
-import { requireAuth, getTelegramId } from '../../../lib/auth';
+import { query } from '@/lib/db';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
 interface Page {
   slug: string;
@@ -52,4 +52,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin']);
+
 

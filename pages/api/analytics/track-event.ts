@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
+import { query } from '@/lib/db';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -21,3 +21,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default handler;
+

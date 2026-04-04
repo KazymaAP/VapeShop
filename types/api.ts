@@ -3,6 +3,34 @@
  * Единая типизация для всех API ответов
  */
 
+// Общий формат API ответа (успех)
+export interface ApiResponse<T = any> {
+  success: true;
+  data: T;
+  message?: string;
+  timestamp: number;
+}
+
+// Общий формат API ответа (ошибка)
+export interface ApiError {
+  success: false;
+  error: string;
+  details?: Record<string, string | string[]>;
+  code?: string;
+  timestamp: number;
+}
+
+export type ApiResult<T = any> = ApiResponse<T> | ApiError;
+
+// Пагинированный ответ
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 // Продукт
 export interface ProductResponse {
   id: string;
@@ -20,13 +48,14 @@ export interface ProductResponse {
   reviews_count: number;
   created_at: string;
   updated_at: string;
+  is_active?: boolean;
 }
 
 // Заказ
 export interface OrderResponse {
   id: string;
   user_telegram_id: number;
-  status: 'new' | 'confirmed' | 'readyship' | 'shipped' | 'done' | 'cancelled';
+  status: 'new' | 'confirmed' | 'readyship' | 'shipped' | 'done' | 'cancelled' | 'pending' | 'processing' | 'delivered';
   total: number;
   delivery_method: 'pickup' | 'courier';
   delivery_date: string;
@@ -37,6 +66,8 @@ export interface OrderResponse {
   updated_at: string;
   items?: OrderItemResponse[];
   history?: OrderHistoryResponse[];
+  paid_at?: string | null;
+  code_6digit?: string | null;
 }
 
 export interface OrderItemResponse {
@@ -118,8 +149,13 @@ export interface AddressResponse {
   id: string;
   user_telegram_id: number;
   address: string;
+  street?: string;
+  city?: string;
+  postal_code?: string;
+  phone?: string;
   is_default: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 // Отзыв
@@ -130,18 +166,19 @@ export interface ReviewResponse {
   comment: string;
   rating?: number;
   created_at: string;
+  updated_at?: string;
   user_name?: string;
   user_avatar?: string;
 }
 
-// Общий формат API ошибки
+// Общий формат API ошибки (совместимость)
 export interface ApiErrorResponse {
   error: string;
   timestamp: string;
   details?: Record<string, unknown>;
 }
 
-// Общий формат API успеха
+// Общий формат API успеха (совместимость)
 export interface ApiSuccessResponse<T> {
   success: true;
   data: T;
@@ -173,10 +210,36 @@ export interface UserPublicResponse {
   last_name?: string;
   username?: string;
   avatar?: string;
-  role: 'admin' | 'manager' | 'seller' | 'buyer';
+  role: 'admin' | 'manager' | 'seller' | 'buyer' | 'customer' | 'support' | 'courier' | 'super_admin';
+  is_blocked?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
-// Statuses
-export type OrderStatus = 'new' | 'confirmed' | 'readyship' | 'shipped' | 'done' | 'cancelled';
+// Статистика
+export interface StatisticsResponse {
+  total_orders: number;
+  total_revenue: number;
+  total_users: number;
+  average_order_value: number;
+  orders_this_month: number;
+  revenue_this_month: number;
+  top_products: Array<{ name: string; quantity: number }>;
+  orders_by_status: Record<string, number>;
+}
+
+// Статус импорта
+export interface ImportStatusResponse {
+  total_rows: number;
+  imported: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  error_details?: Array<{ row: number; error: string }>;
+}
+
+// Статусы
+export type OrderStatus = 'new' | 'confirmed' | 'readyship' | 'shipped' | 'done' | 'cancelled' | 'pending' | 'processing' | 'delivered';
 export type DiscountType = 'percent' | 'fixed';
-export type DeliveryMethod = 'pickup' | 'courier';
+export type DeliveryMethod = 'pickup' | 'courier' | 'self_pickup' | 'locker';
+export type UserRole = 'admin' | 'manager' | 'seller' | 'buyer' | 'customer' | 'support' | 'courier' | 'super_admin';

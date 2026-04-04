@@ -21,6 +21,9 @@ export default function AuditLogs() {
       if (filters.user_id) params.append('user_id', filters.user_id);
 
       const res = await fetch(`/api/admin/audit-logs?${params}`);
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setLogs(data.data);
     } catch (err) {

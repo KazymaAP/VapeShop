@@ -52,6 +52,9 @@ export default function AdminProducts() {
   const fetchProducts = async () => {
     const params = search ? `?search=${search}` : '';
     const res = await fetch(`/api/admin/products${params}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setProducts(data.products || []);
     setLoading(false);

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../lib/db';
+import { query } from '@/lib/db';
 
 interface Category {
   id: string;
@@ -34,3 +34,4 @@ export default async function handler(
     res.status(500).json({ error: 'Ошибка при загрузке категорий' });
   }
 }
+

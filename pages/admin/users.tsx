@@ -29,6 +29,9 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     const res = await fetch(`/api/admin/users?search=${search}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setUsers(data.users || []);
     setLoading(false);

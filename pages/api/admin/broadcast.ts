@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
-import { requireAuth } from '../../../lib/auth';
+import { query } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 import { Bot } from 'grammy';
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
@@ -51,3 +51,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin']);
+

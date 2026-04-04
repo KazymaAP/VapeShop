@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
-import { requireAuth, getTelegramId } from '../../../lib/auth';
+import { query } from '@/lib/db';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
 interface ActivateProductRequest {
   price_import_ids: string[];
@@ -499,3 +499,4 @@ async function handler(
 }
 
 export default requireAuth(handler, ['admin']);
+

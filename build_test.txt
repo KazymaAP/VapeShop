@@ -1,0 +1,21 @@
+
+> vape-shop-mini-app@1.0.0 build
+> next build
+
+  тЦ▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Linting and checking validity of types ...
+Failed to compile.
+
+./pages/api/products/filters.ts:7:23
+Type error: Cannot find module '../../lib/db' or its corresponding type declarations.
+
+   5 |
+   6 | import { NextApiRequest, NextApiResponse } from 'next';
+>  7 | import { query } from '../../lib/db';
+     |                       ^
+   8 | import { rateLimit } from '../../lib/rateLimit';
+   9 |
+  10 | interface FiltersResponse {
+Next.js build worker exited with code: 1 and signal: null

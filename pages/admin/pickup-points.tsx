@@ -35,10 +35,11 @@ export default function AdminPickupPoints() {
   const fetchPickupPoints = async () => {
     try {
       const res = await fetch('/api/admin/pickup-points');
-      if (res.ok) {
-        const data = await res.json();
-        setPickupPoints(data.pickup_points || []);
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
       }
+      const data = await res.json();
+      setPickupPoints(data.pickup_points || []);
     } catch (err) {
       console.error('Error fetching pickup points:', err);
     }
@@ -66,16 +67,14 @@ export default function AdminPickupPoints() {
         body: JSON.stringify(formData),
       });
 
-      if (res.ok) {
-        setMessage(editingId ? 'Точка обновлена' : 'Точка добавлена');
-        setMessageType('success');
-        resetForm();
-        fetchPickupPoints();
-      } else {
-        const data = await res.json();
-        setMessage(data.error || 'Ошибка сохранения');
-        setMessageType('error');
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
       }
+
+      setMessage(editingId ? 'Точка обновлена' : 'Точка добавлена');
+      setMessageType('success');
+      resetForm();
+      fetchPickupPoints();
     } catch (err) {
       console.error('Error:', err);
       setMessage('Ошибка сохранения');

@@ -33,6 +33,9 @@ export default function AdminSidebar() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="md:hidden fixed top-4 left-4 z-50 bg-cardBg/90 backdrop-blur border border-neon rounded-xl p-2"
+        aria-label="Открыть меню администратора"
+        aria-expanded={isOpen}
+        aria-controls="admin-sidebar"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2">
           <line x1="3" y1="6" x2="21" y2="6" />
@@ -51,9 +54,12 @@ export default function AdminSidebar() {
 
       {/* Sidebar */}
       <aside
+        id="admin-sidebar"
         className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[#0c0c12] border-r border-neon/25 backdrop-blur-md z-40 transition-transform ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
+        role="navigation"
+        aria-label="Главное меню администратора"
       >
         <div className="p-5 border-b border-neon/20">
           <div className="flex items-center gap-3">
@@ -83,6 +89,8 @@ export default function AdminSidebar() {
                       ? 'bg-neon/15 text-neon shadow-[0_0_8px_rgba(192,132,252,0.2)] border-l-[3px] border-l-neon'
                       : 'text-textSecondary hover:bg-neon/5 hover:text-textPrimary'
                   }`}
+                  aria-current={isActive(item.href) ? 'page' : undefined}
+                  aria-label={item.label}
                 >
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d={item.icon} />
@@ -98,6 +106,7 @@ export default function AdminSidebar() {
           <Link
             href="/"
             className="flex items-center gap-2 text-textSecondary hover:text-neon transition-colors text-sm"
+            aria-label="Вернуться на главную страницу"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />

@@ -39,6 +39,9 @@ export default function AdminSettings() {
   const fetchSettings = async () => {
     try {
       const res = await fetch('/api/admin/settings');
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setSettings(data.settings || []);
       setMinStock(data.min_stock || 5);

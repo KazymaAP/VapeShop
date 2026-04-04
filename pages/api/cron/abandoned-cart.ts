@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
-import { notifyAbandonedCart } from '../../../lib/notifications';
+import { query } from '@/lib/db';
+import { notifyAbandonedCart } from '@/lib/notifications';
 
 /**
  * Cron API для отправки напоминаний о брошенных корзинах
@@ -167,3 +167,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
+

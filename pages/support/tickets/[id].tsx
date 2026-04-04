@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../../../lib/telegram';
-import ChatWindow from '../../../../components/ChatWindow';
+import { useTelegramWebApp } from '../../../lib/telegram';
+import ChatWindow from '../../../components/ChatWindow';
 
 export default function SupportTicketPage() {
   const { user } = useTelegramWebApp();

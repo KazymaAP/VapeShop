@@ -30,6 +30,9 @@ export default function AdminPages() {
   const fetchPages = async () => {
     try {
       const res = await fetch('/api/pages');
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setPages(data.pages || []);
     } catch {
@@ -75,6 +78,9 @@ export default function AdminPages() {
   const startEdit = async (page: StaticPage) => {
     try {
       const res = await fetch(`/api/pages?slug=${page.slug}`);
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
       setFormData({ slug: data.slug, title: data.title, content: data.content });
       setEditingSlug(data.slug);

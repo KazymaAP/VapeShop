@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useTelegramWebApp } from '../lib/telegram';
 import ProductCard from '../components/ProductCard';
 
+const DEFAULT_PRODUCT_IMAGE = '/no-image.png';
+
 interface Product {
   id: string;
   name: string;
@@ -63,6 +65,9 @@ export default function Home() {
     if (priceMax) params.set('price_max', priceMax);
 
     const res = await fetch(`/api/products?${params}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setProducts(data.products);
     setTotalPages(data.totalPages);
@@ -71,6 +76,9 @@ export default function Home() {
 
   const fetchFilters = async () => {
     const res = await fetch('/api/products?filters=1');
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setCategories(data.categories);
     setBrands(data.brands);
@@ -79,6 +87,9 @@ export default function Home() {
   const fetchCartCount = async () => {
     if (!user) return;
     const res = await fetch(`/api/cart?telegram_id=${user.id}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     const count = data.items?.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0) || 0;
     setCartCount(count);
@@ -320,7 +331,7 @@ export default function Home() {
                     id={product.id}
                     name={product.name}
                     price={product.price}
-                    image={product.images?.[0]}
+                    image={product.images?.[0] || DEFAULT_PRODUCT_IMAGE}
                     specification={product.specification || undefined}
                     stock={product.stock}
                     promotion={product.promotion}

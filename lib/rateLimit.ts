@@ -106,3 +106,14 @@ export function clearRateLimitStore() {
     delete store[key];
   }
 }
+
+// Предустановленные конфиги для разных типов API
+export const RATE_LIMIT_PRESETS = {
+  loose: { windowMs: 60 * 1000, max: 100 }, // 100 запросов в минуту
+  normal: { windowMs: 60 * 1000, max: 60 }, // 60 запросов в минуту
+  strict: { windowMs: 60 * 1000, max: 20 }, // 20 запросов в минуту
+  veryStrict: { windowMs: 60 * 1000, max: 5 }, // 5 запросов в минуту
+  auth: { windowMs: 15 * 60 * 1000, max: 5 }, // 5 попыток за 15 минут
+  order: { windowMs: 60 * 1000, max: 10 }, // 10 заказов в минуту
+  search: { windowMs: 60 * 1000, max: 30 }, // 30 поисков в минуту
+};

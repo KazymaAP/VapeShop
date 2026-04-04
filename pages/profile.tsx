@@ -66,7 +66,7 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [favorites, setFavorites] = useState<FavoriteProduct[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [activeTab, setActiveTab] = useState<'orders' | 'favorites' | 'addresses' | 'referral' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'favorites' | 'addresses' | 'saved' | 'compare' | 'balance' | 'referral' | 'gamification' | 'settings'>('orders');
   const [loading, setLoading] = useState(true);
   const [referralStats, setReferralStats] = useState({ count: 0, earned: 0 });
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -85,12 +85,18 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     const res = await fetch(`/api/users/profile?telegram_id=${user?.id}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setProfile(data);
   };
 
   const fetchOrders = async () => {
     const res = await fetch(`/api/orders?telegram_id=${user?.id}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setOrders(data.orders || []);
     setLoading(false);
@@ -98,6 +104,9 @@ export default function ProfilePage() {
 
   const fetchFavorites = async () => {
     const res = await fetch(`/api/favorites?telegram_id=${user?.id}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
     const data = await res.json();
     setFavorites(data.products || []);
   };
@@ -106,10 +115,11 @@ export default function ProfilePage() {
     if (!user) return;
     try {
       const res = await fetch(`/api/addresses?telegram_id=${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAddresses(data.addresses || []);
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
       }
+      const data = await res.json();
+      setAddresses(data.addresses || []);
     } catch (err) {
       console.error('Error fetching addresses:', err);
     }
@@ -297,7 +307,11 @@ export default function ProfilePage() {
           { key: 'orders', label: 'Заказы' },
           { key: 'favorites', label: 'Избранное' },
           { key: 'addresses', label: 'Мои адреса' },
+          { key: 'saved', label: 'Отложено' },
+          { key: 'compare', label: 'Сравнение' },
+          { key: 'balance', label: 'Баланс' },
           { key: 'referral', label: 'Рефералы' },
+          { key: 'gamification', label: 'Уровень' },
           { key: 'settings', label: 'Настройки' },
         ] as const).map((tab) => (
           <button
@@ -571,6 +585,46 @@ export default function ProfilePage() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-textSecondary">
                 <path d="M9 18l6-6-6-6" />
               </svg>
+            </Link>
+          </div>
+        )}
+
+        {/* Saved for Later */}
+        {activeTab === 'saved' && (
+          <div className="space-y-3">
+            <p className="text-center text-textSecondary py-8">Отложенные товары синхронизируются с приложением</p>
+            <Link href="/saved-for-later" className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all">
+              Перейти в отложенное
+            </Link>
+          </div>
+        )}
+
+        {/* Compare */}
+        {activeTab === 'compare' && (
+          <div className="space-y-3">
+            <p className="text-center text-textSecondary py-8">Сравнивайте характеристики товаров</p>
+            <Link href="/compare" className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all">
+              Перейти в сравнение
+            </Link>
+          </div>
+        )}
+
+        {/* Balance */}
+        {activeTab === 'balance' && (
+          <div className="space-y-3">
+            <p className="text-center text-textSecondary py-8">История бонусов и платежей</p>
+            <Link href="/balance" className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all">
+              Перейти в баланс
+            </Link>
+          </div>
+        )}
+
+        {/* Gamification */}
+        {activeTab === 'gamification' && (
+          <div className="space-y-3">
+            <p className="text-center text-textSecondary py-8">Уровни и достижения</p>
+            <Link href="/gamification" className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all">
+              Перейти в достижения
             </Link>
           </div>
         )}
