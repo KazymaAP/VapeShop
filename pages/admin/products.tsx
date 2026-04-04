@@ -22,7 +22,6 @@ export async function getServerSideProps() {
 }
 
 export default function AdminProducts() {
-  const router = useRouter();
   const { user } = useTelegramWebApp();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

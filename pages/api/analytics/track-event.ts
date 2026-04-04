@@ -1,9 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const userId = req.headers['x-telegram-id'] as string;
+    const userId = await getTelegramIdFromRequest(req);
     const { eventName, eventProperties } = req.body;
 
     try {
@@ -12,7 +13,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [userId || null, eventName, JSON.stringify(eventProperties || {})]
       );
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Failed to track event' });
     }
   } else {

@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const userId = req.headers['x-telegram-id'] as string;
+  const userId = getTelegramId(req);
 
   if (req.method === 'GET') {
     try {
@@ -31,7 +31,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Группируем по статусам в памяти приложения
       const statuses = ['pending', 'confirmed', 'in_progress', 'ready_for_pickup', 'on_delivery', 'completed'];
-      const orders: Record<string, any[]> = {};
+      const orders: Record<string, Array<Record<string, unknown>>> = {};
       
       statuses.forEach(status => {
         orders[status] = [];
@@ -45,8 +45,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
 
       res.status(200).json({ data: orders });
-    } catch (err) {
-      console.error(err);
+    } catch (_err) {
+      console.error(_err);
       res.status(500).json({ error: 'Failed to fetch orders' });
     }
   } else if (req.method === 'PUT') {
@@ -59,7 +59,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Failed to update order' });
     }
   } else {

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { buildUpdateSet } from '@/lib/sqlBuilder';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -30,22 +31,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { code, discount_type, discount_value, valid_from, valid_until, min_order_amount, max_uses } = req.body;
       if (!code) return res.status(400).json({ error: 'code required' });
 
-      const fields: string[] = [];
-      const values: unknown[] = [];
-      let idx = 1;
+      // 🔒 Безопасное построение SET clause с белым списком полей
+      const updates: Record<string, unknown> = {};
+      if (discount_type !== undefined) updates.discount_type = discount_type;
+      if (discount_value !== undefined) updates.discount_value = discount_value;
+      if (valid_from !== undefined) updates.valid_from = valid_from;
+      if (valid_until !== undefined) updates.valid_until = valid_until;
+      if (min_order_amount !== undefined) updates.min_order_amount = min_order_amount;
+      if (max_uses !== undefined) updates.max_uses = max_uses;
 
-      if (discount_type !== undefined) { fields.push(`discount_type = $${idx++}`); values.push(discount_type); }
-      if (discount_value !== undefined) { fields.push(`discount_value = $${idx++}`); values.push(discount_value); }
-      if (valid_from !== undefined) { fields.push(`valid_from = $${idx++}`); values.push(valid_from); }
-      if (valid_until !== undefined) { fields.push(`valid_until = $${idx++}`); values.push(valid_until); }
-      if (min_order_amount !== undefined) { fields.push(`min_order_amount = $${idx++}`); values.push(min_order_amount); }
-      if (max_uses !== undefined) { fields.push(`max_uses = $${idx++}`); values.push(max_uses); }
-
+      const [setClause, values, nextIdx] = buildUpdateSet('promocodes', updates);
       values.push(code.toUpperCase());
-      await query(`UPDATE promocodes SET ${fields.join(', ')} WHERE code = $${idx}`, values);
+
+      await query(`UPDATE promocodes SET ${setClause} WHERE code = $${nextIdx}`, values);
       res.status(200).json({ success: true });
-    } catch {
-      res.status(500).json({ error: 'Ошибка обновления промокода' });
+    } catch (err: any) {
+      console.error('Promocodes update error:', err);
+      res.status(400).json({ error: err.message || 'Ошибка обновления промокода' });
     }
   } else if (req.method === 'DELETE') {
     try {

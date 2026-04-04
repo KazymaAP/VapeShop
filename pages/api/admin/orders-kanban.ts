@@ -78,8 +78,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     res.status(200).json(kanbanData);
-  } catch (err) {
-    console.error('Kanban API error:', err);
+  } catch (_err) {
+    console.error('Kanban API error:', _err);
     res.status(500).json({ error: 'Ошибка при получении данных канбана' });
   }
 }

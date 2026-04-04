@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export async function getServerSideProps() {
@@ -7,7 +6,6 @@ export async function getServerSideProps() {
 }
 
 export default function AdminImport() {
-  const { user } = useTelegramWebApp();
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [dragOver, setDragOver] = useState(false);

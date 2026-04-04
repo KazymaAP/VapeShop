@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 import { query } from '@/lib/db';
 
 export default requireAuth(async (req, res) => {
@@ -36,7 +36,7 @@ export default requireAuth(async (req, res) => {
   } else if (req.method === 'POST') {
     try {
       const { subject, message, related_order_id } = req.body;
-      const telegramId = req.headers['x-telegram-id'] as string;
+      const telegramId = getTelegramId(req);
 
       const result = await query(
         'INSERT INTO support_tickets (user_id, subject, message, related_order_id) VALUES ($1, $2, $3, $4) RETURNING *',

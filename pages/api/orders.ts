@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
-import { requireAuth, getTelegramId, getTelegramIdFromRequest } from '@/lib/auth';
+import { query, transaction } from '@/lib/db';
+import { requireAuth, getTelegramId, getTelegramIdFromRequest, isUserBlocked, verifyTelegramInitData } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { withCSRFProtection } from '@/lib/csrf';
+import { validateOrderBody } from '@/lib/validation';
 import { Bot } from 'grammy';
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
@@ -12,8 +14,29 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    // Получаем текущего пользователя и проверяем, что он создаёт заказ от себя
+    // 🔒 ВАЛИДАЦИЯ: Проверяем входные данные
+    const validation = validateOrderBody(req.body);
+    if (!validation.valid) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: validation.errors 
+      });
+    }
+
+    // 🔒 Получаем текущего пользователя и проверяем, что он создаёт заказ от себя
+    // CSRF защита проверяется в middleware
     const currentTelegramId = await getTelegramIdFromRequest(req);
+    
+    if (!currentTelegramId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // ⚠️ ЗАЩИТА: Проверяем, не заблокирован ли пользователь
+    const blocked = await isUserBlocked(currentTelegramId);
+    if (blocked) {
+      return res.status(403).json({ error: 'Ваш аккаунт заблокирован. Обратитесь в поддержку.' });
+    }
+
     const { telegram_id, items, delivery_method, delivery_date, address, promo_code, discount } = req.body;
 
     if (!telegram_id || !items || items.length === 0) {
@@ -53,34 +76,40 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Total price cannot be negative' });
     }
 
-    // Создаём заказ
-    const orderRes = await query(
-      `INSERT INTO orders (user_telegram_id, status, total, delivery_method, delivery_date, address, promo_code, discount)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [telegram_id, 'new', total, delivery_method, delivery_date, address, promo_code, discount || 0]
-    );
-
-    const order = orderRes.rows[0];
-
-    // Добавляем товары в заказ и уменьшаем остаток
-    for (const item of items) {
-      await query(
-        'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ($1, $2, $3, $4)',
-        [order.id, item.product_id, item.quantity, item.price]
+    // 🔄 ЗАЩИТА: Используем транзакцию для создания заказа и уменьшения остатков
+    // Это предотвращает race condition, когда несколько запросов создают заказы одновременно
+    const order = await transaction(async (client) => {
+      // Создаём заказ
+      const orderRes = await client.query(
+        `INSERT INTO orders (user_telegram_id, status, total, delivery_method, delivery_date, address, promo_code, discount)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [telegram_id, 'new', total, delivery_method, delivery_date, address, promo_code, discount || 0]
       );
 
-      await query('UPDATE products SET stock = stock - $1 WHERE id = $2', [item.quantity, item.product_id]);
-    }
+      const createdOrder = orderRes.rows[0];
 
-    // Очищаем корзину
-    await query('DELETE FROM carts WHERE user_telegram_id = $1', [telegram_id]);
+      // Добавляем товары в заказ и уменьшаем остаток
+      for (const item of items) {
+        await client.query(
+          'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ($1, $2, $3, $4)',
+          [createdOrder.id, item.product_id, item.quantity, item.price]
+        );
+
+        await client.query('UPDATE products SET stock = stock - $1 WHERE id = $2', [item.quantity, item.product_id]);
+      }
+
+      // Очищаем корзину
+      await client.query('DELETE FROM carts WHERE user_telegram_id = $1', [telegram_id]);
+
+      return createdOrder;
+    });
 
     // Логируем создание заказа
     const adminTelegramId = getTelegramId(req);
     await query(
-      `INSERT INTO audit_log (user_telegram_id, action, table_name, record_id, details)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [adminTelegramId, 'CREATE_ORDER', 'orders', order.id, JSON.stringify({ total, items_count: items.length })]
+      `INSERT INTO admin_logs (user_telegram_id, action, details, created_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [adminTelegramId, 'CREATE_ORDER', JSON.stringify({ order_id: order.id, total, items_count: items.length })]
     ).catch(() => {});
 
     // Отправляем уведомление пользователю через бота
@@ -106,7 +135,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Возвращаем order_id для frontend
-    // Фронтенд должен использовать bot.openInvoice() для оплаты или показать инструкцию
     res.status(200).json({
       order_id: order.id,
       total,
@@ -119,5 +147,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default rateLimit(requireAuth(handler, ['buyer', 'customer']), RATE_LIMIT_PRESETS.order);
-
+export default rateLimit(withCSRFProtection(requireAuth(handler, ['buyer', 'customer'])), RATE_LIMIT_PRESETS.order);

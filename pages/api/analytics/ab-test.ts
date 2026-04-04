@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const userId = req.headers['x-telegram-id'] as string;
+    const userId = getTelegramId(req);
     const testName = req.query.testName as string;
 
     try {
@@ -26,11 +26,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ variant });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Failed to get test variant' });
     }
   } else if (req.method === 'POST') {
-    const userId = req.headers['x-telegram-id'] as string;
+    const userId = getTelegramId(req);
     const { testName, result } = req.body;
 
     try {
@@ -47,7 +47,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Failed to record result' });
     }
   } else {

@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { requireAuth } from '../../../../../lib/auth';
+import { requireAuth, getTelegramId } from '../../../../../lib/auth';
 import { query } from '../../../../../lib/db';
 
 export default requireAuth(async (req, res) => {
   const { id } = req.query;
-  const telegramId = req.headers['x-telegram-id'] as string;
+  const telegramId = getTelegramId(req);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -33,8 +33,8 @@ export default requireAuth(async (req, res) => {
     );
 
     res.status(200).json({ success: true });
-  } catch (err) {
-    console.error('Error completing delivery:', err);
+  } catch (_err) {
+    console.error('Error completing delivery:', _err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }, ['courier', 'admin']);

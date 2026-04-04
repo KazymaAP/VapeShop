@@ -12,7 +12,8 @@ export default requireAuth(async (req, res) => {
          FROM roles r
          LEFT JOIN role_permissions rp ON r.id = rp.role_id
          GROUP BY r.id, r.name, r.description, r.is_system_role
-         ORDER BY r.name`
+         ORDER BY r.name`,
+        []
       );
 
       return res.status(200).json({ roles: rolesResult.rows });
@@ -114,8 +115,8 @@ export default requireAuth(async (req, res) => {
     else {
       return res.status(405).json({ error: 'Method not allowed' });
     }
-  } catch (err) {
-    console.error('rbac error:', err);
+  } catch (_err) {
+    console.error('rbac error:', _err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }, ['super_admin']);

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
 
 interface FaqItem {
@@ -14,7 +13,6 @@ export async function getServerSideProps() {
 }
 
 export default function AdminFaq() {
-  const { user } = useTelegramWebApp();
   const [faq, setFaq] = useState<FaqItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

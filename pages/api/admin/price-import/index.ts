@@ -101,8 +101,8 @@ async function handleGet(
       limit: limitNum,
       pages,
     });
-  } catch (err) {
-    console.error('Price import GET error:', err);
+  } catch (_err) {
+    console.error('Price import GET error:', _err);
     res.status(500).json({ error: 'Ошибка при загрузке товаров' });
   }
 }

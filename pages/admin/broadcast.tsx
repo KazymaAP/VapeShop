@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export async function getServerSideProps() {
@@ -7,7 +6,6 @@ export async function getServerSideProps() {
 }
 
 export default function AdminBroadcast() {
-  const { user } = useTelegramWebApp();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
@@ -74,3 +72,4 @@ export default function AdminBroadcast() {
     </div>
   );
 }
+

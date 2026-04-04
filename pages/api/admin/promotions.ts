@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -16,12 +16,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         []
       );
       res.status(200).json({ data: result.rows });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Failed to fetch promotions' });
     }
   } else if (req.method === 'POST') {
     const { name, type, discount_value, start_date, end_date, applicable_products, applicable_categories } = req.body;
-    const userId = req.headers['x-telegram-id'] as string;
+    const userId = getTelegramId(req);
 
     try {
       const result = await query(
@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [name, type, discount_value, start_date, end_date, applicable_products, applicable_categories, userId]
       );
       res.status(201).json({ data: result.rows[0] });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Failed to create promotion' });
     }
   } else {

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { buildUpdateSet } from '@/lib/sqlBuilder';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -29,19 +30,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id, question, answer, sort_order } = req.body;
       if (!id) return res.status(400).json({ error: 'id required' });
 
-      const fields: string[] = [];
-      const values: unknown[] = [];
-      let idx = 1;
+      // 🔒 Безопасное построение SET clause с белым списком полей
+      const updates: Record<string, unknown> = {};
+      if (question !== undefined) updates.question = question;
+      if (answer !== undefined) updates.answer = answer;
+      if (sort_order !== undefined) updates.sort_order = sort_order;
 
-      if (question !== undefined) { fields.push(`question = $${idx++}`); values.push(question); }
-      if (answer !== undefined) { fields.push(`answer = $${idx++}`); values.push(answer); }
-      if (sort_order !== undefined) { fields.push(`sort_order = $${idx++}`); values.push(sort_order); }
-
+      const [setClause, values, nextIdx] = buildUpdateSet('faq', updates);
       values.push(id);
-      await query(`UPDATE faq SET ${fields.join(', ')} WHERE id = $${idx}`, values);
+
+      await query(`UPDATE faq SET ${setClause} WHERE id = $${nextIdx}`, values);
       res.status(200).json({ success: true });
-    } catch {
-      res.status(500).json({ error: 'Ошибка обновления FAQ' });
+    } catch (err: any) {
+      console.error('FAQ update error:', err);
+      res.status(400).json({ error: err.message || 'Ошибка обновления FAQ' });
     }
   } else if (req.method === 'DELETE') {
     try {

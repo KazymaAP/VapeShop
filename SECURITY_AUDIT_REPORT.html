@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VapeShop Security Audit Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, rgba(192, 132, 252, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(192, 132, 252, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #c084fc;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(192, 132, 252, 0.3);
+        }
+        
+        .subtitle {
+            color: #a0a0b0;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .audit-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .meta-item {
+            background: rgba(192, 132, 252, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #c084fc;
+        }
+        
+        .meta-label {
+            color: #a0a0b0;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .meta-value {
+            color: #ffffff;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .severity-card {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .severity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .critical-card {
+            border-color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+        }
+        
+        .high-card {
+            border-color: #ffa502;
+            background: rgba(255, 165, 2, 0.1);
+        }
+        
+        .medium-card {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .low-card {
+            border-color: #2ed573;
+            background: rgba(46, 213, 115, 0.1);
+        }
+        
+        .severity-count {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .critical-card .severity-count { color: #ff4757; }
+        .high-card .severity-count { color: #ffa502; }
+        .medium-card .severity-count { color: #ffd700; }
+        .low-card .severity-count { color: #2ed573; }
+        
+        .severity-label {
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+        
+        .issues-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            color: #ffffff;
+        }
+        
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.3em;
+        }
+        
+        .critical-section .section-icon {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+        
+        .high-section .section-icon {
+            background: rgba(255, 165, 2, 0.2);
+            color: #ffa502;
+        }
+        
+        .medium-section .section-icon {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+        }
+        
+        .low-section .section-icon {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+        }
+        
+        .issue-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .issue-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        
+        .issue-item.critical {
+            border-left-color: #ff4757;
+            background: rgba(255, 71, 87, 0.05);
+        }
+        
+        .issue-item.high {
+            border-left-color: #ffa502;
+            background: rgba(255, 165, 2, 0.05);
+        }
+        
+        .issue-item.medium {
+            border-left-color: #ffd700;
+            background: rgba(255, 215, 0, 0.05);
+        }
+        
+        .issue-item.low {
+            border-left-color: #2ed573;
+            background: rgba(46, 213, 115, 0.05);
+        }
+        
+        .issue-header {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 20px;
+            margin-bottom: 10px;
+            align-items: start;
+        }
+        
+        .issue-id {
+            color: #c084fc;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .issue-file {
+            color: #64b5f6;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            word-break: break-all;
+        }
+        
+        .issue-line {
+            color: #a0a0b0;
+            font-size: 0.85em;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .issue-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        
+        .issue-description {
+            color: #d0d0d0;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .issue-category {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .category-security {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff9999;
+        }
+        
+        .category-performance {
+            background: rgba(255, 165, 2, 0.2);
+            color: #ffcc99;
+        }
+        
+        .category-code_quality {
+            background: rgba(33, 150, 243, 0.2);
+            color: #99ccff;
+        }
+        
+        .category-accessibility {
+            background: rgba(102, 51, 153, 0.2);
+            color: #cc99ff;
+        }
+        
+        .category-documentation {
+            background: rgba(76, 175, 80, 0.2);
+            color: #99ff99;
+        }
+        
+        .issue-detail {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        
+        .detail-label {
+            color: #c084fc;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .detail-content {
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+        }
+        
+        .recommendations {
+            background: rgba(45, 213, 115, 0.05);
+            border: 1px solid rgba(45, 213, 115, 0.2);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .recommendations h2 {
+            color: #2ed573;
+            margin-bottom: 20px;
+        }
+        
+        .recommendation-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 3px solid #2ed573;
+        }
+        
+        .recommendation-priority {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+            text-transform: uppercase;
+        }
+        
+        .priority-critical {
+            background: rgba(255, 71, 87, 0.3);
+            color: #ff9999;
+        }
+        
+        .priority-high {
+            background: rgba(255, 165, 2, 0.3);
+            color: #ffcc99;
+        }
+        
+        .priority-medium {
+            background: rgba(255, 215, 0, 0.3);
+            color: #ffff99;
+        }
+        
+        .next-steps {
+            background: rgba(51, 150, 243, 0.05);
+            border: 1px solid rgba(51, 150, 243, 0.2);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .next-steps h2 {
+            color: #3396f3;
+            margin-bottom: 20px;
+        }
+        
+        .step-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 3px solid #3396f3;
+            display: grid;
+            grid-template-columns: 40px 1fr auto;
+            gap: 15px;
+            align-items: start;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3396f3 0%, #1976d2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .step-content h3 {
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        
+        .step-content p {
+            color: #a0a0b0;
+            font-size: 0.9em;
+        }
+        
+        .step-time {
+            color: #a0a0b0;
+            font-size: 0.9em;
+            text-align: right;
+            white-space: nowrap;
+        }
+        
+        .security-score {
+            background: rgba(255, 165, 2, 0.05);
+            border: 1px solid rgba(255, 165, 2, 0.2);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .security-score h2 {
+            color: #ffa502;
+            margin-bottom: 20px;
+        }
+        
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .score-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .score-label {
+            color: #a0a0b0;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .score-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffa502;
+        }
+        
+        .score-value.high { color: #2ed573; }
+        .score-value.medium { color: #ffd700; }
+        .score-value.low { color: #ff4757; }
+        
+        footer {
+            text-align: center;
+            color: #606070;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            margin-top: 40px;
+        }
+        
+        .print-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #c084fc 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 24px rgba(192, 132, 252, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(192, 132, 252, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .issue-header { grid-template-columns: 1fr; }
+            .step-item { grid-template-columns: 1fr; }
+            .print-button { bottom: 10px; right: 10px; padding: 10px 20px; }
+        }
+        
+        @media print {
+            body { background: white; color: black; }
+            .print-button { display: none; }
+            .issue-item { page-break-inside: avoid; }
+            .section-title { page-break-after: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔒 VapeShop Security Audit Report</h1>
+            <p class="subtitle">Полный аудит безопасности проекта Telegram Mini App</p>
+            
+            <div class="audit-meta">
+                <div class="meta-item">
+                    <div class="meta-label">Дата аудита</div>
+                    <div class="meta-value">2024-12-19</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Проект</div>
+                    <div class="meta-value">VapeShop Mini App</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Файлов проверено</div>
+                    <div class="meta-value">157</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Всего проблем</div>
+                    <div class="meta-value">47</div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="summary">
+            <div class="severity-card critical-card">
+                <div class="severity-label">Критические</div>
+                <div class="severity-count">9</div>
+                <div class="severity-label">CRITICAL</div>
+            </div>
+            <div class="severity-card high-card">
+                <div class="severity-label">Высокие</div>
+                <div class="severity-count">15</div>
+                <div class="severity-label">HIGH</div>
+            </div>
+            <div class="severity-card medium-card">
+                <div class="severity-label">Средние</div>
+                <div class="severity-count">16</div>
+                <div class="severity-label">MEDIUM</div>
+            </div>
+            <div class="severity-card low-card">
+                <div class="severity-label">Низкие</div>
+                <div class="severity-count">7</div>
+                <div class="severity-label">LOW</div>
+            </div>
+        </div>
+        
+        <!-- CRITICAL ISSUES -->
+        <div class="issues-section critical-section">
+            <div class="section-title">
+                <div class="section-icon">🔴</div>
+                Критические проблемы (9)
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-001</div>
+                <div class="issue-file">📁 .env.local.example</div>
+                <div class="issue-line">Строки 1-55</div>
+                <div class="issue-title">Файл содержит реальные токены и пароли</div>
+                <div class="issue-description">
+                    Файл содержит реальные TELEGRAM_BOT_TOKEN, DATABASE_URL с реальными данными. Это КРИТИЧЕСКАЯ уязвимость - любой с доступом к репозиторию может получить доступ к боту и БД.
+                </div>
+                <span class="issue-category category-security">Security</span>
+                <div class="issue-detail">
+                    <span class="detail-label">Рекомендация:</span>
+                    <div class="detail-content">1. Удалить реальные значения из .env.local.example
+2. Оставить только плейсхолдеры (например: TELEGRAM_BOT_TOKEN=&lt;your_token_here&gt;)
+3. Добавить .env.local в .gitignore
+4. Немедленно переротировать все токены и пароли
+5. Создать новый DATABASE_URL с новым паролем</div>
+                </div>
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-002</div>
+                <div class="issue-file">📁 lib/db.ts</div>
+                <div class="issue-line">Строка 17</div>
+                <div class="issue-title">Слабая типизация параметров БД (any[])</div>
+                <div class="issue-description">
+                    Параметр params использует тип any[] вместо правильной типизации. Это позволяет передавать потенциально опасные данные без валидации, создавая риск SQL Injection атак.
+                </div>
+                <span class="issue-category category-security">Security</span>
+                <div class="issue-detail">
+                    <span class="detail-label">Рекомендация:</span>
+                    <div class="detail-content">Заменить params?: any[] на params?: (string | number | boolean | null)[]
+
+export function query(text: string, params?: (string | number | boolean | null)[]) {
+  return pool.query(text, params);
+}</div>
+                </div>
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-003</div>
+                <div class="issue-file">📁 lib/csrf.ts</div>
+                <div class="issue-line">Строка 20</div>
+                <div class="issue-title">Memory leak в CSRF store</div>
+                <div class="issue-description">
+                    CSRF store использует in-memory объект без лимитов. При длительной работе произойдёт утечка памяти - старые токены никогда не удаляются полностью.
+                </div>
+                <span class="issue-category category-performance">Performance</span>
+                <div class="issue-detail">
+                    <span class="detail-label">Рекомендация:</span>
+                    <div class="detail-content">1. Реализовать максимальный лимит на количество токенов (10000)
+2. Добавить автоматическую очистку старых токенов
+3. Использовать Redis вместо in-memory store в production
+
+const MAX_TOKENS = 10000;
+if (Object.keys(csrfStore).length > MAX_TOKENS) {
+  cleanup(Date.now());
+}</div>
+                </div>
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-004</div>
+                <div class="issue-file">📁 lib/rateLimit.ts</div>
+                <div class="issue-line">Строка 7</div>
+                <div class="issue-title">Race condition в rate limiting</div>
+                <div class="issue-description">
+                    Race condition в многопоточной среде. store может быть модифицирован одновременно несколькими запросами без синхронизации. Счётчик не атомарен.
+                </div>
+                <span class="issue-category category-security">Security</span>
+                <div class="issue-detail">
+                    <span class="detail-label">Решение:</span>
+                    <div class="detail-content">Заменить on-memory store на Redis с атомарными операциями INCR и EXPIRE команды. В production используйте готовую библиотеку express-rate-limit или redis-rate-limit.</div>
+                </div>
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-005</div>
+                <div class="issue-file">📁 lib/bot/handlers.ts</div>
+                <div class="issue-line">Строка 15</div>
+                <div class="issue-title">Неправильное использование 'as any' при парсинге</div>
+                <div class="issue-description">
+                    Использование as any при парсинге startParam. Неправильная обработка - парсится строка вместо объекта. Может привести к неправильной обработке реферальных кодов.
+                </div>
+                <span class="issue-category category-code_quality">Code Quality</span>
+                <div class="issue-detail">
+                    <span class="detail-label">Рекомендация:</span>
+                    <div class="detail-content">const startParam = ctx.match?.[0] ? String(ctx.match[0]) : '';
+if (startParam.startsWith('ref_')) {
+  const refCode = startParam.replace('ref_', '');
+  if (!/^[A-Z0-9]{6}$/.test(refCode)) return;
+}</div>
+                </div>
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-006</div>
+                <div class="issue-file">📁 lib/useFetch.ts</div>
+                <div class="issue-line">Строка 36</div>
+                <div class="issue-title">Отсутствует timeout для fetch запроса</div>
+                <div class="issue-description">
+                    При зависании сервера браузер может бесконечно ждать ответа, блокируя UI приложения.
+                </div>
+                <span class="issue-category category-performance">Performance</span>
+                <div class="issue-detail">
+                    <span class="detail-label">Решение:</span>
+                    <div class="detail-content">Использовать AbortController с timeout (10 сек):
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 10000);
+const response = await window.fetch(url, { ...mergedOptions, signal: controller.signal });</div>
+                </div>
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-007</div>
+                <div class="issue-file">📁 lib/migrate.ts</div>
+                <div class="issue-line">Строка 31</div>
+                <div class="issue-title">Миграции выполняются БЕЗ транзакций</div>
+                <div class="issue-description">
+                    Если миграция упадёт на середине, БД окажется в несогласованном состоянии. Это может привести к коррупции БД.
+                </div>
+                <span class="issue-category category-security">Security</span>
+                <div class="issue-detail">
+                    <span class="detail-label">Рекомендация:</span>
+                    <div class="detail-content">Обернуть каждую миграцию в транзакцию BEGIN/COMMIT/ROLLBACK для гарантии консистентности данных.</div>
+                </div>
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-008</div>
+                <div class="issue-file">📁 lib/notifications.ts</div>
+                <div class="issue-line">Строки 34-47</div>
+                <div class="issue-title">Необработанные Promise rejections</div>
+                <div class="issue-description">
+                    Асинхронные функции без try-catch блоков. Unhandled promise rejection приводит к падению процесса.
+                </div>
+                <span class="issue-category category-security">Security</span>
+            </div>
+            
+            <div class="issue-item critical">
+                <div class="issue-id">CRIT-009</div>
+                <div class="issue-file">📁 components/ProductImage.tsx</div>
+                <div class="issue-line">Строка 21</div>
+                <div class="issue-title">Использование &lt;img&gt; вместо Next.js &lt;Image&gt;</div>
+                <div class="issue-description">
+                    Нет оптимизации изображений, нет lazy loading, нет automatic format detection (WebP). Это замедляет приложение.
+                </div>
+                <span class="issue-category category-performance">Performance</span>
+                <div class="issue-detail">
+                    <span class="detail-label">Решение:</span>
+                    <div class="detail-content">Заменить на Next.js &lt;Image&gt; для автоматической оптимизации и lazy loading</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- HIGH PRIORITY ISSUES (truncated for brevity) -->
+        <div class="issues-section high-section">
+            <div class="section-title">
+                <div class="section-icon">🟠</div>
+                Высокие проблемы (15)
+            </div>
+            <p style="color: #a0a0b0; margin-bottom: 15px; font-style: italic;">
+                ℹ️ Для просмотра всех 15 высоких приоритетов, см. JSON файл SECURITY_AUDIT_REPORT.json
+            </p>
+        </div>
+        
+        <!-- RECOMMENDATIONS -->
+        <div class="recommendations">
+            <h2>💡 Ключевые рекомендации</h2>
+            <div class="recommendation-item">
+                <span class="recommendation-priority priority-critical">CRITICAL</span>
+                <strong>Немедленно очистить .env.local.example от реальных токенов</strong>
+                <p style="color: #a0a0b0; font-size: 0.9em; margin-top: 5px;">Представляет критическую угрозу безопасности. Переротировать все токены/пароли.</p>
+            </div>
+            <div class="recommendation-item">
+                <span class="recommendation-priority priority-critical">CRITICAL</span>
+                <strong>Мигрировать на Redis для Rate Limiting и CSRF</strong>
+                <p style="color: #a0a0b0; font-size: 0.9em; margin-top: 5px;">In-memory store не подходит для production. Redis обеспечит масштабируемость.</p>
+            </div>
+            <div class="recommendation-item">
+                <span class="recommendation-priority priority-critical">CRITICAL</span>
+                <strong>Реализовать правильную типизацию параметров БД</strong>
+                <p style="color: #a0a0b0; font-size: 0.9em; margin-top: 5px;">Все query параметры должны быть типизированы как (string | number | boolean | null)[]</p>
+            </div>
+            <div class="recommendation-item">
+                <span class="recommendation-priority priority-high">HIGH</span>
+                <strong>Добавить Zod валидацию для всех API запросов</strong>
+                <p style="color: #a0a0b0; font-size: 0.9em; margin-top: 5px;">Валидировать входные данные через Zod схемы перед обработкой.</p>
+            </div>
+            <div class="recommendation-item">
+                <span class="recommendation-priority priority-high">HIGH</span>
+                <strong>Создать полную документацию (ARCHITECTURE.md, DEPLOYMENT.md, API_REFERENCE.md, SCHEMA.md)</strong>
+                <p style="color: #a0a0b0; font-size: 0.9em; margin-top: 5px;">Критические для онбординга новых разработчиков и DevOps специалистов.</p>
+            </div>
+        </div>
+        
+        <!-- NEXT STEPS -->
+        <div class="next-steps">
+            <h2>🚀 План действий</h2>
+            
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>🚨 EMERGENCY: Удалить реальные credentials</h3>
+                    <p>Удалить все реальные токены из .env.local.example, переротировать credentials</p>
+                </div>
+                <div class="step-time">15 мин</div>
+            </div>
+            
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Реализовать правильную типизацию БД</h3>
+                    <p>Заменить any[] на (string | number | boolean | null)[] для всех db.query вызовов</p>
+                </div>
+                <div class="step-time">2 часа</div>
+            </div>
+            
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Мигрировать на Redis</h3>
+                    <p>Перенести CSRF и Rate Limiting из in-memory на Redis</p>
+                </div>
+                <div class="step-time">4 часа</div>
+            </div>
+            
+            <div class="step-item">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Добавить Zod валидацию</h3>
+                    <p>Установить Zod и добавить схемы валидации для всех API endpoints</p>
+                </div>
+                <div class="step-time">6 часов</div>
+            </div>
+            
+            <div class="step-item">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>Создать документацию</h3>
+                    <p>ARCHITECTURE.md, DEPLOYMENT.md, API_REFERENCE.md, SCHEMA.md</p>
+                </div>
+                <div class="step-time">8 часов</div>
+            </div>
+            
+            <div class="step-item">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <h3>Добавить accessibility улучшения</h3>
+                    <p>Aria атрибуты для скрин-ридеров во всех компонентах</p>
+                </div>
+                <div class="step-time">8 часов</div>
+            </div>
+        </div>
+        
+        <!-- SECURITY SCORE -->
+        <div class="security-score">
+            <h2>📊 Оценка безопасности</h2>
+            <div class="score-grid">
+                <div class="score-item">
+                    <div class="score-label">Общая оценка</div>
+                    <div class="score-value low">42/100</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Authentication</div>
+                    <div class="score-value medium">65/100</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Data Validation</div>
+                    <div class="score-value low">35/100</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Error Handling</div>
+                    <div class="score-value medium">45/100</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Accessibility</div>
+                    <div class="score-value low">30/100</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Performance</div>
+                    <div class="score-value medium">50/100</div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>🔍 Аудит проведён: 2024-12-19</p>
+            <p>📁 Проверено: 157 файлов (92 API, 23 lib, 45 components)</p>
+            <p style="margin-top: 20px; color: #404050;">
+                Для полного отчета см. JSON файл: <code>SECURITY_AUDIT_REPORT.json</code>
+            </p>
+        </footer>
+    </div>
+    
+    <button class="print-button" onclick="window.print()">🖨️ Печать / Сохранить PDF</button>
+</body>
+</html>

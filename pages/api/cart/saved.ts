@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 import { query } from '@/lib/db';
 
 export default requireAuth(async (req, res) => {
-  const telegramId = req.headers['x-telegram-id'] as string;
+  const telegramId = getTelegramId(req);
 
   if (req.method === 'GET') {
     try {
@@ -12,8 +12,8 @@ export default requireAuth(async (req, res) => {
         [telegramId]
       );
       res.status(200).json({ data: result.rows });
-    } catch (err) {
-      console.error('Error fetching saved items:', err);
+    } catch (_err) {
+      console.error('Error fetching saved items:', _err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   } else if (req.method === 'POST') {
@@ -26,8 +26,8 @@ export default requireAuth(async (req, res) => {
       );
 
       res.status(201).json({ success: true });
-    } catch (err) {
-      console.error('Error saving item:', err);
+    } catch (_err) {
+      console.error('Error saving item:', _err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   } else if (req.method === 'DELETE') {
@@ -40,8 +40,8 @@ export default requireAuth(async (req, res) => {
       );
 
       res.status(200).json({ success: true });
-    } catch (err) {
-      console.error('Error deleting saved item:', err);
+    } catch (_err) {
+      console.error('Error deleting saved item:', _err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   } else {

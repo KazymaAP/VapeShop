@@ -24,7 +24,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [`%${q}%`]
       );
       res.status(200).json({ data: result.rows });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Search failed' });
     }
   } else {

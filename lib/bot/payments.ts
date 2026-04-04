@@ -38,6 +38,7 @@ export async function handlePreCheckout(ctx: Context) {
 
 /**
  * Обработчик successful_payment — срабатывает после успешной оплаты
+ * 🔒 С защитой от повторной обработки одного платежа (идемпотентность)
  */
 export async function handlePaymentSuccess(ctx: Context) {
   try {
@@ -50,9 +51,22 @@ export async function handlePaymentSuccess(ctx: Context) {
     const orderId = payment.invoice_payload;
     const telegramId = ctx.from?.id;
     const totalAmount = payment.total_amount;
+    const chargeId = payment.telegram_payment_charge_id;
 
-    if (!orderId || !telegramId) {
-      console.error('Missing orderId or telegramId');
+    if (!orderId || !telegramId || !chargeId) {
+      console.error('Missing orderId, telegramId, or chargeId');
+      return;
+    }
+
+    // 🔒 ЗАЩИТА: Проверяем, не обработан ли уже этот платёж
+    const existingPayment = await query(
+      'SELECT id FROM payment_logs WHERE telegram_payment_charge_id = $1',
+      [chargeId]
+    );
+
+    if (existingPayment.rows.length > 0) {
+      console.warn(`Duplicate payment received: ${chargeId}. Skipping.`);
+      await ctx.reply('⚠️ Этот платёж уже был обработан. Спасибо!');
       return;
     }
 
@@ -83,6 +97,13 @@ export async function handlePaymentSuccess(ctx: Context) {
       ['new', code6digit, codeExpiresAt, orderId]
     );
 
+    // 🔒 Логируем платёж в payment_logs для идемпотентности
+    await query(
+      `INSERT INTO payment_logs (telegram_id, order_id, telegram_payment_charge_id, amount_received, currency, status, processed_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+      [telegramId, orderId, chargeId, totalAmount, 'XTR', 'success']
+    ).catch(err => console.error('Failed to log payment:', err));
+
     const order = orderCheckRes.rows[0];
     const total = parseFloat(order.total);
 
@@ -106,10 +127,10 @@ export async function handlePaymentSuccess(ctx: Context) {
       }
     );
 
-    // Логируем успешный платёж (позже заменим на real notifications)
+    // Логируем успешный платёж
     console.log(`[PAYMENT SUCCESS] Order #${orderId.slice(0, 8).toUpperCase()} paid by user ${telegramId}`);
 
-    // Отправляем уведомление админам (пока в console.log, позже — в отдельное сообщение)
+    // Отправляем уведомление админам
     const adminIds = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(Number);
     for (const adminId of adminIds) {
       if (adminId) {

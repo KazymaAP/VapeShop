@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 
 interface Template {
   id: string;
@@ -72,3 +71,4 @@ export default function TemplatesPage() {
     </div>
   );
 }
+

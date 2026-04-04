@@ -14,7 +14,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const form = formidable({});
-    const [fields, files] = await form.parse(req);
+    const [, files] = await form.parse(req);
     const file = files.file?.[0];
 
     if (!file) {
@@ -109,7 +109,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await query('COMMIT');
 
       // Логируем импорт
-      const adminTelegramId = (req as any).telegramId;
+      const adminTelegramId = (req as Record<string, unknown>).telegramId as string;
       await query(
         `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
          VALUES ($1, $2, $3, $4)`,

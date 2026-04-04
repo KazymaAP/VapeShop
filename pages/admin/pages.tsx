@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
 
 interface StaticPage {
@@ -14,7 +13,6 @@ export async function getServerSideProps() {
 }
 
 export default function AdminPages() {
-  const { user } = useTelegramWebApp();
   const [pages, setPages] = useState<StaticPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

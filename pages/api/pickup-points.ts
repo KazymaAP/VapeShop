@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { buildUpdateSet } from '@/lib/sqlBuilder';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -28,20 +29,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id, name, address, is_active } = req.body;
       if (!id) return res.status(400).json({ error: 'id required' });
 
-      const fields: string[] = [];
-      const values: unknown[] = [];
-      let idx = 1;
+      // 🔒 Безопасное построение SET clause с белым списком полей
+      const updates: Record<string, unknown> = {};
+      if (name !== undefined) updates.name = name;
+      if (address !== undefined) updates.address = address;
+      if (is_active !== undefined) updates.is_active = is_active;
 
-      if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
-      if (address !== undefined) { fields.push(`address = $${idx++}`); values.push(address); }
-      if (is_active !== undefined) { fields.push(`is_active = $${idx++}`); values.push(is_active); }
-
+      const [setClause, values, nextIdx] = buildUpdateSet('pickup_points', updates);
       values.push(id);
-      await query(`UPDATE pickup_points SET ${fields.join(', ')} WHERE id = $${idx}`, values);
+
+      await query(`UPDATE pickup_points SET ${setClause} WHERE id = $${nextIdx}`, values);
 
       res.status(200).json({ success: true });
-    } catch (err) {
-      res.status(500).json({ error: 'Ошибка обновления точки' });
+    } catch (err: any) {
+      console.error('Pickup points update error:', err);
+      res.status(400).json({ error: err.message || 'Ошибка обновления точки' });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });

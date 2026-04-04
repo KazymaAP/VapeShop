@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { requireAuth } from '../../../../lib/auth';
+import { requireAuth, getTelegramId } from '../../../../lib/auth';
 import { query } from '../../../../lib/db';
 
 export default requireAuth(async (req, res) => {
@@ -19,7 +19,7 @@ export default requireAuth(async (req, res) => {
   } else if (req.method === 'POST') {
     try {
       const { note } = req.body;
-      const telegramId = req.headers['x-telegram-id'];
+      const telegramId = getTelegramId(req);
 
       const noteResult = await query(
         'INSERT INTO manager_notes_history (order_id, manager_id, note) VALUES ($1, $2, $3) RETURNING *',

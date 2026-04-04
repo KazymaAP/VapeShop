@@ -3,7 +3,6 @@ import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const userId = req.headers['x-telegram-id'] as string;
 
   if (req.method === 'GET') {
     try {

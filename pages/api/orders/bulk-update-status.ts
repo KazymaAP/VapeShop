@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { orderIds, newStatus, notes } = req.body;
-    const userId = req.headers['x-telegram-id'] as string;
+    const userId = getTelegramId(req);
 
     if (!Array.isArray(orderIds) || orderIds.length === 0) {
       return res.status(400).json({ error: 'Invalid order IDs' });

@@ -4,7 +4,7 @@
  */
 
 // Общий формат API ответа (успех)
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: true;
   data: T;
   message?: string;
@@ -20,7 +20,7 @@ export interface ApiError {
   timestamp: number;
 }
 
-export type ApiResult<T = any> = ApiResponse<T> | ApiError;
+export type ApiResult<T = unknown> = ApiResponse<T> | ApiError;
 
 // Пагинированный ответ
 export interface PaginatedResponse<T> {
@@ -236,6 +236,38 @@ export interface ImportStatusResponse {
   skipped: number;
   errors: number;
   error_details?: Array<{ row: number; error: string }>;
+}
+
+// Dashboard
+export interface DashboardKPI {
+  total_revenue: number;
+  total_orders: number;
+  avg_order: number;
+}
+
+export interface RevenueByDay {
+  date: string;
+  revenue: number;
+}
+
+export interface TopProduct {
+  id: string;
+  name: string;
+  sold: number;
+  revenue: number;
+}
+
+export interface TopCategory {
+  category: string;
+  sold: number;
+  revenue: number;
+}
+
+export interface DashboardData {
+  kpi: DashboardKPI;
+  revenue_by_day: RevenueByDay[];
+  top_products: TopProduct[];
+  top_categories: TopCategory[];
 }
 
 // Статусы

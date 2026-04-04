@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 
 interface Promotion {
   id: string;
@@ -151,3 +150,4 @@ export default function PromotionsPage() {
     </div>
   );
 }
+

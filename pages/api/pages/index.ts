@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { buildUpdateSet } from '@/lib/sqlBuilder';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -39,19 +40,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { slug, title, content } = req.body;
       if (!slug) return res.status(400).json({ error: 'slug required' });
 
-      const fields: string[] = [];
-      const values: unknown[] = [];
-      let idx = 1;
+      // 🔒 Безопасное построение SET clause с белым списком полей
+      const updates: Record<string, unknown> = {};
+      if (title !== undefined) updates.title = title;
+      if (content !== undefined) updates.content = content;
 
-      if (title !== undefined) { fields.push(`title = $${idx++}`); values.push(title); }
-      if (content !== undefined) { fields.push(`content = $${idx++}`); values.push(content); }
-
-      fields.push(`updated_at = NOW()`);
+      const [setClause, values, nextIdx] = buildUpdateSet('pages', updates);
       values.push(slug);
-      await query(`UPDATE pages SET ${fields.join(', ')} WHERE slug = $${idx}`, values);
+
+      await query(`UPDATE pages SET ${setClause}, updated_at = NOW() WHERE slug = $${nextIdx}`, values);
       res.status(200).json({ success: true });
-    } catch {
-      res.status(500).json({ error: 'Ошибка обновления страницы' });
+    } catch (err: any) {
+      console.error('Pages update error:', err);
+      res.status(400).json({ error: err.message || 'Ошибка обновления страницы' });
     }
   } else if (req.method === 'DELETE') {
     try {

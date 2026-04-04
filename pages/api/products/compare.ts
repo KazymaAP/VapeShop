@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 import { query } from '@/lib/db';
 
 export default requireAuth(async (req, res) => {
-  const telegramId = req.headers['x-telegram-id'] as string;
+  const telegramId = getTelegramId(req);
 
   if (req.method === 'GET') {
     try {

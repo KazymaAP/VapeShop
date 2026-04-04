@@ -10,10 +10,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragStartEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -47,15 +45,6 @@ const STATUS_LABELS: Record<string, string> = {
   shipped: 'В доставке',
   done: 'Выполнен',
   cancelled: 'Отменён',
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  new: 'bg-blue-900',
-  confirmed: 'bg-yellow-900',
-  readyship: 'bg-orange-900',
-  shipped: 'bg-purple-900',
-  done: 'bg-green-900',
-  cancelled: 'bg-red-900',
 };
 
 // Компонент карточки заказа
@@ -159,7 +148,6 @@ export default function KanbanPage() {
   const { user, isReady } = useTelegramWebApp();
   const [kanbanData, setKanbanData] = useState<KanbanData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [searchCustomer, setSearchCustomer] = useState('');
@@ -226,13 +214,12 @@ export default function KanbanPage() {
   };
 
   // Drag and drop handler
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+  const handleDragStart = () => {
+    // Drag start handler
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveId(null);
 
     if (!over || active.id === over.id) return;
 

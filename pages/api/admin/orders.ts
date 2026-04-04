@@ -97,8 +97,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       };
 
       res.status(200).json(response);
-    } catch (err) {
-      console.error('Error loading orders:', err);
+    } catch (_err) {
+      console.error('Error loading orders:', _err);
       res.status(500).json({ error: 'Ошибка загрузки заказов' });
     }
   } else if (req.method === 'PUT') {
@@ -163,8 +163,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       res.status(200).json({ success: true, old_status: oldStatus, new_status: status });
-    } catch (err) {
-      console.error('Error updating order:', err);
+    } catch (_err) {
+      console.error('Error updating order:', _err);
       res.status(500).json({ error: 'Ошибка обновления заказа' });
     }
   } else {

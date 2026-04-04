@@ -20,8 +20,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json(result.rows);
-    } catch (err) {
-      console.error('Pages list error:', err);
+    } catch (_err) {
+      console.error('Pages list error:', _err);
       res.status(500).json({ error: 'Ошибка при получении списка страниц' });
     }
   } else if (req.method === 'POST') {
@@ -42,8 +42,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(201).json({ success: true, message: 'Страница сохранена' });
-    } catch (err) {
-      console.error('Page create/update error:', err);
+    } catch (_err) {
+      console.error('Page create/update error:', _err);
       res.status(500).json({ error: 'Ошибка при сохранении страницы' });
     }
   } else {

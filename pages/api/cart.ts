@@ -17,6 +17,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { telegram_id } = req.query;
       if (!telegram_id) return res.status(400).json({ error: 'telegram_id required' });
 
+      // КРИТИЧЕСКАЯ ЗАЩИТА: Проверяем, что пользователь запрашивает только свою корзину
+      if (Number(telegram_id) !== currentTelegramId) {
+        return res.status(403).json({ error: 'Forbidden: cannot access another user\'s cart' });
+      }
+
       const result = await query(
         `SELECT ci.product_id, ci.quantity, p.name, p.price, p.images, p.stock
          FROM carts c
@@ -36,7 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }));
 
       res.status(200).json({ items });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Ошибка загрузки корзины' });
     }
   } else if (method === 'POST') {
@@ -77,7 +82,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Ошибка добавления в корзину' });
     }
   } else if (method === 'PUT') {
@@ -114,7 +119,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Ошибка обновления корзины' });
     }
   } else if (method === 'DELETE') {
@@ -143,7 +148,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch (_err) {
       res.status(500).json({ error: 'Ошибка удаления из корзины' });
     }
   } else {

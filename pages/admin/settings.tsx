@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
 
 interface NotificationSetting {
@@ -25,7 +24,6 @@ const defaultEvents = [
 ];
 
 export default function AdminSettings() {
-  const { user } = useTelegramWebApp();
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [minStock, setMinStock] = useState(5);
@@ -200,3 +198,4 @@ export default function AdminSettings() {
     </div>
   );
 }
+

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
 
 interface Promocode {
@@ -18,7 +17,6 @@ export async function getServerSideProps() {
 }
 
 export default function AdminPromocodes() {
-  const { user } = useTelegramWebApp();
   const [promocodes, setPromocodes] = useState<Promocode[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -276,3 +274,4 @@ export default function AdminPromocodes() {
     </div>
   );
 }
+

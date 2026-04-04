@@ -72,8 +72,9 @@ export default function AdminActivate() {
       setTotalCount(data.total);
       setPage(pageNum);
       setSelectedIds(new Set());
-    } catch (err: any) {
-      setError(err.message || 'Ошибка при загрузке товаров');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Ошибка при загрузке товаров';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

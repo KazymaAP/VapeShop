@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { requireAuth, getTelegramId } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { validatePagination } from '@/lib/validate';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     let whereClause = '1=1';
-    const params: any[] = [];
+    const params: (string | number | Date)[] = [];
     let paramCount = 1;
 
     if (user_id) {

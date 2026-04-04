@@ -4,6 +4,7 @@ import { handleStart, handleMenu, handleOrders, handleReferral, handleHelp, hand
 import { handlePaymentSuccess, handlePreCheckout } from '@/lib/bot/payments';
 import { setBotInstance } from '@/lib/notifications';
 import { query } from '@/lib/db';
+import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
 
@@ -109,6 +110,21 @@ bot.on('pre_checkout_query', handlePreCheckout);
 // ⚠️ КРИТИЧНО: Обработка успешной оплаты
 bot.on('message:successful_payment', handlePaymentSuccess);
 
-// Экспорт webhook handler для Vercel
-export default webhookCallback(bot, 'http');
+// 🔒 Middleware для верификации webhook токена и rate limiting
+async function botWebhookHandler(req: NextApiRequest, res: NextApiResponse) {
+  // ⚠️ КРИТИЧНО: Верифицируем секретный токен
+  const secretToken = req.headers['x-telegram-bot-api-secret-token'] as string;
+  const expectedSecret = process.env.TELEGRAM_BOT_SECRET;
 
+  if (expectedSecret && secretToken !== expectedSecret) {
+    console.warn('❌ Invalid Telegram bot webhook token received');
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // Используем встроенный webhookCallback от grammy
+  const webhookHandler = webhookCallback(bot, 'http');
+  return await webhookHandler(req, res);
+}
+
+// Экспорт webhook handler для Vercel с rate limiting и верификацией
+export default rateLimit(botWebhookHandler, RATE_LIMIT_PRESETS.normal);

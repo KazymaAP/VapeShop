@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 
 interface ManagerStats {
   name: string;
@@ -67,3 +66,4 @@ export default function ManagerStatsPage() {
     </div>
   );
 }
+

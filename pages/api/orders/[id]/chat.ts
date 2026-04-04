@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../lib/db';
-import { requireAuth } from '../../../../lib/auth';
+import { requireAuth, getTelegramId } from '../../../../lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { orderId, text } = req.body;
-    const userId = req.headers['x-telegram-id'] as string;
+    const userId = getTelegramId(req);
 
     try {
       await query(

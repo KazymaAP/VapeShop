@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const userId = req.headers['x-telegram-id'] as string;
+    const userId = getTelegramId(req);
 
     try {
       const result = await query(
@@ -25,7 +25,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(500).json({ error: 'Failed to fetch level' });
     }
   } else if (req.method === 'POST') {
-    const userId = req.headers['x-telegram-id'] as string;
+    const userId = getTelegramId(req);
     const { amount } = req.body;
 
     try {

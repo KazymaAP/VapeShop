@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
 
 interface User {
@@ -18,7 +17,6 @@ export async function getServerSideProps() {
 }
 
 export default function AdminUsers() {
-  const { user } = useTelegramWebApp();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -136,3 +134,4 @@ export default function AdminUsers() {
     </div>
   );
 }
+

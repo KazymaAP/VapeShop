@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnpm-debug.log
+
+# Next.js
+.next
+out
+.cache
+
+# Testing
+.jest
+coverage
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Documentation
+docs
+README.md
+CHANGELOG.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+
+# OS
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Misc
+.turbo
+dist
+build
+*.pem

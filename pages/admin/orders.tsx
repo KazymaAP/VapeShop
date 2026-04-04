@@ -54,11 +54,6 @@ export default function AdminOrders() {
     fetchOrders();
   }, []);
 
-  const handleStatusFilter = (status: string) => {
-    setFilterStatus(status);
-    fetchOrders(status || undefined);
-  };
-
   const fetchOrders = async (status?: string) => {
     let url = '/api/admin/orders';
     if (status) url += `?status=${status}`;

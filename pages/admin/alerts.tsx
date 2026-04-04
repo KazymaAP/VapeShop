@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramWebApp } from '../../lib/telegram';
+
+interface AlertItem {
+  name: string;
+  stock: number;
+}
 
 interface Alert {
   type: string;
   count: number;
   message: string;
-  items?: any[];
+  items?: AlertItem[];
 }
 
 export default function AlertsPage() {
@@ -17,7 +21,7 @@ export default function AlertsPage() {
     loadAlerts();
     const interval = setInterval(loadAlerts, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadAlerts]);
 
   const loadAlerts = async () => {
     try {
@@ -63,7 +67,7 @@ export default function AlertsPage() {
               <p className="font-bold text-lg">{alert.message}</p>
               {alert.items && (
                 <ul className="mt-2 text-sm opacity-90">
-                  {alert.items.map((item: any, i: number) => (
+                  {alert.items.map((item, i: number) => (
                     <li key={i}>• {item.name} ({item.stock} шт)</li>
                   ))}
                 </ul>
@@ -75,3 +79,5 @@ export default function AlertsPage() {
     </div>
   );
 }
+
+

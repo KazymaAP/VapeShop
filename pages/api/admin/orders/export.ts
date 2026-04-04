@@ -1,9 +1,8 @@
-import { NextApiRequest, NextApiResponse } from 'next';
 import { requireAuth } from '../../../../lib/auth';
 import { query } from '../../../../lib/db';
 import ExcelJS from 'exceljs';
 
-export default requireAuth(async (req, res) => {
+export default requireAuth(async (req, res: any) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -12,7 +11,7 @@ export default requireAuth(async (req, res) => {
     const { format = 'xlsx', date_from, date_to, status, min_amount, max_amount } = req.query;
 
     let whereClause = '1=1';
-    const params: any[] = [];
+    const params: (string | Date | number)[] = [];
     let paramCount = 1;
 
     if (date_from) {

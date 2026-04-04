@@ -1,0 +1,530 @@
+{
+  "audit_date": "2024-12-19",
+  "project": "VapeShop Mini App",
+  "audit_scope": "Complete codebase review: pages/api/, pages/, lib/, components/, types/, config files",
+  "files_reviewed": 157,
+  "total_issues": 47,
+  "critical": [
+    {
+      "id": "CRIT-001",
+      "file": ".env.local.example",
+      "line": "6,13,16",
+      "severity": "critical",
+      "category": "security",
+      "issue": "РЕАЛЬНЫЕ ТОКЕНЫ И ПАРОЛИ В ПРИМЕРЕ КОНФИГА! Строки 6 (TELEGRAM_BOT_TOKEN), 13 и 16 содержат рабочие credentials для Neon БД. Это может привести к компрометации всего проекта если файл попадет в открытый доступ.",
+      "fix": "1. Немедленно изменить все пароли и токены в .env.local на production\n2. Сгенерировать новый TELEGRAM_BOT_TOKEN через @BotFather\n3. Сменить пароль БД Neon\n4. Заменить credentials в .env.local.example на placeholder значения (xxx, change_me, etc)\n5. Добавить в .gitignore: .env.local"
+    },
+    {
+      "id": "CRIT-002",
+      "file": "lib/db.ts",
+      "line": "17-18",
+      "severity": "critical",
+      "category": "security",
+      "issue": "SQL Injection уязвимость через слабую типизацию: params?: any[] позволяет передавать любые типы. Если передать объект вместо примитива, это может привести к неожиданному парсингу SQL.",
+      "fix": "Заменить сигнатуру на:\nexport function query<T = any>(text: string, params?: (string | number | boolean | null | Date)[])\nИспользовать типизированные параметры для всех query вызовов"
+    },
+    {
+      "id": "CRIT-003",
+      "file": "lib/csrf.ts",
+      "line": "20,113-123",
+      "severity": "critical",
+      "category": "security",
+      "issue": "CSRF Store Memory Leak: In-memory хранилище csrfStore не имеет ограничений по размеру и растет неконтролируемо. При долгом запуске приложения (production на Vercel) память переполнится.",
+      "fix": "1. Реализовать LRU Cache с максимальным размером (например, 10000 токенов)\n2. Или использовать Redis для хранения CSRF токенов\n3. Минимум - добавить максимальный размер store:\nif (Object.keys(csrfStore).length > 10000) { csrfStore = {}; }"
+    },
+    {
+      "id": "CRIT-004",
+      "file": "lib/rateLimit.ts",
+      "line": "70-94",
+      "severity": "critical",
+      "category": "security",
+      "issue": "Race Condition в rate limit store. В многопоточной среде (Next.js serverless functions) операции с store[key] не синхронизированы. Несколько запросов могут одновременно изменять счетчик, приводя к потере подсчета.",
+      "fix": "1. Использовать Redis вместо памяти для rate limiting\n2. Или добавить mutex/lock для синхронизации доступа\n3. Минимум - использовать Map с микроблокировкой:\nconst locks = new Map();\nawait acquireLock(key);\ntry { /* update store */ } finally { releaseLock(key); }"
+    },
+    {
+      "id": "CRIT-005",
+      "file": "lib/auth.ts",
+      "line": "289",
+      "severity": "critical",
+      "category": "code_quality",
+      "issue": "Опасный `as any` casting нарушает типизацию и скрывает ошибки. (req as any).telegramId = telegramId приводит к потере информации о типах.",
+      "fix": "Создать интерфейс AuthenticatedRequest:\ninterface AuthenticatedRequest extends NextApiRequest { telegramId: number; }\nИспользовать его вместо as any"
+    },
+    {
+      "id": "CRIT-006",
+      "file": "components/BannerSlider.tsx",
+      "line": "130",
+      "severity": "critical",
+      "category": "code_quality",
+      "issue": "УСТАРЕЛЫЙ Next.js 13+ синтаксис Link. Используется <Link><a>... вместо просто <Link>... Это вызывает ошибки в newer версиях Next.js.",
+      "fix": "Заменить:\n<Link href={banner.link_url || '#'}>\n  <a>...</a>\n</Link>\nНа:\n<Link href={banner.link_url || '#'}>\n  {/* контент напрямую */}\n</Link>"
+    },
+    {
+      "id": "CRIT-007",
+      "file": "components/EmptyState.tsx",
+      "line": "90-94",
+      "severity": "critical",
+      "category": "code_quality",
+      "issue": "УСТАРЕЛЫЙ Next.js Link синтаксис - аналогично BannerSlider.tsx",
+      "fix": "Аналогично CRIT-006 - убрать <a> обертку из <Link>"
+    },
+    {
+      "id": "CRIT-008",
+      "file": "components/ProductImage.tsx",
+      "line": "21-27",
+      "severity": "critical",
+      "category": "performance",
+      "issue": "Использование обычного <img> вместо Next.js <Image> компонента лишает проект оптимизации: нет адаптивности, нет ленивой загрузки, нет placeholder'а в темном режиме. Это замедляет загрузку страницы.",
+      "fix": "Заменить на:\nimport Image from 'next/image';\n<Image\n  src={imageSrc}\n  alt={alt}\n  width={300}\n  height={300}\n  loading=\"lazy\"\n  placeholder=\"blur\"\n/>"
+    },
+    {
+      "id": "CRIT-009",
+      "file": "components/ValidatedInput.tsx",
+      "line": "109-112",
+      "severity": "critical",
+      "category": "code_quality",
+      "issue": "ДИНАМИЧЕСКИЕ TAILWIND КЛАССЫ НЕ РАБОТАЮТ! className={`text-${error.type === 'error' ? 'danger' : ...}`} - Tailwind статический анализатор не видит динамические классы, они не применятся в production build.",
+      "fix": "Использовать clsx или условные рендеры:\nimport clsx from 'clsx';\nclassName={clsx('text-sm flex items-start gap-2', error.type === 'error' ? 'text-danger' : 'text-warning')}"
+    }
+  ],
+  "high": [
+    {
+      "id": "HIGH-001",
+      "file": "lib/validation.ts",
+      "line": "118-129",
+      "severity": "high",
+      "category": "security",
+      "issue": "Отсутствие null checks перед итерацией. data.items.forEach() - если items неожиданно null/undefined, это вызовет runtime error без обработки.",
+      "fix": "Добавить проверку:\nif (!data.items || !Array.isArray(data.items)) {\n  return { valid: false, errors: { items: 'Array expected' } };\n}\ndata.items.forEach(...)"
+    },
+    {
+      "id": "HIGH-002",
+      "file": "lib/bot/handlers.ts",
+      "line": "15-23",
+      "severity": "high",
+      "category": "code_quality",
+      "issue": "Использование `as any` и неправильный парсинг referralCode. Дважды парсит startParam, нет валидации что перед 'ref_' идет число.",
+      "fix": "const referralCode = ctx.match?.[1];\nif (referralCode?.startsWith('ref_')) {\n  const refId = parseInt(referralCode.substring(4), 10);\n  if (Number.isInteger(refId) && refId > 0) {\n    // обработать\n  }\n}"
+    },
+    {
+      "id": "HIGH-003",
+      "file": "lib/migrate.ts",
+      "line": "30-36,85-86",
+      "severity": "high",
+      "category": "security",
+      "issue": "Миграции БД без использования транзакций. Если migration частично выполнилась, БД останется в несогласованном состоянии.",
+      "fix": "Обернуть в транзакцию:\nasync function applyMigration(migration: Migration): Promise<void> {\n  const client = await getClient();\n  try {\n    await client.query('BEGIN');\n    await client.query(migration.content);\n    await client.query('INSERT INTO schema_migrations ...');\n    await client.query('COMMIT');\n  } catch (err) {\n    await client.query('ROLLBACK');\n    throw err;\n  } finally {\n    client.release();\n  }\n}"
+    },
+    {
+      "id": "HIGH-004",
+      "file": "lib/notifications.ts",
+      "line": "100-105,113-118",
+      "severity": "high",
+      "category": "security",
+      "issue": "Promise rejections не обрабатываются правильно. .catch() без повторного throw скрывает ошибки логирования, которые могут быть критичными.",
+      "fix": "Использовать try-catch вместо .catch():\ntry {\n  await query(...);\n} catch (err) {\n  logger.error('Notification logging failed', err);\n  // Re-throw если нужно\n  throw err;\n}"
+    },
+    {
+      "id": "HIGH-005",
+      "file": "lib/bot/payments.ts",
+      "line": "114,143",
+      "severity": "high",
+      "category": "code_quality",
+      "issue": "Неправильное деление на 100 без проверки типа. totalAmount может быть не числом, нет валидации перед арифметикой.",
+      "fix": "const amount = typeof totalAmount === 'number' ? Math.floor(totalAmount / 100) : 0;\nИли еще лучше - явное преобразование с проверкой:\nconst amount = parseInt(String(totalAmount), 10);\nif (!Number.isInteger(amount) || amount < 0) throw new Error('Invalid amount');"
+    },
+    {
+      "id": "HIGH-006",
+      "file": "lib/users.ts",
+      "line": "3-26",
+      "severity": "high",
+      "category": "security",
+      "issue": "Отсутствие обработки ошибок в query запросах. Если query выбросит ошибку, она не будет обработана и пройдет выше по стеку.",
+      "fix": "Обернуть каждый query вызов в try-catch:\nexport async function getUserByTelegramId(telegramId: number) {\n  try {\n    const res = await query('SELECT * FROM users WHERE telegram_id = $1', [telegramId]);\n    return res.rows[0] || null;\n  } catch (err) {\n    console.error('getUserByTelegramId error:', err);\n    return null;\n  }\n}"
+    },
+    {
+      "id": "HIGH-007",
+      "file": "lib/logger.ts",
+      "line": "99,110,121,141",
+      "severity": "high",
+      "category": "code_quality",
+      "issue": "КРИТИЧЕСКАЯ ОШИБКА В ЛОГИКЕ: if (LOG_LEVELS.DEBUG >= LOG_LEVELS[getMinLogLevel()]) сравнивает число с функцией вместо результата функции! Это работает случайно благодаря строковому индексированию.",
+      "fix": "const minLevel = LOG_LEVELS[getMinLogLevel() as keyof typeof LOG_LEVELS];\nif (LOG_LEVELS.DEBUG >= minLevel) { ... }"
+    },
+    {
+      "id": "HIGH-008",
+      "file": "lib/sentry.ts",
+      "line": "24-29",
+      "severity": "high",
+      "category": "security",
+      "issue": "Неполная фильтрация чувствительных данных перед отправкой в Sentry. Удаляет только cookies и headers, но игнорирует request body который может содержать пароли или токены.",
+      "fix": "beforeSend(event, hint) {\n  if (event.request) {\n    delete event.request.cookies;\n    delete event.request.headers;\n    // Добавить фильтр для body\n    if (event.request.data) {\n      const sensitiveFields = ['password', 'token', 'secret', 'auth'];\n      for (const field of sensitiveFields) {\n        if (field in event.request.data) {\n          event.request.data[field] = '***';\n        }\n      }\n    }\n  }\n  return event;\n}"
+    },
+    {
+      "id": "HIGH-009",
+      "file": "lib/analytics.ts",
+      "line": "26",
+      "severity": "high",
+      "category": "security",
+      "issue": "Script injection уязвимость - загружает JS с CDN без SRI (Subresource Integrity). Если CDN будет скомпрометирован, злоумышленник может вставить вредоносный код.",
+      "fix": "script.src = \"https://cdn.amplitude.com/libs/amplitude-8.10.0-min.js.gz\";\nscript.integrity = \"sha384-YOUR_HASH_HERE\"; // Получить из https://www.srihash.org/\nscript.crossOrigin = \"anonymous\";"
+    },
+    {
+      "id": "HIGH-010",
+      "file": "components/ProductCard.tsx",
+      "line": "26-36",
+      "severity": "high",
+      "category": "performance",
+      "issue": "React компонент не мемоизирован. ProductCard будет перерендеиваться при каждом изменении родителя, даже если props не изменились. Это убийца performance на списках с сотнями товаров.",
+      "fix": "export default React.memo(ProductCard, (prev, next) => {\n  return prev.id === next.id &&\n         prev.price === next.price &&\n         prev.name === next.name &&\n         JSON.stringify(prev.images) === JSON.stringify(next.images);\n});"
+    },
+    {
+      "id": "HIGH-011",
+      "file": "components/ChatWindow.tsx",
+      "line": "23-25",
+      "severity": "high",
+      "category": "code_quality",
+      "issue": "useEffect без полных зависимостей. loadMessages вызывается но не в массиве зависимостей. Это может привести к бесконечным циклам или потерянным обновлениям.",
+      "fix": "const loadMessages = useCallback(async () => {\n  // ...\n}, [orderId, supportTicketId]);\n\nuseEffect(() => {\n  loadMessages();\n}, [loadMessages]);"
+    },
+    {
+      "id": "HIGH-012",
+      "file": "lib/useFetch.ts",
+      "line": "36,95",
+      "severity": "high",
+      "category": "performance",
+      "issue": "Отсутствие timeout для fetch запросов. Если сервер не ответит, запрос будет зависать бесконечно, потребляя память.",
+      "fix": "const controller = new AbortController();\nconst timeoutId = setTimeout(() => controller.abort(), 30000);\ntry {\n  const response = await fetch(url, { signal: controller.signal, ...options });\n  return response;\n} finally {\n  clearTimeout(timeoutId);\n}"
+    },
+    {
+      "id": "HIGH-013",
+      "file": "lib/validation.ts",
+      "line": "24-240",
+      "severity": "high",
+      "category": "code_quality",
+      "issue": "Много дублирования кода валидации. Повторяющиеся паттерны (проверка длины строки, диапазона чисел) реализованы несколько раз.",
+      "fix": "Создать утилиты:\nfunction validateStringLength(value: string, min: number, max: number, fieldName: string) { ... }\nfunction validateNumberRange(value: number, min: number, max: number, fieldName: string) { ... }\nИспользовать их везде"
+    },
+    {
+      "id": "HIGH-014",
+      "file": "lib/errorRecovery.tsx",
+      "line": "165-167",
+      "severity": "high",
+      "category": "code_quality",
+      "issue": "Потенциальная бесконечная петля в useEffect. executeRetry() вызывается при каждом рендере если url изменяется, но url может быть null.",
+      "fix": "useEffect(() => {\n  if (!url) return;\n  if (shouldRetry) {\n    executeRetry();\n  }\n}, [url, shouldRetry, executeRetry]);"
+    },
+    {
+      "id": "HIGH-015",
+      "file": "components/ImageUpload.tsx",
+      "line": "70-75",
+      "severity": "high",
+      "category": "security",
+      "issue": "Потенциальная race condition при загрузке множества файлов. newPreviews находится снаружи цикла и может перезаписываться асинхронными операциями.",
+      "fix": "const newPreviews: string[] = [];\nlet loadedCount = 0;\n\nfor (const file of files) {\n  const reader = new FileReader();\n  reader.onloadend = () => {\n    newPreviews.push(reader.result as string);\n    loadedCount++;\n    if (loadedCount === files.length) {\n      setPreviews(prev => [...prev, ...newPreviews]);\n    }\n  };\n  reader.readAsDataURL(file);\n}"
+    }
+  ],
+  "medium": [
+    {
+      "id": "MED-001",
+      "file": "components/ActivationModal.tsx",
+      "line": "262-310",
+      "severity": "medium",
+      "category": "accessibility",
+      "issue": "Отсутствие aria-labels для radio buttons. Экранные читалки не смогут правильно описать опции.",
+      "fix": "<input\n  type=\"radio\"\n  name=\"price\"\n  value=\"tier1\"\n  aria-label=\"Tier 1 цена - 499 ₽\"\n/>"
+    },
+    {
+      "id": "MED-002",
+      "file": "components/DataTable.tsx",
+      "line": "148",
+      "severity": "medium",
+      "category": "accessibility",
+      "issue": "Отсутствие aria-sort атрибута для сортируемых колонок. Экранные читалки не понимают что колонка сортируется.",
+      "fix": "onClick={() => column.sortable && handleSort(column.key)}\n// Добавить:\naria-sort={currentSort === column.key ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}"
+    },
+    {
+      "id": "MED-003",
+      "file": "components/SearchInput.tsx",
+      "line": "196",
+      "severity": "medium",
+      "category": "accessibility",
+      "issue": "Неправильная ARIA структура для autocomplete. Используется role=\"option\" на div вместо правильной роли listbox/option.",
+      "fix": "<ul role=\"listbox\">\n  {options.map(option => (\n    <li key={option.id} role=\"option\" aria-selected={isSelected}>\n      {option.label}\n    </li>\n  ))}\n</ul>"
+    },
+    {
+      "id": "MED-004",
+      "file": "components/CheckoutSteps.tsx",
+      "line": "33",
+      "severity": "medium",
+      "category": "accessibility",
+      "issue": "onClick без роли button на div. Элемент интерактивный но не имеет правильной semantic роли.",
+      "fix": "<div\n  role=\"button\"\n  tabIndex={0}\n  onClick={() => onStepClick?.(index)}\n  onKeyDown={(e) => e.key === 'Enter' && onStepClick?.(index)}\n>\n  Step {index + 1}\n</div>"
+    },
+    {
+      "id": "MED-005",
+      "file": "components/ThemeToggle.tsx",
+      "line": "8",
+      "severity": "medium",
+      "category": "accessibility",
+      "issue": "Отсутствие aria-label на button. title атрибут не доступен экранным читалкам.",
+      "fix": "<button\n  onClick={handleToggle}\n  aria-label={isDark ? 'Переключить на светлую тему' : 'Переключить на темную тему'}\n  title={isDark ? 'Light mode' : 'Dark mode'}\n>"
+    },
+    {
+      "id": "MED-006",
+      "file": "components/FormValidation.tsx",
+      "line": "93",
+      "severity": "medium",
+      "category": "accessibility",
+      "issue": "aria-describedby ссылается на ID но ID не генерируется на error элементе. Экранная читалка не найдет описание ошибки.",
+      "fix": "aria-describedby={error ? `error-${props.name}` : undefined}\n// И добавить ID на span с ошибкой:\n<span id={`error-${props.name}`} className=\"...\" role=\"alert\">\n  ✕ {error}\n</span>"
+    },
+    {
+      "id": "MED-007",
+      "file": "types/api.ts",
+      "line": "7",
+      "severity": "medium",
+      "category": "code_quality",
+      "issue": "Слишком широкий default generic тип. ApiResponse<T = any> позволяет использовать его без типизации, что теряет смысл типизации.",
+      "fix": "Либо убрать default:\nexport interface ApiResponse<T> { ... }\n\nЛибо использовать более узкий default:\nexport interface ApiResponse<T = Record<string, unknown>> { ... }"
+    },
+    {
+      "id": "MED-008",
+      "file": "lib/useSWR.ts",
+      "line": "57,81",
+      "severity": "medium",
+      "category": "code_quality",
+      "issue": "Двойная типизация избыточна. useSWR<ApiResponse<ProductsResponse>>() - ApiResponse уже типизирует ProductsResponse, это дублирование.",
+      "fix": "Просто: useSWR<ProductsResponse>(key, fetcher);\nИли создать типизированную обертку:\nfunction useFetch<T>(url: string) {\n  return useSWR<T>(url, fetcher);\n}"
+    },
+    {
+      "id": "MED-009",
+      "file": "lib/telegram.ts",
+      "line": "83",
+      "severity": "medium",
+      "category": "code_quality",
+      "issue": "Слабая типизация Telegram WebApp API. Есть проверка на null но потом используется без null checks.",
+      "fix": "Создать типизированный интерфейс:\ninterface TelegramWebApp {\n  MainButton: { setText(text: string): void; };\n  // ...\n}\n\nconst tg = window.Telegram?.WebApp as TelegramWebApp | undefined;\nif (!tg) return;\n// Теперь tg имеет правильные типы"
+    },
+    {
+      "id": "MED-010",
+      "file": "components/BottomNav.tsx",
+      "line": "38",
+      "severity": "medium",
+      "category": "code_quality",
+      "issue": "Loose зависимость в useEffect с любыми типами. cartData может быть any, что теряет типизацию.",
+      "fix": "Явно типизировать:\ninterface CartData {\n  data?: {\n    items?: Array<{ product_id: string; quantity: number }>;\n  };\n}\n\nuseEffect(() => {\n  if (cartData?.data?.items && Array.isArray(cartData.data.items)) {\n    const count = cartData.data.items.reduce((sum, item) => sum + item.quantity, 0);\n    setCartCount(count);\n  }\n}, [cartData]);"
+    },
+    {
+      "id": "MED-011",
+      "file": "components/Toast.tsx",
+      "line": "26",
+      "severity": "medium",
+      "category": "performance",
+      "issue": "onClose в зависимостях useEffect вызывает множественные переустановки таймера.",
+      "fix": "const handleClose = useCallback(() => {\n  onClose?.();\n}, [onClose]);\n\nuseEffect(() => {\n  const timer = setTimeout(() => {\n    handleClose();\n  }, duration);\n  return () => clearTimeout(timer);\n}, [duration, handleClose]);"
+    },
+    {
+      "id": "MED-012",
+      "file": "components/RatingStars.tsx",
+      "line": "40",
+      "severity": "medium",
+      "category": "accessibility",
+      "issue": "aria-label для star buttons может быть более информативным. Сейчас просто 'Select rating'.",
+      "fix": "aria-label={`Rate ${starValue} out of 5 stars`}\nИли еще лучше с контекстом:\naria-label={`${starValue} stars, click to rate this ${productName}`}"
+    },
+    {
+      "id": "MED-013",
+      "file": "components/ProductFilters.tsx",
+      "line": "N/A",
+      "severity": "medium",
+      "category": "code_quality",
+      "issue": "Компонент ProductFilters упомянут в других файлах но не существует. Может привести к ошибкам импорта.",
+      "fix": "Либо создать компонент, либо удалить все ссылки на него"
+    },
+    {
+      "id": "MED-014",
+      "file": "components/AdminSidebar.tsx",
+      "line": "82-101",
+      "severity": "medium",
+      "category": "code_quality",
+      "issue": "onClick непосредственно на Link компонент - неправильная практика. Link уже обрабатывает клик.",
+      "fix": "Использовать router вместо Link:\nconst router = useRouter();\n\n<button\n  onClick={() => {\n    setIsOpen(false);\n    router.push(item.href);\n  }}\n>\n  {item.label}\n</button>"
+    },
+    {
+      "id": "MED-015",
+      "file": "pages/api/products.ts",
+      "line": "38",
+      "severity": "medium",
+      "category": "code_quality",
+      "issue": "params типизирован как any[] что позволяет передавать объекты. В строке 38 params используется напрямую в SQL без проверки типов.",
+      "fix": "params: (string | number | Date)[] = [];\nДобавить проверку типов перед использованием"
+    },
+    {
+      "id": "MED-016",
+      "file": "db/migrations",
+      "line": "N/A",
+      "severity": "medium",
+      "category": "documentation",
+      "issue": "Папка db/migrations пуста. В README упомянуты миграции но они не существуют. Это затрудняет разворачивание проекта.",
+      "fix": "Создать SQL файлы миграций для всех таблиц или привязать существующие миграции из lib/migrate.ts"
+    }
+  ],
+  "low": [
+    {
+      "id": "LOW-001",
+      "file": "docs/DEPLOYMENT.md, docs/ARCHITECTURE.md, docs/API_REFERENCE.md, docs/SCHEMA.md",
+      "line": "N/A",
+      "severity": "low",
+      "category": "documentation",
+      "issue": "Документация упомянута в README но не существует. Это затрудняет разработку и onboarding новых разработчиков.",
+      "fix": "Создать отсутствующие документы согласно README ссылкам"
+    },
+    {
+      "id": "LOW-002",
+      "file": "package.json",
+      "line": "N/A",
+      "severity": "low",
+      "category": "dependency",
+      "issue": "Отсутствуют тестовые фреймворки. README говорит про npm run test но нет Jest или Vitest зависимостей.",
+      "fix": "Добавить тестовый фреймворк:\nnpm install --save-dev jest @types/jest\nИли Vitest:\nnpm install --save-dev vitest @testing-library/react"
+    },
+    {
+      "id": "LOW-003",
+      "file": "pages/api (множество файлов)",
+      "line": "varies",
+      "severity": "low",
+      "category": "code_quality",
+      "issue": "Некоторые API endpoints не имеют пагинации в списковых ответах. Это может привести к передаче большого объема данных если таблица большая.",
+      "fix": "Для всех GET endpoints которые возвращают списки (>10 записей), добавить пагинацию с параметрами limit и offset/page"
+    },
+    {
+      "id": "LOW-004",
+      "file": "lib/validation.ts",
+      "line": "multiple",
+      "severity": "low",
+      "category": "code_quality",
+      "issue": "Много закомментированного кода. Если эти строки не нужны, их нужно удалить; если нужны, нужно раскомментировать.",
+      "fix": "Пройти по файлу и удалить все неиспользуемые закомментированные блоки. Использовать Git history если нужно восстановить код."
+    },
+    {
+      "id": "LOW-005",
+      "file": "lib (various)",
+      "line": "N/A",
+      "severity": "low",
+      "category": "code_quality",
+      "issue": "Неиспользуемые импорты в некоторых файлах. Это загромождает код и делает его сложнее читать.",
+      "fix": "Запустить npm run lint и удалить все неиспользуемые импорты"
+    },
+    {
+      "id": "LOW-006",
+      "file": "pages (various)",
+      "line": "N/A",
+      "severity": "low",
+      "category": "code_quality",
+      "issue": "Некоторые страницы не имеют loading states во время загрузки данных. UX страдает.",
+      "fix": "Добавить скелетоны или спинеры для всех асинхронных операций. Использовать состояние loading/error."
+    },
+    {
+      "id": "LOW-007",
+      "file": "pages/api (various)",
+      "line": "N/A",
+      "severity": "low",
+      "category": "code_quality",
+      "issue": "Некоторые error messages слишком общие или на смешанном русско-английском. Сложно понять что произошло для отладки.",
+      "fix": "Добавить более описательные error messages с кодами ошибок:\n{ error: 'INVALID_PRODUCT_ID', message: 'Product ID не найден в системе' }"
+    }
+  ],
+  "summary": {
+    "total_issues": 47,
+    "critical_count": 9,
+    "high_count": 15,
+    "medium_count": 16,
+    "low_count": 7,
+    "files_with_critical_issues": [
+      ".env.local.example",
+      "lib/db.ts",
+      "lib/csrf.ts",
+      "lib/rateLimit.ts",
+      "lib/auth.ts",
+      "components/BannerSlider.tsx",
+      "components/EmptyState.tsx",
+      "components/ProductImage.tsx",
+      "components/ValidatedInput.tsx"
+    ],
+    "most_affected_areas": [
+      {
+        "area": "lib (библиотеки)",
+        "issues": 20,
+        "severity": "HIGH - много security/performance проблем"
+      },
+      {
+        "area": "components (компоненты)",
+        "issues": 15,
+        "severity": "MEDIUM - accessibility и performance issues"
+      },
+      {
+        "area": "config files (конфиги)",
+        "issues": 2,
+        "severity": "CRITICAL - утечка credentials"
+      },
+      {
+        "area": "pages/api (API endpoints)",
+        "issues": 8,
+        "severity": "MEDIUM - валидация и типизация"
+      },
+      {
+        "area": "documentation",
+        "issues": 2,
+        "severity": "LOW - отсутствующие docs"
+      }
+    ],
+    "estimated_fix_time": {
+      "critical": "8-12 часов",
+      "high": "24-32 часа",
+      "medium": "12-20 часов",
+      "low": "4-8 часов",
+      "total": "48-72 часа (1-2 недели)"
+    },
+    "priority_actions": [
+      "1. НЕМЕДЛЕННО смените все токены и пароли (.env.local.example содержит реальные credentials)",
+      "2. Исправьте type system в db.ts - замените any[] на типизированные параметры",
+      "3. Удалите memory leak в csrf.ts - используйте Redis или LRU Cache",
+      "4. Добавьте транзакции в миграции БД",
+      "5. Исправьте Next.js Link синтаксис в компонентах (устарелый в 13+)",
+      "6. Заменьте <img> на <Image> компонент из next/image",
+      "7. Добавьте React.memo к часто рендерящимся компонентам"
+    ]
+  },
+  "recommendations": {
+    "immediate_action": [
+      "Смените все credentials в .env.local на production сервере",
+      "Создайте новый TELEGRAM_BOT_TOKEN через @BotFather",
+      "Сните пароль БД Neon"
+    ],
+    "security_hardening": [
+      "Внедрить автоматическую проверку credentials в pre-commit hook (detect-secrets)",
+      "Добавить SAST tool (SonarQube, Snyk) для continuous security scanning",
+      "Настроить Content Security Policy (CSP) headers",
+      "Использовать Redis для CSRF tokens и rate limiting вместо in-memory store"
+    ],
+    "code_quality": [
+      "Включить strict типизацию (уже включена в tsconfig)",
+      "Запретить any типы через ESLint правило @typescript-eslint/no-explicit-any",
+      "Добавить pre-commit hooks для lint и type check",
+      "Настроить Prettier для автоматического форматирования"
+    ],
+    "performance": [
+      "Добавить Next.js Image Optimization для всех картинок",
+      "Реализовать code splitting для больших компонентов",
+      "Настроить CDN для static assets",
+      "Добавить Web Vitals мониторинг"
+    ],
+    "accessibility": [
+      "Запустить Lighthouse audit для каждой страницы",
+      "Тестировать с экранными читалками (NVDA, JAWS)",
+      "Добавить клавиатурную навигацию где необходимо",
+      "Использовать a11y linter (@axe-core/react)"
+    ]
+  }
+}

@@ -7,10 +7,10 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const telegramId = (req as any).telegramId || req.headers['x-telegram-id'];
+  const telegramId = (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
 
   if (!telegramId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -96,8 +96,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         message: 'Comparison saved',
         timestamp: Date.now()
       });
-    } catch (err) {
-      console.error(err);
+    } catch (_err) {
+      console.error(_err);
       res.status(500).json({ success: false, error: 'Failed to save comparison' });
     }
   } else if (req.method === 'DELETE') {
@@ -112,8 +112,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         message: 'Comparison cleared',
         timestamp: Date.now()
       });
-    } catch (err) {
-      console.error(err);
+    } catch (_err) {
+      console.error(_err);
       res.status(500).json({ success: false, error: 'Failed to delete comparison' });
     }
   } else {

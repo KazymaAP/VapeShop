@@ -5,25 +5,19 @@ import crypto from 'crypto';
 export type UserRole = 'super_admin' | 'admin' | 'manager' | 'support' | 'courier' | 'seller' | 'customer' | 'buyer';
 
 /**
- * Извлекает telegram_id из запроса
+ * Извлекает telegram_id из запроса с ОБЯЗАТЕЛЬНОЙ верификацией
+ * 
+ * ⚠️ КРИТИЧНО: Всегда требуется верификация initData через HMAC!
+ * X-Telegram-Id заголовок используется только для локального тестирования,
+ * в production должна использоваться только подписанная initData.
+ * 
  * Приоритет:
- * 1. Заголовок X-Telegram-Id (для админки и тестирования)
- * 2. initData из query или headers (от Telegram WebApp)
+ * 1. initData из заголовка Authorization или query (от Telegram WebApp) — ВЕРИФИЦИРОВАННАЯ
+ * 2. X-Telegram-Id заголовок ТОЛЬКО если NODE_ENV !== 'production' (для разработки)
  */
 export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<number | null> {
   try {
-    // 1. Проверяем заголовок X-Telegram-Id (админка)
-    const headerTelegramId = req.headers['x-telegram-id'];
-    if (headerTelegramId) {
-      const id = parseInt(headerTelegramId as string, 10);
-      if (!isNaN(id)) {
-        return id;
-      }
-    }
-
-    // 2. Пытаемся получить initData из query или headers
-    // От Telegram WebApp может прийти как в query ?initData=..., 
-    // так и в headers Authorization: Bearer <initData>
+    // 1. Получаем initData из query или headers (от Telegram WebApp)
     let initData: string | null = null;
 
     // Из query параметров
@@ -41,11 +35,27 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
       }
     }
 
-    // Если у нас есть initData, пытаемся его распарсить
+    // Если у нас есть initData, пытаемся его верифицировать и распарсить
     if (initData) {
       const user = parseInitData(initData);
       if (user?.id) {
         return user.id;
+      }
+    }
+
+    // 2. Fallback для локальной разработки: X-Telegram-Id заголовок
+    // ⚠️ ЭТО ТОЛЬКО ДЛЯ ТЕСТИРОВАНИЯ! В production должно быть отключено.
+    if (process.env.NODE_ENV !== 'production') {
+      const headerTelegramId = req.headers['x-telegram-id'];
+      if (headerTelegramId) {
+        const id = parseInt(headerTelegramId as string, 10);
+        if (!isNaN(id)) {
+          console.warn(
+            `⚠️ ПРЕДУПРЕЖДЕНИЕ: Используется X-Telegram-Id для тестирования. ` +
+            `На production это должно быть отключено. Telegram ID: ${id}`
+          );
+          return id;
+        }
       }
     }
 
@@ -58,7 +68,8 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
 
 /**
  * Верифицирует подпись HMAC-SHA256 для initData от Telegram WebApp
- * Это ОБЯЗАТЕЛЬНАЯ защита на production!
+ * 
+ * ⚠️ ОБЯЗАТЕЛЬНАЯ защита на production!
  * 
  * Формат initData: user=%7B%22id%22%3A123456789...&hash=abc123...
  * 
@@ -66,9 +77,12 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
  * 1. Получить secret_key из bot token (HMAC-SHA256 с ключом 'WebAppData')
  * 2. Собрать data_check_string из всех параметров кроме 'hash'
  * 3. Вычислить hash (HMAC-SHA256 с secret_key)
- * 4. Сравнить с полученным hash
+ * 4. Сравнить с полученным hash (timing-safe сравнение)
+ * 
+ * @param initData URL-encoded строка с параметрами от Telegram WebApp
+ * @returns true если подпись верна, false иначе
  */
-function verifyTelegramInitData(initData: string): boolean {
+export function verifyTelegramInitData(initData: string): boolean {
   try {
     const bot_token = process.env.TELEGRAM_BOT_TOKEN;
     
@@ -109,10 +123,16 @@ function verifyTelegramInitData(initData: string): boolean {
       .digest('hex');
 
     // Сравниваем (используем timing-safe сравнение для защиты от timing attacks)
-    const isValid = crypto.timingSafeEqual(
-      Buffer.from(computed_hash, 'hex'),
-      Buffer.from(hash, 'hex')
-    );
+    const receivedHashBuffer = Buffer.from(hash, 'hex');
+    const computedHashBuffer = Buffer.from(computed_hash, 'hex');
+
+    // Проверка длины буферов перед сравнением
+    if (receivedHashBuffer.length !== computedHashBuffer.length) {
+      console.warn('Hash length mismatch. Possible tampering attempt.');
+      return false;
+    }
+
+    const isValid = crypto.timingSafeEqual(computedHashBuffer, receivedHashBuffer);
 
     if (!isValid) {
       console.warn('Invalid initData signature. Computed:', computed_hash, 'Received:', hash);
