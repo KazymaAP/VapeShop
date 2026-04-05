@@ -1,6 +1,10 @@
 import { query } from './db';
 
-export async function trackEvent(userId: string | null, eventName: string, properties?: Record<string, unknown>) {
+export async function trackEvent(
+  userId: string | null,
+  eventName: string,
+  properties?: Record<string, unknown>
+) {
   try {
     await query(
       'INSERT INTO analytics_events (user_id, event_name, event_properties) VALUES ($1, $2, $3)',

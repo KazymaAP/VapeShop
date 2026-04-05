@@ -271,7 +271,11 @@ export default function ActivationModal({
                       name="price"
                       value="tier1"
                       checked={priceType === 'tier1'}
-                      onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
+                      onChange={(e) =>
+                        setPriceType(
+                          e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual'
+                        )
+                      }
                       className="w-4 h-4"
                     />
                     <span className="text-sm text-textSecondary">
@@ -286,7 +290,11 @@ export default function ActivationModal({
                       name="price"
                       value="tier2"
                       checked={priceType === 'tier2'}
-                      onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
+                      onChange={(e) =>
+                        setPriceType(
+                          e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual'
+                        )
+                      }
                       className="w-4 h-4"
                     />
                     <span className="text-sm text-textSecondary">
@@ -301,7 +309,11 @@ export default function ActivationModal({
                       name="price"
                       value="tier3"
                       checked={priceType === 'tier3'}
-                      onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
+                      onChange={(e) =>
+                        setPriceType(
+                          e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual'
+                        )
+                      }
                       className="w-4 h-4"
                     />
                     <span className="text-sm text-textSecondary">
@@ -316,7 +328,11 @@ export default function ActivationModal({
                       name="price"
                       value="distributor"
                       checked={priceType === 'distributor'}
-                      onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
+                      onChange={(e) =>
+                        setPriceType(
+                          e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual'
+                        )
+                      }
                       className="w-4 h-4"
                     />
                     <span className="text-sm text-textSecondary">
@@ -330,7 +346,11 @@ export default function ActivationModal({
                     name="price"
                     value="manual"
                     checked={priceType === 'manual'}
-                    onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
+                    onChange={(e) =>
+                      setPriceType(
+                        e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual'
+                      )
+                    }
                     className="w-4 h-4"
                   />
                   <span className="text-sm text-textSecondary">Ручной ввод</span>

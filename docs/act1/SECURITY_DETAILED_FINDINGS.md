@@ -1,5 +1,3 @@
-
-
 # SECURITY ISSUES - DETAILED FINDINGS
 
 ## Executive Summary

@@ -13,6 +13,7 @@
 Буду читать каждый файл ПОЛНОСТЬЮ по инструкции и логировать все найденные проблемы.
 
 #### Файлы для анализа по приоритетам:
+
 1. pages/ (все файлы)
 2. lib/ и lib/bot/
 3. components/
@@ -28,6 +29,7 @@
 ### Проанализированные файлы:
 
 #### ✅ Корневые конфиги:
+
 - package.json: OK (зависимости в порядке)
 - tsconfig.json: OK (strict mode включен)
 - next.config.js: OK (security headers настроены)
@@ -36,11 +38,13 @@
 - vercel.json: OK
 
 #### ❌ ИСПРАВЛЕНО #4: lib/useFetch.ts — TypeScript any типы (5)
+
 - Дата: 2026-04-05 10:55:40 UTC
 - Изменения: Заменены `any` на `unknown` в 5 местах (11, 13, 17, 22, 93)
 - Компиляция: ✅ Проходит
 
 #### ❌ ИСПРАВЛЕНО #5: lib/useSWR.ts — TypeScript any (6)
+
 - Дата: 2026-04-05 10:55:42 UTC
 - Изменения: Заменены `any` на `unknown` или `Record<string, unknown>[]`
 - Статус: ГОТОВО
@@ -50,6 +54,7 @@
 ## ИТОГО ЦИКЛ 2:
 
 ### ✅ Исправления завершены:
+
 1. ✅ pages/api/orders/index.ts — CRITICAL SECURITY: telegram_id без верификации
 2. ✅ lib/db.ts — TypeScript: 3x `any` → конкретные типы
 3. ✅ lib/auth.ts — TypeScript: 2x `any` → `{ telegramId?: number }`
@@ -58,11 +63,12 @@
 6. ✅ components/FeaturedProducts.tsx — Unused import: SkeletonLoader
 7. ✅ components/OrderExportButton.tsx — Unused import: safeFetch
 8. ✅ components/OrderTimeline.tsx — Unused variable: isUpcoming
-9. ✅ lib/searchSuggestions.tsx — Unused variable: e (renamed to _)
+9. ✅ lib/searchSuggestions.tsx — Unused variable: e (renamed to \_)
 10. ✅ lib/telegram.ts — Unused import: useCallback
 11. ✅ lib/validation.ts — Unused import: PAYMENT_STATUS
 
 ### 📊 Статистика:
+
 - Lint ошибок было: 124
 - Lint ошибок стало: 95
 - Улучшение: 29 ошибок (23%) ✅
@@ -70,6 +76,7 @@
 - High priority fixes: 11 исправлено ✅
 
 ### ⏭️ Осталось для Цикла 3:
+
 - ~80 React Hooks warnings (missing dependencies)
 - ~20 Console statements (в cron-задачах)
 - ~10 Performance warnings (<img> вместо <Image/>)
@@ -82,8 +89,6 @@
 
 Начинаю Цикл 3 — повторный анализ и новые улучшения.
 
-
-
 - Дата: 2026-04-05 10:55:38 UTC
 - Файл: lib/auth.ts
 - Проблемы:
@@ -91,7 +96,6 @@
   2. Строка 311: `(req as any).telegramId` → `(req as { telegramId?: number }).telegramId`
 - Компиляция: ✅ Проходит
 - Статус: ГОТОВО
-
 
 - Дата: 2026-04-05 10:55:35 UTC
 - Файл: lib/db.ts
@@ -101,7 +105,6 @@
   3. Строка 47: `(err as any).message` → `(err as Error).message`
 - Компиляция: ✅ Проходит
 - Статус: ГОТОВО
-
 
 - Дата: 2026-04-05 10:55:30 UTC
 - Файл: pages/api/orders/index.ts
@@ -114,14 +117,14 @@
 - Компиляция: ✅ Проходит
 - Статус: ГОТОВО
 
-
-
 #### ✅ lib/auth.ts
+
 - Файл SECURE: Содержит `verifyTelegramInitData()` и `getTelegramIdFromRequest()`
 - HMAC-SHA256 верификация реализована правильно
 - Middleware `requireAuth()` правильно защищает endpoints
 
 #### Lint ошибки найденные:
+
 - TypeScript: 48 ошибок (mostly `any` типы)
 - React Hooks: 35 warnings (missing dependencies)
 - Console statements: 20 warnings (в cron-задачах и логгере)
@@ -129,8 +132,6 @@
 - Performance: 4 warnings (<img> вместо <Image />)
 - A11y: 1 warning
 - Code quality: 7 ошибок
-
-
 
 ## 📊 СТАТУС ЦИКЛА 1 (Возобновлено 2026-04-05 05:57:49Z)
 

@@ -78,7 +78,8 @@ export function withCSRFProtection(
   return async (req: NextApiRequest, res: NextApiResponse) => {
     if (protectedMethods.includes(req.method || '')) {
       // Получаем session ID (telegram ID пользователя)
-      const sessionId = (req as unknown as Record<string, unknown>).telegramId || req.headers['x-session-id'];
+      const sessionId =
+        (req as unknown as Record<string, unknown>).telegramId || req.headers['x-session-id'];
 
       if (!sessionId) {
         return res.status(401).json({ error: 'No session ID found' });

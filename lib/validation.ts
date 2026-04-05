@@ -107,7 +107,15 @@ export type UpdateOrderInput = z.infer<typeof UpdateOrderSchema>;
 
 export const UpdateRoleSchema = z.object({
   userId: z.number().int().positive(),
-  newRole: z.enum(['customer', 'admin', 'manager', 'courier', 'support', 'seller', 'super_admin'] as const),
+  newRole: z.enum([
+    'customer',
+    'admin',
+    'manager',
+    'courier',
+    'support',
+    'seller',
+    'super_admin',
+  ] as const),
 });
 
 export const updatePromoCodeSchema = z.object({

@@ -44,13 +44,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         ]
       );
 
-      res
-        .status(200)
-        .json({
-          message: `Рассылка завершена: ${sent} отправлено, ${failed} ошибок`,
-          sent,
-          failed,
-        });
+      res.status(200).json({
+        message: `Рассылка завершена: ${sent} отправлено, ${failed} ошибок`,
+        sent,
+        failed,
+      });
     } catch (err) {
       console.error('Broadcast error:', err);
       res.status(500).json({ error: 'Ошибка рассылки' });

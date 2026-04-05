@@ -6,11 +6,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
-import { ApiResponse } from '@/types/api';
+import { ApiResponse, ApiError } from '@/types/api';
 
-export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResponse>) => {
+export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResponse | ApiError>) => {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Method not allowed', timestamp: Date.now() });
   }
 
   try {
@@ -87,6 +87,7 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiR
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
     return res.status(200).json({
+      success: true,
       data: {
         revenueChart: revenueData.rows,
         topProducts: topProducts.rows,
@@ -98,9 +99,10 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiR
           period,
         },
       },
+      timestamp: Date.now(),
     });
   } catch (err) {
     console.error('Dashboard stats error:', err);
-    res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+    res.status(500).json({ success: false, error: 'Failed to fetch dashboard stats', timestamp: Date.now() });
   }
 });
