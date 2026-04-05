@@ -1,51 +1,110 @@
 /**
- * Зod схемы для валидации API запросов
+ * Zod схемы для валидации входных данных всех API эндпоинтов
+ * Гарантирует безопасность и консистентность данных
  * 
  * Использование:
- * const parsed = createOrderSchema.parse(req.body);
- * 
- * Если данные невалидны, выбросится ZodError
+ * const parsed = validateData(CreateOrderSchema, req.body);
  */
 
-// ВАЖНО: Zod должен быть установлен: npm install zod
-// Вот импорты для когда Zod будет установлен:
-// import { z } from 'zod';
+import { z } from 'zod';
+import { LIMITS, DELIVERY_TYPES, ORDER_STATUS, PAYMENT_STATUS } from './constants';
 
-// Для сейчас используем простую валидацию (т.к. Zod может быть не установлен)
-// Но вот как должны выглядеть схемы:
+// ============ Общие схемы ============
 
-/*
-export const createOrderSchema = z.object({
+export const IdSchema = z.number().int().positive();
+export const StringIdSchema = z.string().uuid();
+export const DateSchema = z.string().datetime();
+export const UrlSchema = z.string().url();
+export const EmailSchema = z.string().email().toLowerCase();
+export const PhoneSchema = z.string().min(10).max(20);
+
+// ============ Пользователь ============
+
+export const CreateUserSchema = z.object({
   telegram_id: z.number().int().positive('Telegram ID должен быть положительным числом'),
-  items: z.array(
+  first_name: z.string().min(1, 'Имя обязательно').max(100),
+  last_name: z.string().max(100).optional(),
+  username: z.string().min(3).max(32).optional(),
+  phone: PhoneSchema.optional(),
+  email: EmailSchema.optional(),
+  avatar_url: UrlSchema.optional(),
+});
+
+export const UpdateUserSchema = z.object({
+  first_name: z.string().min(1).max(100).optional(),
+  last_name: z.string().max(100).optional(),
+  phone: PhoneSchema.optional(),
+  email: EmailSchema.optional(),
+  avatar_url: UrlSchema.optional(),
+});
+
+export type CreateUserInput = z.infer<typeof CreateUserSchema>;
+export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;
+
+// ============ Товары ============
+
+export const CreateProductSchema = z.object({
+  name: z.string().min(1, 'Название обязательно').max(LIMITS.MAX_PRODUCT_NAME_LENGTH),
+  description: z.string().max(LIMITS.MAX_PRODUCT_DESCRIPTION_LENGTH).optional(),
+  price: z.number().int().min(0, 'Цена должна быть положительной'),
+  cost: z.number().int().min(0).optional(),
+  category_id: IdSchema.optional(),
+  image_url: UrlSchema.optional(),
+  is_available: z.boolean().default(true),
+  quantity_in_stock: z.number().int().min(0).default(0),
+});
+
+export const UpdateProductSchema = CreateProductSchema.partial();
+
+export const BulkUpdateProductSchema = z.object({
+  products: z.array(
     z.object({
-      product_id: z.string().uuid('Неверный формат ID товара'),
-      quantity: z.number().int().positive('Количество должно быть положительным'),
-      price: z.number().positive('Цена должна быть положительной'),
-    })
-  ).min(1, 'Должен быть хотя бы один товар'),
-  delivery_method: z.enum(['pickup', 'courier'], {
-    errorMap: () => ({ message: 'Способ доставки должен быть pickup или courier' })
+      id: IdSchema,
+      ...CreateProductSchema.shape,
+    }),
+  ),
+});
+
+export type CreateProductInput = z.infer<typeof CreateProductSchema>;
+export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
+export type BulkUpdateProductInput = z.infer<typeof BulkUpdateProductSchema>;
+
+// ============ Заказы ============
+
+export const CreateOrderItemSchema = z.object({
+  product_id: IdSchema,
+  quantity: z.number().int().min(1).max(LIMITS.MAX_PRODUCT_QUANTITY),
+  price_per_unit: z.number().int().min(0).optional(),
+});
+
+export const CreateOrderSchema = z.object({
+  items: z.array(CreateOrderItemSchema).min(1, 'Должен быть хотя бы один товар').max(LIMITS.MAX_PRODUCTS_PER_ORDER),
+  delivery_method: z.enum([DELIVERY_TYPES.PICKUP, DELIVERY_TYPES.COURIER], {
+    errorMap: () => ({ message: 'Способ доставки должен быть pickup или courier' }),
   }),
-  delivery_date: z.string().datetime().optional(),
   address: z.string().optional(),
-  promo_code: z.string().optional(),
-  discount: z.number().nonnegative().optional(),
+  promo_code: z.string().max(50).optional(),
 });
 
-export const updateRoleSchema = z.object({
+export const UpdateOrderSchema = z.object({
+  status: z.enum([
+    ORDER_STATUS.PENDING,
+    ORDER_STATUS.CONFIRMED,
+    ORDER_STATUS.SHIPPED,
+    ORDER_STATUS.COMPLETED,
+    ORDER_STATUS.CANCELLED,
+  ]).optional(),
+  comment: z.string().max(500).optional(),
+});
+
+export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
+export type UpdateOrderInput = z.infer<typeof UpdateOrderSchema>;
+
+// ============ Роли ============
+
+export const UpdateRoleSchema = z.object({
   userId: z.number().int().positive(),
-  newRole: z.enum(['customer', 'admin', 'manager', 'courier', 'support', 'seller', 'buyer', 'super_admin']),
-});
-
-export const createProductSchema = z.object({
-  name: z.string().min(1, 'Название обязательно').max(255),
-  description: z.string().optional(),
-  price: z.number().positive('Цена должна быть положительной'),
-  stock: z.number().int().nonnegative('Остаток должен быть неотрицательным'),
-  category_id: z.string().uuid().optional(),
-  brand_id: z.string().uuid().optional(),
-  is_active: z.boolean().default(true),
+  newRole: z.enum(['customer', 'admin', 'manager', 'courier', 'support', 'seller', 'super_admin']),
 });
 
 export const updatePromoCodeSchema = z.object({
@@ -56,82 +115,45 @@ export const updatePromoCodeSchema = z.object({
   valid_from: z.string().datetime().optional(),
   valid_until: z.string().datetime().optional(),
 });
-*/
 
-// Пока используем простую валидацию для критичных эндпоинтов
-export function validateOrderBody(body: any): { 
-  valid: boolean; 
-  errors?: Record<string, string>;
-  data?: any;
-} {
-  const errors: Record<string, string> = {};
+// ============ Утилиты валидации ============
 
-  if (!body.telegram_id || typeof body.telegram_id !== 'number') {
-    errors.telegram_id = 'telegram_id должен быть числом';
+/**
+ * Валидирует объект согласно Zod схеме
+ * Выбрасывает ошибку с деталями валидации если данные некорректны
+ */
+export function validateData<T>(schema: z.ZodSchema, data: unknown): T {
+  const result = schema.safeParse(data);
+
+  if (!result.success) {
+    const errors = result.error.errors.map((err) => ({
+      path: err.path.join('.'),
+      message: err.message,
+    }));
+
+    throw new Error(JSON.stringify(errors));
   }
 
-  if (!Array.isArray(body.items) || body.items.length === 0) {
-    errors.items = 'items должен быть непустым массивом';
-  }
-
-  if (!body.delivery_method || !['pickup', 'courier'].includes(body.delivery_method)) {
-    errors.delivery_method = 'delivery_method должен быть pickup или courier';
-  }
-
-  if (body.discount && typeof body.discount !== 'number') {
-    errors.discount = 'discount должен быть числом';
-  }
-
-  return Object.keys(errors).length === 0
-    ? { valid: true, data: body }
-    : { valid: false, errors };
+  return result.data as T;
 }
 
-export function validateRoleUpdate(body: any): {
-  valid: boolean;
-  errors?: Record<string, string>;
-  data?: any;
-} {
-  const errors: Record<string, string> = {};
-  const validRoles = ['customer', 'admin', 'manager', 'courier', 'support', 'seller', 'buyer', 'super_admin'];
+/**
+ * Безопасная валидация — возвращает результат вместо выброса ошибки
+ */
+export function validateDataSafe<T>(
+  schema: z.ZodSchema,
+  data: unknown,
+): { success: boolean; data?: T; errors?: Array<{ path: string; message: string }> } {
+  const result = schema.safeParse(data);
 
-  if (!body.userId || typeof body.userId !== 'number') {
-    errors.userId = 'userId должен быть числом';
+  if (!result.success) {
+    const errors = result.error.errors.map((err) => ({
+      path: err.path.join('.'),
+      message: err.message,
+    }));
+
+    return { success: false, errors };
   }
 
-  if (!body.newRole || !validRoles.includes(body.newRole)) {
-    errors.newRole = `newRole должен быть одним из: ${validRoles.join(', ')}`;
-  }
-
-  return Object.keys(errors).length === 0
-    ? { valid: true, data: body }
-    : { valid: false, errors };
-}
-
-export function validatePromoCode(body: any): {
-  valid: boolean;
-  errors?: Record<string, string>;
-  data?: any;
-} {
-  const errors: Record<string, string> = {};
-
-  if (!body.code || typeof body.code !== 'string') {
-    errors.code = 'code обязателен';
-  }
-
-  if (body.discount_type && !['percent', 'fixed'].includes(body.discount_type)) {
-    errors.discount_type = 'discount_type должен быть percent или fixed';
-  }
-
-  if (body.discount_value && typeof body.discount_value !== 'number') {
-    errors.discount_value = 'discount_value должен быть числом';
-  }
-
-  if (body.max_uses && (typeof body.max_uses !== 'number' || body.max_uses < 0)) {
-    errors.max_uses = 'max_uses должен быть положительным числом';
-  }
-
-  return Object.keys(errors).length === 0
-    ? { valid: true, data: body }
-    : { valid: false, errors };
+  return { success: true, data: result.data as T };
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTelegramWebApp, hapticSuccess } from '../lib/telegram';
 
 interface Order {
@@ -68,7 +69,6 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [activeTab, setActiveTab] = useState<'orders' | 'favorites' | 'addresses' | 'saved' | 'compare' | 'balance' | 'referral' | 'gamification' | 'settings'>('orders');
   const [loading, setLoading] = useState(true);
-  const [referralStats, setReferralStats] = useState({ count: 0, earned: 0 });
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [formAddress, setFormAddress] = useState('');
@@ -387,7 +387,7 @@ export default function ProfilePage() {
                 <div key={product.id} className="bg-cardBg border border-border rounded-2xl p-4 flex gap-4">
                   <div className="w-20 h-20 bg-gradient-to-br from-[#1f1f2a] to-[#131318] rounded-xl flex items-center justify-center flex-shrink-0">
                     {product.images?.[0] ? (
-                      <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain rounded-xl" />
+                      <Image src={product.images[0]} alt={product.name} className="w-full h-full object-contain rounded-xl" width={80} height={80} />
                     ) : (
                       <svg className="w-8 h-8 text-neon opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M7 9H5L3 12L5 15H7M17 9H19L21 12L19 15H17" />

@@ -36,8 +36,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }));
 
     res.status(200).json({ orders });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Ошибка загрузки заказов' });
   }
 }
+
 

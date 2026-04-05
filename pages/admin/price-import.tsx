@@ -72,8 +72,9 @@ export default function AdminPriceImport() {
       setTotalPages(data.pages);
       setTotalCount(data.total);
       setPage(pageNum);
-    } catch (err: any) {
-      setError(err.message || 'Ошибка при загрузке товаров');
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error.message || 'Ошибка при загрузке товаров');
     } finally {
       setLoading(false);
     }
@@ -93,8 +94,9 @@ export default function AdminPriceImport() {
         throw new Error(data.message || 'Ошибка при удалении');
       }
       setItems(items.filter(item => item.id !== id));
-    } catch (err: any) {
-      setDeleteError(err.message || 'Ошибка при удалении товара');
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setDeleteError(error.message || 'Ошибка при удалении товара');
     } finally {
       setDeleting(null);
     }

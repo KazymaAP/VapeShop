@@ -17,7 +17,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [orderId]
       );
       res.status(200).json({ data: result.rows });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch history' });
     }
   } else {

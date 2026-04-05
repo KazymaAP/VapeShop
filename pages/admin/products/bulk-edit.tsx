@@ -1,8 +1,25 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
 
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  discount_percent?: number;
+  is_hit?: boolean;
+  is_new?: boolean;
+}
+
+interface BulkUpdates {
+  price_action?: string;
+  price_value?: number;
+  discount_percent?: number;
+  is_hit?: boolean;
+  is_new?: boolean;
+}
+
 export default function BulkEditProducts() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selected, setSelected] = useState(new Set<number>());
   const [loading, setLoading] = useState(true);
   const [bulkAction, setBulkAction] = useState<string | null>(null);
@@ -39,7 +56,7 @@ export default function BulkEditProducts() {
     if (selected.size === 0 || !bulkAction) return;
 
     try {
-      const updates: any = {};
+      const updates: BulkUpdates = {};
       
       if (bulkAction === 'price') {
         updates.price_action = priceAction;
@@ -160,7 +177,7 @@ export default function BulkEditProducts() {
             </tr>
           </thead>
           <tbody>
-            {products.map((product: any) => (
+            {products.map((product) => (
               <tr key={product.id} className="border-b border-border hover:bg-cardBg">
                 <td className="p-2">
                   <input

@@ -13,7 +13,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [orderId, userId, text]
       );
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to send message' });
     }
   } else if (req.method === 'GET') {
@@ -25,7 +25,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [orderId]
       );
       res.status(200).json({ data: result.rows });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch messages' });
     }
   } else {

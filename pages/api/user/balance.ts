@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           history: historyResult.rows
         }
       });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch balance' });
     }
   } else if (req.method === 'POST') {
@@ -44,7 +44,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ data: { balance: newBalance.rows[0].balance } });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to update balance' });
     }
   } else {

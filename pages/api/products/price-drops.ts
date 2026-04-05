@@ -16,7 +16,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [userId]
       );
       res.status(200).json({ data: result.rows });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch discounts' });
     }
   } else if (req.method === 'POST') {
@@ -28,7 +28,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [enabled, userId, productId]
       );
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to update notification' });
     }
   } else {

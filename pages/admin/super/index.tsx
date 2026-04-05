@@ -2,10 +2,24 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
 import { useTelegramWebApp } from '../../../lib/telegram';
 
+interface AdminUser {
+  id: number;
+  name: string;
+  role: string;
+  active: boolean;
+}
+
+interface AuditLog {
+  id: string;
+  action: string;
+  target_type: string;
+  created_at: string;
+}
+
 export default function SuperAdminDashboard() {
-  const { user } = useTelegramWebApp();
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+  const { _user } = useTelegramWebApp();
+  const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, today: 0, week: 0 });
 
@@ -24,7 +38,7 @@ export default function SuperAdminDashboard() {
       setLogs(logsData.data);
       setStats({
         total: logsData.pagination.total,
-        today: logsData.data.filter((l: any) => {
+        today: logsData.data.filter((l: AuditLog) => {
           const d = new Date(l.created_at);
           return d.toDateString() === new Date().toDateString();
         }).length,
@@ -65,7 +79,7 @@ export default function SuperAdminDashboard() {
         <div className="bg-cardBg border border-border rounded-lg p-4">
           <h3 className="text-lg text-textPrimary font-bold mb-4">Active Administrators</h3>
           <div className="space-y-2">
-            {admins.map((admin: any) => (
+            {admins.map((admin) => (
               <div key={admin.id} className="flex justify-between items-center p-2 bg-bgDark rounded">
                 <span className="text-textPrimary">{admin.name}</span>
                 <span className="text-success text-sm">Active</span>
@@ -77,7 +91,7 @@ export default function SuperAdminDashboard() {
         <div className="bg-cardBg border border-border rounded-lg p-4">
           <h3 className="text-lg text-textPrimary font-bold mb-4">Recent Actions</h3>
           <div className="space-y-2">
-            {logs.slice(0, 3).map((log: any, i: number) => (
+            {logs.slice(0, 3).map((log, i) => (
               <div key={i} className="text-sm text-textSecondary p-2 bg-bgDark rounded">
                 <p>{log.action} on {log.target_type}</p>
                 <p className="text-xs text-textSecondary">{new Date(log.created_at).toLocaleString()}</p>

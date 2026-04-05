@@ -45,9 +45,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await query(`UPDATE promocodes SET ${setClause} WHERE code = $${nextIdx}`, values);
       res.status(200).json({ success: true });
-    } catch (err: any) {
-      console.error('Promocodes update error:', err);
-      res.status(400).json({ error: err.message || 'Ошибка обновления промокода' });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('Promocodes update error:', error);
+      res.status(400).json({ error: error.message || 'Ошибка обновления промокода' });
     }
   } else if (req.method === 'DELETE') {
     try {

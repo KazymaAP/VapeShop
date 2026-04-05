@@ -13,7 +13,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [userId || null, eventName, JSON.stringify(eventProperties || {})]
       );
       res.status(200).json({ success: true });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Failed to track event' });
     }
   } else {

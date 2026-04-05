@@ -8,7 +8,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { ApiResponse } from '@/types/api';
-import { validateOrder } from '@/lib/validate';
 
 interface RatingPayload {
   productId: string;

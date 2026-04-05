@@ -189,8 +189,9 @@ export default function ActivationModal({
         onSuccess();
         onClose();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || 'Ошибка при активации товаров');
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error.message || 'Ошибка при активации товаров');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useTelegramWebApp } from '../lib/telegram';
+import Image from 'next/image';
 
 interface Product {
   id: string;
@@ -17,7 +17,6 @@ export async function getServerSideProps() {
 
 export default function ComparePage() {
   const router = useRouter();
-  const { user } = useTelegramWebApp();
   const [compareList, setCompareList] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -115,7 +114,7 @@ export default function ComparePage() {
                     </button>
                     <div className="w-20 h-20 mx-auto bg-gradient-to-br from-[#1f1f2a] to-[#131318] rounded-xl flex items-center justify-center mb-2">
                       {product.images?.[0] ? (
-                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain rounded-xl" />
+                        <Image src={product.images[0]} alt={product.name} className="w-full h-full object-contain rounded-xl" width={80} height={80} />
                       ) : (
                         <svg className="w-8 h-8 text-neon opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                           <path d="M7 9H5L3 12L5 15H7" />

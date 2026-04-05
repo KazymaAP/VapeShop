@@ -1,4 +1,3 @@
-import { NextApiRequest, NextApiResponse } from 'next';
 import { requireAuth, getTelegramId } from '@/lib/auth';
 import { query } from '@/lib/db';
 
@@ -8,7 +7,7 @@ export default requireAuth(async (req, res) => {
       const { status, user_id } = req.query;
 
       let whereClause = '1=1';
-      const params: any[] = [];
+      const params: (string | number)[] = [];
       let paramCount = 1;
 
       if (status) {

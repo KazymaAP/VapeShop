@@ -5,12 +5,6 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { writeFileSync } from 'fs';
-import path from 'path';
-
-const execAsync = promisify(exec);
 
 export default async function handler(
   req: NextApiRequest,
@@ -45,7 +39,6 @@ export default async function handler(
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupName = `backup-${timestamp}.sql`;
-    const backupPath = path.join('/tmp', backupName);
 
     console.log(`Starting database backup: ${backupName}`);
 
@@ -92,12 +85,12 @@ export default async function handler(
       backupId: backupData.id,
       timestamp,
     });
-  } catch (err) {
-    console.error('Database backup failed:', err);
+  } catch {
+    console.error('Database backup failed:', _e);
 
     return res.status(500).json({
       error: 'Database backup failed',
-      message: err instanceof Error ? err.message : 'Unknown error',
+      message: _e instanceof Error ? _e.message : 'Unknown error',
     });
   }
 }
@@ -129,3 +122,4 @@ export default async function handler(
  *    const container = client.getContainerClient('backups');
  *    await container.uploadBlockBlob(`backup-${timestamp}.sql`, backupContent);
  */
+

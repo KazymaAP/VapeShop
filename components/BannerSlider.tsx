@@ -112,7 +112,7 @@ export function BannerSlider({
     }
   };
 
-  const currentBanner = banners[currentIndex];
+  const _currentBanner = banners[currentIndex];
 
   return (
     <div className={clsx('relative w-full overflow-hidden rounded-lg', className)}>

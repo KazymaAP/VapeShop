@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useTelegramWebApp } from '../lib/telegram';
 import ProductCard from '../components/ProductCard';
@@ -33,7 +32,6 @@ export async function getServerSideProps() {
 }
 
 export default function Home() {
-  const router = useRouter();
   const { user } = useTelegramWebApp();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);

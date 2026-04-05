@@ -12,7 +12,7 @@ interface LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
-  const { user } = useTelegramWebApp();
+  const { user: _user } = useTelegramWebApp();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 

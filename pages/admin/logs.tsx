@@ -1,17 +1,36 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 
+interface AuditLog {
+  id?: string | number;
+  action: string;
+  target_type: string;
+  target_id?: string | number;
+  user_id?: string | number;
+  created_at: string;
+  details?: Record<string, unknown>;
+}
+
+interface FetchLogsResponse {
+  data: AuditLog[];
+  total?: number;
+}
+
 export default function AuditLogs() {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState({ action: '', target_type: '', user_id: '' });
+  const [filters, setFilters] = useState({
+    action: '',
+    target_type: '',
+    user_id: '',
+  });
 
   useEffect(() => {
-    fetchLogs();
+    void fetchLogs();
   }, [page, filters]);
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (): Promise<void> => {
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -24,7 +43,7 @@ export default function AuditLogs() {
       if (!res.ok) {
         throw new Error(`API Error: ${res.status}`);
       }
-      const data = await res.json();
+      const data = (await res.json()) as FetchLogsResponse;
       setLogs(data.data);
     } catch (err) {
       console.error('Error fetching logs:', err);
@@ -50,7 +69,9 @@ export default function AuditLogs() {
             type="text"
             placeholder="Target Type"
             value={filters.target_type}
-            onChange={(e) => setFilters({ ...filters, target_type: e.target.value })}
+            onChange={(e) =>
+              setFilters({ ...filters, target_type: e.target.value })
+            }
             className="p-2 bg-bgDark border border-border rounded text-textPrimary"
           />
           <input
@@ -64,15 +85,24 @@ export default function AuditLogs() {
       </div>
 
       <div className="space-y-2">
-        {logs.map((log: any, i: number) => (
-          <div key={i} className="bg-cardBg border border-border rounded-lg p-3">
+        {logs.map((log) => (
+          <div
+            key={log.id || log.created_at}
+            className="bg-cardBg border border-border rounded-lg p-3"
+          >
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-neon font-bold">{log.action}</p>
-                <p className="text-textSecondary text-sm">{log.target_type} #{log.target_id}</p>
-                <p className="text-textSecondary text-xs">{new Date(log.created_at).toLocaleString()}</p>
+                <p className="text-textSecondary text-sm">
+                  {log.target_type} #{log.target_id}
+                </p>
+                <p className="text-textSecondary text-xs">
+                  {new Date(log.created_at).toLocaleString()}
+                </p>
               </div>
-              <span className="text-textSecondary text-sm">User: {log.user_id}</span>
+              <span className="text-textSecondary text-sm">
+                User: {log.user_id}
+              </span>
             </div>
             {log.details && (
               <p className="text-textSecondary text-xs mt-2 bg-bgDark p-2 rounded">

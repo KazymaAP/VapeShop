@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useTelegramWebApp } from '../lib/telegram';
 
 interface SavedItem {
@@ -78,10 +79,12 @@ export default function SavedForLaterPage() {
         <div className="space-y-4">
           {items.map((item) => (
             <div key={item.id} className="bg-cardBg rounded-lg border border-border p-4 flex gap-4">
-              <img
+              <Image
                 src={item.image}
                 alt={item.productName}
                 className="w-20 h-20 object-cover rounded"
+                width={80}
+                height={80}
               />
               <div className="flex-1">
                 <h3 className="font-semibold text-textPrimary">{item.productName}</h3>

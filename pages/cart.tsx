@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTelegramWebApp, useMainButton, hapticImpact, hapticSuccess, hapticError } from '../lib/telegram';
 
 interface CartItem {
@@ -44,7 +45,6 @@ export default function CartPage() {
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [loadingDelivery, setLoadingDelivery] = useState(false);
   const [saveAddressChecked, setSaveAddressChecked] = useState(false);
-  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [deliveryError, setDeliveryError] = useState('');
   const [checkingOut, setCheckingOut] = useState(false);
 
@@ -127,7 +127,7 @@ export default function CartPage() {
         hapticError();
         alert(data.error || 'Промокод недействителен');
       }
-    } catch (err) {
+    } catch {
       hapticError();
       alert('Ошибка применения промокода');
     }
@@ -268,7 +268,7 @@ export default function CartPage() {
           <div key={item.product_id} className="bg-cardBg border border-border rounded-2xl p-4 flex gap-4" role="listitem" aria-label={`Товар ${item.name}, количество ${item.quantity}, цена ${item.price.toLocaleString('ru-RU')} ₽`}>
             <div className="w-20 h-20 bg-gradient-to-br from-[#1f1f2a] to-[#131318] rounded-xl flex items-center justify-center flex-shrink-0">
               {item.image ? (
-                <img src={item.image} alt={item.name} className="w-full h-full object-contain rounded-xl" />
+                <Image src={item.image} alt={item.name} className="w-full h-full object-contain rounded-xl" width={80} height={80} />
               ) : (
                 <svg className="w-8 h-8 text-neon opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M7 9H5L3 12L5 15H7M17 9H19L21 12L19 15H17" />

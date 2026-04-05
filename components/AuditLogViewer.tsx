@@ -5,7 +5,6 @@
 
 import { useState, useMemo } from 'react';
 import useSWR from 'swr';
-import { SkeletonLoader, OrderCardSkeleton } from './SkeletonLoader';
 import clsx from 'clsx';
 
 interface AuditLog {
@@ -14,8 +13,8 @@ interface AuditLog {
   action: string;
   table_name: string;
   record_id: number;
-  old_values: Record<string, any> | null;
-  new_values: Record<string, any> | null;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
   created_at: string;
 }
 

@@ -7,15 +7,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { ApiResponse } from '@/types/api';
 
-interface SearchResult {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  image_url: string;
-  rating: number;
-}
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>

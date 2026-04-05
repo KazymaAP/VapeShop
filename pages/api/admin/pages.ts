@@ -1,14 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth, getTelegramId } from '@/lib/auth';
-
-interface Page {
-  slug: string;
-  title: string;
-  content: string;
-  seo_description?: string;
-  is_published: boolean;
-}
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {

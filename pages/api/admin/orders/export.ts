@@ -1,8 +1,9 @@
+import { NextApiRequest, NextApiResponse } from 'next';
 import { requireAuth } from '../../../../lib/auth';
 import { query } from '../../../../lib/db';
 import ExcelJS from 'exceljs';
 
-export default requireAuth(async (req, res: any) => {
+export default requireAuth(async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

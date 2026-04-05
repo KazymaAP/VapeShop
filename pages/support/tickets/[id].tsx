@@ -4,7 +4,7 @@ import ChatWindow from '../../../components/ChatWindow';
 
 export default function SupportTicketPage() {
   const { user } = useTelegramWebApp();
-  const [ticket, setTicket] = useState<any>(null);
+  const [ticket, setTicket] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const ticketId = typeof window !== 'undefined' ? window.location.pathname.split('/')[3] : '';
 

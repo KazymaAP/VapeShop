@@ -20,7 +20,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       res.status(200).json({ data: result.rows[0] });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch ticket' });
     }
   } else if (req.method === 'PATCH') {
@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [status, ticketId]
       );
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to update ticket' });
     }
   } else {

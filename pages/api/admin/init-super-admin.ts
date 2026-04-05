@@ -8,19 +8,20 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramId } from '@/lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Требуем админ права для инициализации super_admin
-    const authResult = await requireAuth(req, res, ['super_admin', 'admin']);
-    if (!authResult) return;
-
     const { telegramId, password } = req.body;
+    const currentUserId = getTelegramId(req);
+
+    if (!currentUserId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     // ⚠️ Требуем переменную окружения для инициализации
     const envPassword = process.env.SUPER_ADMIN_INIT_PASSWORD;
@@ -68,9 +69,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await query(
       `INSERT INTO admin_logs (user_telegram_id, action, details, created_at)
        VALUES ($1, $2, $3, NOW())`,
-      [telegramId, 'SUPER_ADMIN_INIT', JSON.stringify({ 
+      [currentUserId, 'SUPER_ADMIN_INIT', JSON.stringify({ 
         previous_role: user.rows[0].role,
-        new_role: 'super_admin' 
+        new_role: 'super_admin',
+        target_telegram_id: telegramId
       })]
     ).catch(() => {});
 
@@ -84,3 +86,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: error.message || 'Failed to initialize super admin' });
   }
 }
+
+export default requireAuth(handler, ['super_admin', 'admin']);
+

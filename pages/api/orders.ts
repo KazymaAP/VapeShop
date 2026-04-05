@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query, transaction } from '@/lib/db';
-import { requireAuth, getTelegramId, getTelegramIdFromRequest, isUserBlocked, verifyTelegramInitData } from '@/lib/auth';
+import { requireAuth, getTelegramId, getTelegramIdFromRequest, isUserBlocked } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 import { withCSRFProtection } from '@/lib/csrf';
 import { validateOrderBody } from '@/lib/validation';
@@ -49,7 +49,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Валидируем, что все product_id существуют
-    const productIds = items.map((i: any) => i.product_id);
+    const productIds = items.map((i: Record<string, unknown>) => i.product_id);
     const productsRes = await query(
       'SELECT id, stock, price FROM products WHERE id = ANY($1::uuid[]) AND is_active = true',
       [productIds]

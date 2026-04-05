@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const result = await query('SELECT * FROM pickup_points WHERE is_active = true ORDER BY name');
       res.status(200).json({ pickup_points: result.rows });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Ошибка загрузки точек самовывоза' });
     }
   } else if (req.method === 'POST') {
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
 
       res.status(200).json({ pickup_point: result.rows[0] });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Ошибка создания точки' });
     }
   } else if (req.method === 'PUT') {
@@ -41,9 +41,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await query(`UPDATE pickup_points SET ${setClause} WHERE id = $${nextIdx}`, values);
 
       res.status(200).json({ success: true });
-    } catch (err: any) {
-      console.error('Pickup points update error:', err);
-      res.status(400).json({ error: err.message || 'Ошибка обновления точки' });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('Pickup points update error:', error);
+      res.status(400).json({ error: error.message || 'Ошибка обновления точки' });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });

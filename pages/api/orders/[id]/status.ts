@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../lib/db';
 import { requireAuth, getTelegramId } from '../../../../lib/auth';
-import { notifyBuyerOrderStatus } from '../../../../lib/notifications';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -54,17 +53,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const order = orderResult.rows[0];
       const oldStatus = order.status;
-
-      // Проверяем переход между статусами (опционально)
-      const allowedTransitions: Record<string, string[]> = {
-        'pending': ['confirmed', 'cancelled'],
-        'new': ['confirmed', 'cancelled'],
-        'confirmed': ['readyship', 'cancelled'],
-        'readyship': ['shipped', 'cancelled'],
-        'shipped': ['done'],
-        'done': [],
-        'cancelled': [],
-      };
 
       // Если статус тот же - ничего не делаем
       if (oldStatus === status) {

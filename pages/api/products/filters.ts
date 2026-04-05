@@ -79,15 +79,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse<FiltersResponse
     return res.status(200).json({
       success: true,
       data: {
-        categories: categoriesResult.rows.map((cat: any) => ({
+        categories: categoriesResult.rows.map((cat: Record<string, unknown>) => ({
           id: cat.id,
           name: cat.name,
-          product_count: parseInt(cat.product_count, 10),
+          product_count: parseInt(String(cat.product_count), 10),
         })),
-        brands: brandsResult.rows.map((brand: any) => ({
+        brands: brandsResult.rows.map((brand: Record<string, unknown>) => ({
           id: brand.id,
           name: brand.name,
-          product_count: parseInt(brand.product_count, 10),
+          product_count: parseInt(String(brand.product_count), 10),
         })),
         priceRange: {
           min: minPrice,

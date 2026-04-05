@@ -41,9 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await query(`UPDATE faq SET ${setClause} WHERE id = $${nextIdx}`, values);
       res.status(200).json({ success: true });
-    } catch (err: any) {
-      console.error('FAQ update error:', err);
-      res.status(400).json({ error: err.message || 'Ошибка обновления FAQ' });
+    } catch (_e: unknown) {
+      console.error('FAQ update error:', _e);
+      res.status(400).json({ error: _e instanceof Error ? _e.message : 'Ошибка обновления FAQ' });
     }
   } else if (req.method === 'DELETE') {
     try {
@@ -59,4 +59,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
+
 

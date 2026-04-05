@@ -18,7 +18,7 @@ const handler = async (
 
   try {
     // Получаем ID из метаданных (установлено requireAuth middleware)
-    const telegram_id = (req as any).telegram_id;
+    const telegram_id = (req as { telegram_id?: string }).telegram_id;
     if (!telegram_id) {
       return res.status(401).json({ error: 'Unauthorized' });
     }

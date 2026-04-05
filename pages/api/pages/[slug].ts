@@ -1,15 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 
-interface Page {
-  slug: string;
-  title: string;
-  content: string;
-  seo_description?: string;
-  is_published: boolean;
-  updated_at: string;
-}
-
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { slug } = req.query;
 

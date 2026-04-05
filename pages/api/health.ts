@@ -40,7 +40,7 @@ export default async function handler(
     if (result.rows.length > 0) {
       dbStatus = 'connected';
     }
-  } catch (error) {
+  } catch {
     dbStatus = 'disconnected';
     overallStatus = 'degraded';
   }
@@ -69,3 +69,4 @@ export default async function handler(
     timestamp,
   });
 }
+

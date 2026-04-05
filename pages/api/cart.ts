@@ -41,7 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }));
 
       res.status(200).json({ items });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Ошибка загрузки корзины' });
     }
   } else if (method === 'POST') {
@@ -65,8 +65,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           'INSERT INTO carts (user_telegram_id, items, updated_at) VALUES ($1, $2, NOW())',
           [telegram_id, JSON.stringify([{ product_id, quantity }])]
         );
-      } else {
-        let items = cartRes.rows[0].items || [];
+      } else { const items = cartRes.rows[0].items || [];
         const existingIdx = items.findIndex((item: { product_id: string }) => item.product_id === product_id);
 
         if (existingIdx >= 0) {
@@ -82,7 +81,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       res.status(200).json({ success: true });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Ошибка добавления в корзину' });
     }
   } else if (method === 'PUT') {
@@ -102,7 +101,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [telegram_id]);
       if (cartRes.rows.length === 0) return res.status(404).json({ error: 'Cart not found' });
 
-      let items = cartRes.rows[0].items || [];
+      const items = cartRes.rows[0].items || [];
       const idx = items.findIndex((item: { product_id: string }) => item.product_id === product_id);
 
       if (idx >= 0) {
@@ -119,7 +118,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Ошибка обновления корзины' });
     }
   } else if (method === 'DELETE') {
@@ -148,7 +147,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Ошибка удаления из корзины' });
     }
   } else {
@@ -157,4 +156,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default rateLimit(handler, RATE_LIMIT_PRESETS.normal);
+
+
 

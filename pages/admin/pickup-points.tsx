@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
 
 interface PickupPoint {
@@ -13,7 +14,7 @@ export async function getServerSideProps() {
 }
 
 export default function AdminPickupPoints() {
-  const { isReady } = useTelegramWebApp();
+  const { _isReady } = useTelegramWebApp();
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

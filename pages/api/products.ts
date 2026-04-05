@@ -34,8 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const offset = (pageNum - 1) * limitNum;
 
     // Построение WHERE условия
-    let whereConditions = ['is_active = true'];
-    let params: any[] = [];
+    const whereConditions = ['is_active = true'];
+    const params: (string | number)[] = [];
 
     if (search) {
       whereConditions.push(`(name ILIKE $${params.length + 1} OR specification ILIKE $${params.length + 1})`);
@@ -113,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     if (process.env.NODE_ENV === 'development' && error.stack) {
-      (errorResponse as any).stack = error.stack;
+      (errorResponse as Record<string, unknown>).stack = error.stack;
     }
 
     return res.status(500).json(errorResponse);

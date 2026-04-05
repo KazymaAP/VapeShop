@@ -16,7 +16,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         []
       );
       res.status(200).json({ data: result.rows });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch promotions' });
     }
   } else if (req.method === 'POST') {
@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [name, type, discount_value, start_date, end_date, applicable_products, applicable_categories, userId]
       );
       res.status(201).json({ data: result.rows[0] });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Failed to create promotion' });
     }
   } else {
@@ -41,4 +41,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin', 'super_admin']);
+
 

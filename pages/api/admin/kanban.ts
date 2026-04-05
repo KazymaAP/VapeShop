@@ -45,8 +45,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
 
       res.status(200).json({ data: orders });
-    } catch (_err) {
-      console.error(_err);
+    } catch {
+      console.error(_e);
       res.status(500).json({ error: 'Failed to fetch orders' });
     }
   } else if (req.method === 'PUT') {
@@ -59,7 +59,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Failed to update order' });
     }
   } else {
@@ -68,4 +68,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['manager', 'admin', 'super_admin']);
+
+
 

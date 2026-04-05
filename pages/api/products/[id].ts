@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await query('UPDATE products SET views = views + 1 WHERE id = $1', [id]);
 
     res.status(200).json(result.rows[0]);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Ошибка загрузки товара' });
   }
 }

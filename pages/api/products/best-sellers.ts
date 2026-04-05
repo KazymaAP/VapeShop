@@ -5,8 +5,6 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { rateLimit } from '@/lib/rateLimit';
-import { validatePagination } from '@/lib/validate';
 
 interface Product {
   id: number;
@@ -35,7 +33,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Построение WHERE clause
     let whereClause = 'p.is_active = true';
-    const params: any[] = [];
+    const params: string[] = [];
 
     if (category) {
       whereClause += ` AND p.category_id = $${params.length + 1}`;

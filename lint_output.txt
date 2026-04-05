@@ -14,161 +14,66 @@
 21:6  Warning: React Hook useEffect has a missing dependency: 'checkAdmin'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
 ./pages/admin/logs.tsx
-5:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-12:6  Warning: React Hook useEffect has a missing dependency: 'fetchLogs'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
-67:25  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+31:6  Warning: React Hook useEffect has a missing dependency: 'fetchLogs'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
 ./pages/admin/manager-stats.tsx
 18:6  Warning: React Hook useEffect has a missing dependency: 'loadStats'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
-./pages/admin/pickup-points.tsx
-16:11  Error: 'isReady' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-
 ./pages/admin/price-import.tsx
 55:6  Warning: React Hook useEffect has a missing dependency: 'fetchItems'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
-75:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-96:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/admin/products/bulk-edit.tsx
-5:44  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-42:22  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-163:37  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/admin/products.tsx
-2:10  Error: 'useRouter' is defined but never used.  @typescript-eslint/no-unused-vars
-49:6  Warning: React Hook useEffect has a missing dependency: 'fetchProducts'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+48:6  Warning: React Hook useEffect has a missing dependency: 'fetchProducts'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
 ./pages/admin/promotions.tsx
 28:6  Warning: React Hook useEffect has a missing dependency: 'loadPromotions'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
-./pages/admin/super/index.tsx
-6:11  Error: 'user' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-7:40  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-8:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-27:41  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-68:33  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-80:41  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/admin/super/roles.tsx
-5:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-7:10  Error: 'editingRole' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-7:23  Error: 'setEditingRole' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-96:27  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/admin/templates.tsx
-1:27  Error: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
-33:11  Error: 'user' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-34:21  Error: 'setTemplates' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-
 ./pages/admin/users.tsx
 26:6  Warning: React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
-./pages/api/admin/bulk-edit.ts
-49:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/api/admin/export-orders-v2.ts
-27:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/api/admin/export-orders.ts
-24:41  Error: 'format' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-28:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-104:33  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-106:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/api/admin/import.ts
-17:12  Error: 'fields' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-112:39  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/api/admin/init-super-admin.ts
-76:17  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
 ./pages/api/admin/kanban.ts
-34:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-62:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/admin/low-stock.ts
-29:11  Error: 'telegram_id' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+62:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/admin/manager-stats.ts
-21:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/admin/orders/export.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
-15:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/api/admin/orders-grouped.ts
-61:37  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-78:15  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-78:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-
-./pages/api/admin/orders-kanban.ts
-3:23  Error: 'getTelegramId' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/admin/orders.ts
-7:7  Error: 'statusLabels' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-139:13  Error: 'totalPrice' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/admin/pages.ts
-3:23  Error: 'getTelegramId' is defined but never used.  @typescript-eslint/no-unused-vars
-5:11  Error: 'Page' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/admin/price-import/index.ts
-3:23  Error: 'getTelegramId' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/admin/products/bulk-update.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+21:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/admin/promotions.ts
-19:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-35:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/admin/rbac.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/admin/roles.ts
-26:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+19:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+35:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/admin/search-orders.ts
-27:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+27:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/analytics/ab-test.ts
-3:10  Error: 'requireAuth' is defined but never used.  @typescript-eslint/no-unused-vars
-29:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-50:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+29:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+50:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/analytics/track-event.ts
-16:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/cart/saved.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+16:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/cart.ts
-44:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-69:13  Error: 'items' is never reassigned. Use 'const' instead.  prefer-const
-85:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-105:11  Error: 'items' is never reassigned. Use 'const' instead.  prefer-const
-122:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
-151:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+44:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+84:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+104:11  Error: 'items' is never reassigned. Use 'const' instead.  prefer-const
+121:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+150:14  Error: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
-./pages/api/compare.ts
-13:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+./pages/api/cron/abandoned-cart.ts
+32:5  Warning: Unexpected console statement.  no-console
+50:5  Warning: Unexpected console statement.  no-console
+72:11  Warning: Unexpected console statement.  no-console
+88:11  Warning: Unexpected console statement.  no-console
+139:11  Warning: Unexpected console statement.  no-console
+141:11  Warning: Unexpected console statement.  no-console
+154:5  Warning: Unexpected console statement.  no-console
 
-./pages/api/courier/deliveries/[id]/complete.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
-
-./pages/api/courier/deliveries.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+./pages/api/cron/cleanup-old-sessions.ts
+78:5  Warning: Unexpected console statement.  no-console
 
 ./pages/api/cron/db-backup.ts
-10:10  Error: 'writeFileSync' is defined but never used.  @typescript-eslint/no-unused-vars
-13:7  Error: 'execAsync' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-48:11  Error: 'backupPath' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+8:8  Error: 'path' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+44:5  Warning: Unexpected console statement.  no-console
+82:5  Warning: Unexpected console statement.  no-console
 
 ./pages/api/faq/index.ts
 44:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
@@ -191,26 +96,26 @@
 20:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/orders/[id]/notes.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+1:10  Error: 'NextApiRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+1:26  Error: 'NextApiResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/api/orders/[id]/status.ts
-4:10  Error: 'notifyBuyerOrderStatus' is defined but never used.  @typescript-eslint/no-unused-vars
-59:13  Error: 'allowedTransitions' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+4:10  Error: 'notifyBuyerOrderStatus' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+59:13  Error: 'allowedTransitions' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/api/orders/[id]/tracking.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+1:10  Error: 'NextApiRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+1:26  Error: 'NextApiResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/api/orders.ts
-3:79  Error: 'verifyTelegramInitData' is defined but never used.  @typescript-eslint/no-unused-vars
+3:79  Error: 'verifyTelegramInitData' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 52:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/pages/index.ts
 53:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/pages/[slug].ts
-4:11  Error: 'Page' is defined but never used.  @typescript-eslint/no-unused-vars
+4:11  Error: 'Page' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/api/pickup-points.ts
 10:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
@@ -218,16 +123,16 @@
 44:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/product-ratings.ts
-11:10  Error: 'validateOrder' is defined but never used.  @typescript-eslint/no-unused-vars
+11:10  Error: 'validateOrder' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/api/products/best-sellers.ts
-8:10  Error: 'rateLimit' is defined but never used.  @typescript-eslint/no-unused-vars
-9:10  Error: 'validatePagination' is defined but never used.  @typescript-eslint/no-unused-vars
+8:10  Error: 'rateLimit' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+9:10  Error: 'validatePagination' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 38:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/products/compare.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+1:10  Error: 'NextApiRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+1:26  Error: 'NextApiResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/api/products/filters.ts
 82:53  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
@@ -238,7 +143,7 @@
 31:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/products/search.ts
-10:11  Error: 'SearchResult' is defined but never used.  @typescript-eslint/no-unused-vars
+10:11  Error: 'SearchResult' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/api/products/[id].ts
 28:12  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
@@ -256,16 +161,16 @@
 48:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/referral.ts
-13:15  Error: 'ApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
-13:28  Error: 'ApiError' is defined but never used.  @typescript-eslint/no-unused-vars
+13:15  Error: 'ApiResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+13:28  Error: 'ApiError' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 16:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/saved-for-later.ts
 13:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/support/search-customer.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+1:10  Error: 'NextApiRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+1:26  Error: 'NextApiResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 11:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/support/tickets/[ticketId]/messages.ts
@@ -277,8 +182,8 @@
 35:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/support/tickets.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+1:10  Error: 'NextApiRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+1:26  Error: 'NextApiResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 11:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./pages/api/user/balance.ts
@@ -286,21 +191,21 @@
 47:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./pages/api/user/referral.ts
-1:10  Error: 'NextApiRequest' is defined but never used.  @typescript-eslint/no-unused-vars
-1:26  Error: 'NextApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+1:10  Error: 'NextApiRequest' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+1:26  Error: 'NextApiResponse' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/balance.tsx
 24:6  Warning: React Hook useEffect has a missing dependency: 'loadBalance'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
 ./pages/cart.tsx
-47:10  Error: 'showNewAddressForm' is assigned a value but never used.  @typescript-eslint/no-unused-vars
-47:30  Error: 'setShowNewAddressForm' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+47:10  Error: 'showNewAddressForm' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+47:30  Error: 'setShowNewAddressForm' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 55:6  Warning: React Hook useEffect has missing dependencies: 'fetchCart' and 'fetchDeliveryOptions'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
 130:14  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
 271:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
 
 ./pages/compare.tsx
-20:11  Error: 'user' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+20:11  Error: 'user' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 118:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
 
 ./pages/courier/deliveries.tsx
@@ -310,19 +215,19 @@
 17:6  Warning: React Hook useEffect has a missing dependency: 'loadLevel'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
 ./pages/index.tsx
-36:9  Error: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+36:9  Error: 'router' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 134:6  Warning: React Hook useEffect has a missing dependency: 'fetchProducts'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 139:6  Warning: React Hook useEffect has missing dependencies: 'fetchProducts' and 'saveFilters'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
 143:6  Warning: React Hook useEffect has a missing dependency: 'fetchCartCount'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
 ./pages/leaderboard.tsx
-15:11  Error: 'user' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+15:11  Error: 'user' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./pages/page/[slug].tsx
 24:6  Warning: React Hook useEffect has a missing dependency: 'fetchPage'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
 ./pages/profile.tsx
-71:25  Error: 'setReferralStats' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+71:25  Error: 'setReferralStats' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 84:6  Warning: React Hook useEffect has missing dependencies: 'fetchAddresses', 'fetchFavorites', 'fetchOrders', and 'fetchProfile'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
 390:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
 
@@ -356,8 +261,8 @@
 318:69  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./components/AuditLogViewer.tsx
-8:10  Error: 'SkeletonLoader' is defined but never used.  @typescript-eslint/no-unused-vars
-8:26  Error: 'OrderCardSkeleton' is defined but never used.  @typescript-eslint/no-unused-vars
+8:10  Error: 'SkeletonLoader' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+8:26  Error: 'OrderCardSkeleton' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 17:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 18:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 72:9  Warning: The 'logs' logical expression could make the dependencies of useMemo Hook (at line 80) change on every render. To fix this, wrap the initialization of 'logs' in its own useMemo() Hook.  react-hooks/exhaustive-deps
@@ -365,7 +270,7 @@
 
 ./components/BannerSlider.tsx
 48:3  Error: React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render.  react-hooks/rules-of-hooks
-115:9  Error: 'currentBanner' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+115:9  Error: 'currentBanner' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./components/BottomNav.tsx
 38:68  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
@@ -384,13 +289,16 @@
 13:20  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./components/FeaturedProducts.tsx
-11:10  Error: 'SkeletonLoader' is defined but never used.  @typescript-eslint/no-unused-vars
+11:10  Error: 'SkeletonLoader' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./components/ImageUpload.tsx
+80:7  Warning: Unexpected console statement.  no-console
 
 ./components/OrderExportButton.tsx
-7:10  Error: 'safeFetch' is defined but never used.  @typescript-eslint/no-unused-vars
+7:10  Error: 'safeFetch' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./components/OrderTimeline.tsx
-78:17  Error: 'isUpcoming' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+78:17  Error: 'isUpcoming' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./components/Phase4Components.tsx
 9:51  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
@@ -414,6 +322,10 @@
 ./lib/bot/handlers.ts
 15:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
+./lib/bot/payments.ts
+131:5  Warning: Unexpected console statement.  no-console
+181:9  Warning: Unexpected console statement.  no-console
+
 ./lib/csrf.ts
 81:33  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
@@ -424,6 +336,7 @@
 
 ./lib/errorRecovery.tsx
 77:44  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+111:11  Warning: Unexpected console statement.  no-console
 167:6  Warning: React Hook useEffect has a missing dependency: 'executeRetry'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
 
 ./lib/frontend/auth.ts
@@ -436,6 +349,8 @@
 
 ./lib/logger.ts
 25:28  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+78:7  Warning: Unexpected console statement.  no-console
+90:5  Warning: Unexpected console statement.  no-console
 98:51  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 109:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 120:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
@@ -443,12 +358,21 @@
 152:74  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./lib/migrate.ts
+37:5  Warning: Unexpected console statement.  no-console
 50:40  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+83:5  Warning: Unexpected console statement.  no-console
+93:5  Warning: Unexpected console statement.  no-console
 94:17  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+105:5  Warning: Unexpected console statement.  no-console
+112:5  Warning: Unexpected console statement.  no-console
+116:5  Warning: Unexpected console statement.  no-console
+125:9  Warning: Unexpected console statement.  no-console
+129:5  Warning: Unexpected console statement.  no-console
 
 ./lib/notifications.ts
 83:11  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 136:11  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+168:5  Warning: Unexpected console statement.  no-console
 429:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
 
 ./lib/searchSuggestions.tsx
@@ -456,7 +380,7 @@
 66:63  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./lib/telegram.ts
-1:31  Error: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+1:31  Error: 'useCallback' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 ./lib/useFetch.ts
 11:10  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
@@ -478,11 +402,6 @@
 241:56  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 ./lib/validation.ts
-62:41  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-65:10  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-90:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-93:10  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-111:41  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
-114:10  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+10:48  Error: 'PAYMENT_STATUS' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
 
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

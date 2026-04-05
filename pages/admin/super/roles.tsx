@@ -1,11 +1,23 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
 
+interface Role {
+  id: number;
+  name: string;
+  description: string;
+}
+
+interface FormData {
+  name: string;
+  description: string;
+  permissions: string[];
+}
+
 export default function RolesManager() {
-  const [roles, setRoles] = useState<any[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingRole, setEditingRole] = useState(null);
-  const [formData, setFormData] = useState({ name: '', description: '', permissions: [] });
+  const [_editingRole, _setEditingRole] = useState<Role | null>(null);
+  const [formData, setFormData] = useState<FormData>({ name: '', description: '', permissions: [] });
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
@@ -93,7 +105,7 @@ export default function RolesManager() {
       )}
 
       <div className="space-y-3">
-        {roles.map((role: any) => (
+        {roles.map((role) => (
           <div key={role.id} className="bg-cardBg border border-border rounded-lg p-4 flex justify-between items-center">
             <div>
               <h4 className="text-textPrimary font-bold">{role.name}</h4>

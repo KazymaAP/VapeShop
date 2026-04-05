@@ -1,20 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth, getTelegramId } from '@/lib/auth';
+import { getTelegramId } from '@/lib/auth';
 import { validatePagination } from '@/lib/validate';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
-
-const statusLabels: Record<string, string> = {
-  new: 'Новый',
-  confirmed: 'Подтверждён',
-  readyship: 'Готов к отправке',
-  shipped: 'Отправлен',
-  done: 'Выполнен',
-  cancelled: 'Отменён',
-  pending: 'В ожидании',
-  processing: 'В обработке',
-  delivered: 'Доставлена',
-};
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -136,7 +124,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const oldStatus = oldOrder.rows[0].status;
       const userTelegramId = oldOrder.rows[0].user_telegram_id;
-      const totalPrice = oldOrder.rows[0].total_price;
 
       // Обновляем статус
       await query('UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2', [status, id]);

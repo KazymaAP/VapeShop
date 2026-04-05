@@ -50,9 +50,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await query(`UPDATE pages SET ${setClause}, updated_at = NOW() WHERE slug = $${nextIdx}`, values);
       res.status(200).json({ success: true });
-    } catch (err: any) {
-      console.error('Pages update error:', err);
-      res.status(400).json({ error: err.message || 'Ошибка обновления страницы' });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('Pages update error:', error);
+      res.status(400).json({ error: error.message || 'Ошибка обновления страницы' });
     }
   } else if (req.method === 'DELETE') {
     try {

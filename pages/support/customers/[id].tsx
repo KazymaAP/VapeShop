@@ -11,7 +11,7 @@ interface Order {
 
 export default function CustomerProfilePage() {
   const { user } = useTelegramWebApp();
-  const [customer, setCustomer] = useState<any>(null);
+  const [customer, setCustomer] = useState<Record<string, unknown> | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const customerId = typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : '';

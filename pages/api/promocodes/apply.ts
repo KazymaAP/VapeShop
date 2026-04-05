@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await query('UPDATE promocodes SET used_count = used_count + 1 WHERE code = $1', [code]);
 
     res.status(200).json({ valid: true, discount, type: promo.discount_type });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Ошибка проверки промокода' });
   }
 }

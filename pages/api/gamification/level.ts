@@ -21,7 +21,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       res.status(200).json({ data: result.rows[0] });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch level' });
     }
   } else if (req.method === 'POST') {
@@ -40,7 +40,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to add experience' });
     }
   } else {
@@ -49,4 +49,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['customer']);
+
 

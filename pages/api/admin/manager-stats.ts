@@ -18,7 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         []
       );
       res.status(200).json({ data: result.rows });
-    } catch (_err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch manager stats' });
     }
   } else {
@@ -27,4 +27,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin', 'super_admin']);
+
 

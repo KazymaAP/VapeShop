@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useTelegramWebApp } from '../../lib/telegram';
 
 interface Banner {
@@ -204,10 +205,12 @@ export default function BannersAdminPage() {
               {/* Превью изображения */}
               {banner.image_url && (
                 <div className="w-full h-40 bg-bgDark flex items-center justify-center overflow-hidden">
-                  <img
+                  <Image
                     src={banner.image_url}
                     alt={banner.title || 'Баннер'}
                     className="w-full h-full object-cover"
+                    width={400}
+                    height={160}
                   />
                 </div>
               )}

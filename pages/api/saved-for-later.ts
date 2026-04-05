@@ -10,7 +10,7 @@ import { query } from '@/lib/db';
 import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const telegramId = (req as any).telegramId || (await getTelegramIdFromRequest(req));
+  const telegramId = (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
 
   if (!telegramId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
