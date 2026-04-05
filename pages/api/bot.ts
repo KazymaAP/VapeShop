@@ -18,6 +18,12 @@ const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
 // ⚠️ КРИТИЧНО: Инициализируем bot instance для notifications.ts
 setBotInstance(bot);
 
+// Глобальный обработчик ошибок бота
+bot.catch((err) => {
+  console.error('❌ Bot error:', err);
+  // Не выбрасываем ошибку - просто логируем и продолжаем
+});
+
 // Регистрируем команды
 bot.command('start', handleStart);
 bot.command('menu', handleMenu);

@@ -1,5 +1,9 @@
+import { requireAuth } from '@/lib/auth';
+import { query } from '@/lib/db';
+import { NextApiRequest, NextApiResponse } from 'next';
+
 export default requireAuth(
-  async (req, res) => {
+  async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       if (req.method === 'GET') {
         // GET все роли с их разрешениями

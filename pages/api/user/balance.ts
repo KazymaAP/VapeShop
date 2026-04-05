@@ -8,13 +8,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       // Получить текущий баланс
-      const userResult = await query('SELECT balance FROM users WHERE id = $1', [userId]);
+      const userResult = await query('SELECT balance FROM users WHERE telegram_id = $1', [userId]);
       const currentBalance = userResult.rows[0]?.balance || 0;
 
       // Получить историю
       const historyResult = await query(
         `SELECT * FROM balance_history 
-         WHERE user_id = $1
+         WHERE user_telegram_id = $1
          ORDER BY created_at DESC
          LIMIT 50`,
         [userId]
@@ -26,25 +26,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           history: historyResult.rows,
         },
       });
-    } catch {
+    } catch (err) {
+      console.error('Balance fetch error:', err);
       res.status(500).json({ error: 'Failed to fetch balance' });
     }
   } else if (req.method === 'POST') {
-    const { amount, type, description } = req.body;
+    const { amount, operation, description } = req.body;
 
     try {
       await query(
-        'INSERT INTO balance_history (user_id, amount, type, description) VALUES ($1, $2, $3, $4)',
-        [userId, amount, type, description]
+        'INSERT INTO balance_history (user_telegram_id, amount, operation, description) VALUES ($1, $2, $3, $4)',
+        [userId, amount, operation, description]
       );
 
       const newBalance = await query(
-        'UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance',
+        'UPDATE users SET balance = balance + $1 WHERE telegram_id = $2 RETURNING balance',
         [amount, userId]
       );
 
       res.status(200).json({ data: { balance: newBalance.rows[0].balance } });
-    } catch {
+    } catch (err) {
+      console.error('Balance update error:', err);
       res.status(500).json({ error: 'Failed to update balance' });
     }
   } else {

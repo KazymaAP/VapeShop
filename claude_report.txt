@@ -1,0 +1,1107 @@
+АНАЛИЗ ПРОЕКТА VAPESHOP
+Дата: 2026-04-05
+Аудитор: Экспертный анализ кода
+
+═══════════════════════════════════════════════════════════════════════════════
+ОБЩАЯ ОЦЕНКА: 58/100 — ТРЕБУЕТ ДОРАБОТКИ ПЕРЕД PRODUCTION
+═══════════════════════════════════════════════════════════════════════════════
+
+Проект имеет хорошую архитектурную базу и широкий функционал, однако содержит
+критические уязвимости безопасности, серьёзные ошибки в коде, непоследовательную
+типизацию и ряд незавершённых фич. До production-ready состояния необходимо
+устранить 9 критических, 28 высокоприоритетных, 31 среднеприоритетную и
+14 низкоприоритетных проблем.
+
+───────────────────────────────────────────────────────────────────────────────
+РАЗДЕЛ 1: КРИТИЧЕСКИЕ ПРОБЛЕМЫ 🔴
+───────────────────────────────────────────────────────────────────────────────
+
+[CRIT-001] Реальные секреты в репозитории
+Файл: .env.local
+Проблема: Файл .env.local содержит реальный TELEGRAM_BOT_TOKEN (8589749577:AAH0rdQ...),
+реальный DATABASE_URL с паролем npg_uX6MnvH5OCBR, реальный ADMIN_TELEGRAM_ID=1656233031.
+Этот файл должен быть добавлен в .gitignore и НИКОГДА не коммититься.
+Также .env.local.example содержит реальные значения вместо плейсхолдеров.
+Исправление:
+  1. Немедленно ротировать BOT_TOKEN в BotFather.
+  2. Сменить пароль БД в Neon console.
+  3. Добавить .env.local в .gitignore (уже есть, но файл мог быть закоммичен ранее).
+  4. В .env.local.example заменить все реальные значения на <placeholder>:
+     TELEGRAM_BOT_TOKEN=<your_bot_token_here>
+     DATABASE_URL=<your_database_url_here>
+Приоритет: 🔴 Критический
+
+[CRIT-002] CSRF защита не работает в production
+Файл: lib/csrf.ts, строки 20, 62-95
+Проблема: csrfStore хранится в памяти процесса Node.js. На Vercel каждый serverless
+function вызов — новый процесс. csrfStore будет пустым при каждом запросе, CSRF
+токены не найдутся, verifyCSRFToken() всегда вернёт false. Вся CSRF защита
+фактически отключена, но при этом блокирует запросы пользователей.
+Как есть:
+  const csrfStore: CSRFStore = {};  // in-memory, не работает на Vercel
+Исправление: Использовать Redis (Upstash) или убрать CSRF для Telegram Mini App
+(там уже есть HMAC-валидация initData). Если оставлять — хранить токены в Redis:
+  import { Redis } from '@upstash/redis';
+  const redis = new Redis({ url: process.env.UPSTASH_URL, token: process.env.UPSTASH_TOKEN });
+  await redis.set(`csrf:${sessionId}`, token, { ex: 86400 });
+Приоритет: 🔴 Критический
+
+[CRIT-003] Rate limiting не работает в production
+Файл: lib/rateLimit.ts, строки 7-10
+Проблема: const store: RateLimitStore = {} — in-memory хранилище. Та же проблема
+что с CSRF: на Vercel serverless каждый запрос может идти в новый процесс. Rate
+limiting полностью нефункционален — злоумышленник может делать неограниченное
+количество запросов.
+Исправление: Перенести в Redis (Upstash) с использованием sliding window алгоритма.
+Минимально рабочее решение — использовать заголовки X-RateLimit-* от Vercel Edge,
+или подключить @upstash/ratelimit:
+  import { Ratelimit } from "@upstash/ratelimit";
+  const ratelimit = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, "1 m") });
+Приоритет: 🔴 Критический
+
+[CRIT-004] SQL инъекция через имена полей в bulk-update
+Файл: pages/api/admin/orders.ts, строки ~45-67 (kanban.ts строки ~55-70)
+Проблема: В pages/api/admin/kanban.ts строится динамический SQL:
+  const sql = `UPDATE products SET ${updates.join(', ')} WHERE id = $1`
+Переменная updates формируется из field-имён, которые проходят allowlist проверку,
+однако в pages/api/admin/kanban.ts:
+  `UPDATE orders SET status = $1, manager_id = $2, manager_notes = $3 WHERE id = $4`
+  [newStatus, userId, notes || '', orderId]
+newStatus и orderId не валидируются — любое значение передаётся прямо в запрос.
+Исправление: Добавить enum-валидацию для status:
+  const VALID_STATUSES = ['pending','confirmed','in_progress','completed','cancelled'];
+  if (!VALID_STATUSES.includes(newStatus)) return res.status(400).json({error: 'Invalid status'});
+Приоритет: 🔴 Критический
+
+[CRIT-005] Telegram ID из тела запроса не верифицируется
+Файл: pages/api/cart.ts, строки ~70-120; pages/api/orders.ts; pages/api/reviews.ts
+Проблема: В pages/api/cart.ts:
+  const { telegram_id, product_id, quantity } = req.body;
+  if (telegram_id !== currentTelegramId) { return 403 }
+Но currentTelegramId получается из getTelegramIdFromRequest, которая в dev режиме
+принимает X-Telegram-Id из заголовка. Злоумышленник может указать X-Telegram-Id
+любого пользователя в dev режиме (NODE_ENV !== 'production').
+Хуже: в pages/api/admin/orders.ts строки ~190+:
+  const { id, status, manager_note } = req.body; — нет проверки owner
+В pages/profile.tsx:
+  const res = await fetch(`/api/users/profile?telegram_id=${user?.id}`);
+  — telegram_id из query используется в некоторых эндпоинтах.
+Исправление: Всегда получать telegram_id ТОЛЬКО из верифицированного initData,
+никогда из req.body или req.query. Проверить все эндпоинты.
+Приоритет: 🔴 Критический
+
+[CRIT-006] Race condition при создании заказа
+Файл: pages/api/orders.ts, строки ~65-120
+Проблема: Проверка остатков товаров и создание заказа выполняются в транзакции,
+но проверка SELECT ... FOR UPDATE не используется. При параллельных запросах оба
+могут пройти проверку наличия, и товар будет продан дважды.
+Как есть:
+  const productsRes = await query('SELECT id, stock, price FROM products WHERE...');
+  // ... проверка остатков ...
+  await transaction(async (client) => { ... UPDATE products SET stock = stock - $1 ... });
+Исправление: Добавить FOR UPDATE в SELECT внутри транзакции:
+  const productsRes = await client.query(
+    'SELECT id, stock, price FROM products WHERE id = ANY($1) FOR UPDATE', [productIds]
+  );
+Приоритет: 🔴 Критический
+
+[CRIT-007] Отсутствие обработки ошибок бота Telegram
+Файл: pages/api/bot.ts, строки ~1-50
+Проблема: bot.command('start', handleStart) — если handleStart выбросит ошибку,
+grammy не поймает её, webhook вернёт 500, Telegram будет повторять запрос.
+Нет глобального error handler для бота.
+Исправление:
+  bot.catch((err) => {
+    console.error('Bot error:', err);
+    // Не бросать — просто логировать
+  });
+Также handleStart в lib/bot/handlers.ts не обрабатывает ошибки БД — если query()
+падёт, пользователь не получит ответа и webhook зависнет.
+Приоритет: 🔴 Критический
+
+[CRIT-008] Некорректный экспорт в pages/api/admin/orders.ts
+Файл: pages/api/admin/orders.ts, строка ~последняя
+Проблема:
+  export default requireAuth(rateLimit(handler, RATE_LIMIT_PRESETS.normal), ['admin', 'manager']);
+requireAuth ожидает (handler, roles[]), rateLimit возвращает обёртку над handler,
+но requireAuth добавляет telegramId в req, а rateLimit его не проксирует. Порядок
+обёртывания неверный — сначала должна идти авторизация, потом rate limit:
+  export default requireAuth(handler, ['admin', 'manager']);
+  // rate limit применять отдельно или снаружи requireAuth
+Исправление: поменять порядок:
+  export default rateLimit(requireAuth(handler, ['admin', 'manager']), RATE_LIMIT_PRESETS.normal);
+Приоритет: 🔴 Критический
+
+[CRIT-009] pages/api/admin/rbac.ts — отсутствуют импорты
+Файл: pages/api/admin/rbac.ts, строки 1-5
+Проблема: Файл начинается с export default requireAuth(...), но import { requireAuth }
+и import { query } отсутствуют в начале файла. Файл выдаст ReferenceError при вызове.
+Исправление: Добавить в начало файла:
+  import { requireAuth } from '../../../lib/auth';
+  import { query } from '../../../lib/db';
+Приоритет: 🔴 Критический
+
+───────────────────────────────────────────────────────────────────────────────
+РАЗДЕЛ 2: ВЫСОКОПРИОРИТЕТНЫЕ ПРОБЛЕМЫ 🟠
+───────────────────────────────────────────────────────────────────────────────
+
+[HIGH-001] Отсутствие timeout для fetch запросов
+Файл: lib/useFetch.ts, строки 36-68; все компоненты использующие fetch
+Проблема: Ни один fetch запрос не имеет timeout. Если сервер не отвечает, запрос
+будет висеть бесконечно, блокируя UI.
+Исправление: Добавить AbortController:
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  const response = await window.fetch(url, { ...options, signal: controller.signal });
+  clearTimeout(timeout);
+Приоритет: 🟠 Высокий
+
+[HIGH-002] N+1 запросы в pages/api/admin/activate.ts
+Файл: pages/api/admin/activate.ts, строки ~180-240
+Проблема: Для каждого productId выполняется отдельный запрос getPriceImportData(),
+findExistingProduct(), markAsActivated(). При 100 товарах — 300+ запросов к БД.
+Исправление: Загрузить все товары одним запросом:
+  const allItems = await query('SELECT * FROM price_import WHERE id = ANY($1)', [priceImportIds]);
+  const existingProducts = await query(
+    'SELECT id, name, specification FROM products WHERE (name, specification) = ANY(...)'
+  );
+Приоритет: 🟠 Высокий
+
+[HIGH-003] Отсутствие валидации промокода перед применением
+Файл: pages/api/promocodes/apply.ts, строки ~20-45
+Проблема: Промокод увеличивает used_count сразу при проверке, до создания заказа:
+  await query('UPDATE promocodes SET used_count = used_count + 1 WHERE code = $1', [code]);
+Если пользователь не завершит заказ, промокод будет "израсходован". Нужно
+инкрементировать счётчик только после успешной оплаты.
+Исправление: Убрать UPDATE из apply.ts. Добавить его в pages/api/orders.ts или
+в обработчик успешного платежа handlePaymentSuccess.
+Приоритет: 🟠 Высокий
+
+[HIGH-004] Неверная обработка ошибок в pages/api/bot.ts (платежи)
+Файл: lib/bot/payments.ts, строки ~85-120
+Проблема: В handlePaymentSuccess после успешного платежа:
+  await bot.api.sendMessage(adminId, '...')
+Если отправка не удалась, ошибка выбросится и transaction НЕ закоммитится.
+Платёж реально прошёл, но заказ останется в статусе 'pending'.
+Исправление: Обернуть уведомление в try-catch отдельно от основной логики:
+  try { await bot.api.sendMessage(adminId, message); }
+  catch (err) { console.error(`Failed to notify admin ${adminId}:`, err); }
+Приоритет: 🟠 Высокий
+
+[HIGH-005] Отсутствие индексов в миграции для cart_items
+Файл: db/migrations/001_initial_schema.sql
+Проблема: Таблица cart_items имеет UNIQUE(user_telegram_id, product_id), но нет
+отдельного индекса. Также таблицы orders, users не имеют индексов на часто
+используемых полях (status, created_at DESC).
+Исправление: В 009_add_indexes.sql добавлены, но там есть ссылки на несуществующие
+таблицы: carts (а в коде используется cart_items), order_history (не создана).
+Нужно синхронизировать имена таблиц.
+Приоритет: 🟠 Высокий
+
+[HIGH-006] Несоответствие имён таблиц между миграциями и кодом
+Файл: pages/api/cart.ts vs db/migrations/001_initial_schema.sql
+Проблема:
+  - В 001_initial_schema.sql создаётся таблица cart_items
+  - В pages/api/cart.ts используется таблица carts (с JSONB полем items)
+  - В pages/api/cart/saved.ts используется saved_for_later с user_id
+  - В db/migrations/019_saved_for_later.sql — user_telegram_id
+  Разные имена столбцов! user_id vs user_telegram_id.
+  - В lib/bot/handlers.ts: SELECT * FROM orders WHERE user_telegram_id = $1
+  - В pages/api/admin/orders.ts: GROUP BY o.user_telegram_id
+  - В pages/api/support/customers/[id].ts: WHERE id = $1 (а должно быть telegram_id)
+Исправление: Создать единую миграцию-консолидацию с каноническими именами таблиц.
+Приоритет: 🟠 Высокий
+
+[HIGH-007] Отсутствие проверки роли в pages/api/users/role.ts
+Файл: pages/api/users/role.ts, строки ~35-60
+Проблема: Endpoint позволяет пользователю менять свою роль на 'seller' или 'courier'.
+Хотя 'admin', 'manager', 'super_admin', 'support' заблокированы, пользователь может
+назначить себе роль 'courier' и получить доступ к курьерским API.
+Исправление: Полностью запретить self-role-change, или оставить только:
+  const allowedSelfRoles: never[] = []; // пользователь не может менять свою роль
+  return res.status(403).json({ error: 'Role changes must go through admin panel' });
+Приоритет: 🟠 Высокий
+
+[HIGH-008] pages/api/product-ratings.ts — некорректная авторизация
+Файл: pages/api/product-ratings.ts, строки ~30-50
+Проблема:
+  const telegram_id = await requireAuth(req, res);
+requireAuth() возвращает void (это middleware), не telegram_id. Это вызовет TypeError.
+Исправление:
+  // Строка должна быть такой:
+  const telegramId = await getTelegramIdFromRequest(req);
+  if (!telegramId) return res.status(401).json({ error: 'Unauthorized' });
+Приоритет: 🟠 Высокий
+
+[HIGH-009] Утечка памяти в компонентах с setInterval
+Файл: pages/admin/alerts.tsx, строки ~20-35
+Проблема: setInterval создаётся в useEffect, но не очищается при размонтировании
+если loadAlerts вызывается повторно:
+  useEffect(() => {
+    loadAlerts();
+    const interval = setInterval(loadAlerts, 30000);
+    return () => clearInterval(interval); // ← это правильно, но...
+  }, [user?.id]); // при изменении user?.id старый интервал отменится, новый создастся
+Проблема в том что loadAlerts делает setState после размонтирования, если запрос
+долгий. Нужен AbortController или isMounted флаг.
+Исправление:
+  useEffect(() => {
+    let isMounted = true;
+    const loadAlerts = async () => {
+      const data = await fetch(...);
+      if (isMounted) setAlerts(data);
+    };
+    loadAlerts();
+    const interval = setInterval(loadAlerts, 30000);
+    return () => { isMounted = false; clearInterval(interval); };
+  }, [user?.id]);
+Приоритет: 🟠 Высокий
+
+[HIGH-010] Некорректный middleware в pages/api/admin/orders.ts
+Файл: pages/api/admin/orders.ts, строки последняя
+Проблема: requireAuth не экспортирован правильно в этом файле — функция handler
+использует getTelegramId(req), но requireAuth вызывается снаружи, значит telegramId
+добавляется в req до вызова handler. Однако порядок в export:
+  export default requireAuth(rateLimit(handler, ...), [...])
+rateLimit обёртывает handler и вызывает его, но requireAuth добавляет telegramId
+в req ДО rateLimit. При этом функция handler внутри rateLimit получит req с telegramId.
+Это работает, но архитектурно неверно. Плюс: requireAuth в этом файле не импортирован!
+Исправление: Добавить import в начало файла:
+  import { requireAuth, getTelegramId } from '@/lib/auth';
+Проверить что этот import не дублирует существующий.
+Приоритет: 🟠 Высокий
+
+[HIGH-011] Отсутствует обработка ошибки при удалении товара
+Файл: pages/admin/products.tsx, строки ~100-115
+Проблема: deleteProduct() делает fetch без обработки ошибки:
+  await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
+  fetchProducts(); // вызывается даже при ошибке
+Пользователь не знает об ошибке, список обновляется, создавая иллюзию успеха.
+Исправление:
+  const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
+  if (!res.ok) { alert('Ошибка удаления'); return; }
+  fetchProducts();
+Приоритет: 🟠 Высокий
+
+[HIGH-012] pages/api/admin/kanban.ts содержит синтаксическую ошибку
+Файл: pages/api/admin/kanban.ts, строки ~50-60
+Проблема:
+  } catch {
+    console.error(_e); // _e не объявлен! Правильно: catch (err) { console.error(err) }
+Также в самом конце файла:
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  // пропущена закрывающая }
+  }
+Исправление: Исправить catch блок:
+  } catch (err) {
+    console.error('kanban error:', err);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+Приоритет: 🟠 Высокий
+
+[HIGH-013] pages/api/cron/db-backup.ts — несуществующая переменная
+Файл: pages/api/cron/db-backup.ts, строки ~60-75
+Проблема:
+  } catch {
+    console.error('Database backup failed:', _e);
+    return res.status(500).json({ error: ..., message: _e instanceof Error ? _e.message : ... });
+  }
+_e не объявлен в catch блоке. TypeScript выдаст ошибку при компиляции.
+Исправление:
+  } catch (err) {
+    console.error('Database backup failed:', err);
+    return res.status(500).json({ error: 'Database backup failed', message: err instanceof Error ? err.message : 'Unknown error' });
+  }
+Приоритет: 🟠 Высокий
+
+[HIGH-014] Отсутствует import в pages/api/admin/pages.ts
+Файл: pages/api/admin/pages.ts, строка последняя
+Проблема:
+  export default requireAuth(handler, ['admin']);
+Но import { requireAuth } from... отсутствует в файле!
+ReferenceError при запросе к этому endpoint.
+Исправление: Добавить в начало файла:
+  import { requireAuth } from '@/lib/auth';
+Приоритет: 🟠 Высокий
+
+[HIGH-015] Неверная схема таблицы carts в запросах
+Файл: pages/api/cart.ts, строки ~30-60
+Проблема: Код использует таблицу carts с JSONB полем items, но в миграции
+001_initial_schema.sql создана таблица cart_items с обычными строками. В 009_add_indexes.sql
+создаётся индекс idx_carts_user_telegram_id для таблицы carts, которой нет.
+Нужно определиться: использовать cart_items (реляционная) или carts (JSONB).
+Текущий код: CROSS JOIN LATERAL jsonb_array_elements(c.items) AS ci — не будет
+работать с реляционной cart_items.
+Исправление: Создать миграцию для таблицы carts:
+  CREATE TABLE IF NOT EXISTS carts (
+    user_telegram_id BIGINT PRIMARY KEY REFERENCES users(telegram_id) ON DELETE CASCADE,
+    items JSONB DEFAULT '[]',
+    updated_at TIMESTAMP DEFAULT NOW()
+  );
+Приоритет: 🟠 Высокий
+
+[HIGH-016] referralStats не определён в pages/profile.tsx
+Файл: pages/profile.tsx, строки ~280-295
+Проблема:
+  <p className="text-2xl font-bold text-neon">{referralStats.count}</p>
+  <p className="text-2xl font-bold text-success">{referralStats.earned} ₽</p>
+referralStats нигде не объявлен и не загружается! ReferenceError при рендере.
+Исправление: Добавить state и загрузку:
+  const [referralStats, setReferralStats] = useState({ count: 0, earned: 0 });
+  // в useEffect:
+  const res = await fetch('/api/user/referral');
+  const data = await res.json();
+  setReferralStats({ count: data.data?.referrals_count || 0, earned: data.data?.total_earned || 0 });
+Приоритет: 🟠 Высокий
+
+[HIGH-017] pages/api/gamification/leaderboard.ts — неверная таблица
+Файл: pages/api/gamification/leaderboard.ts, строки 5-20
+Проблема:
+  FROM users u LEFT JOIN user_levels ul ON u.id = ul.user_id
+  LEFT JOIN orders o ON u.id = o.user_id
+users.id не существует — первичный ключ users.telegram_id. orders.user_id тоже
+неверное поле (правильно: user_telegram_id). Запрос упадёт с ошибкой.
+Исправление:
+  FROM users u
+  LEFT JOIN user_levels ul ON u.telegram_id = ul.user_id
+  LEFT JOIN orders o ON u.telegram_id = o.user_telegram_id AND o.status = 'done'
+Приоритет: 🟠 Высокий
+
+[HIGH-018] pages/api/user/balance.ts — неверное поле
+Файл: pages/api/user/balance.ts, строки 15-25
+Проблема:
+  const userResult = await query('SELECT balance FROM users WHERE id = $1', [userId]);
+users.id не существует (PK = telegram_id). Также balance_history.type — это поле
+не определено в миграции balance_history (там есть operation).
+Исправление:
+  const userResult = await query('SELECT balance FROM users WHERE telegram_id = $1', [userId]);
+  // И в SELECT history:
+  SELECT * FROM balance_history WHERE user_id = $1  // убедиться что поле user_id правильное
+Приоритет: 🟠 Высокий
+
+[HIGH-019] pages/api/support/customers/[id].ts — неверное поле
+Файл: pages/api/support/customers/[id].ts, строки 10-20
+Проблема:
+  const customerResult = await query('SELECT * FROM users WHERE id = $1', [customerId]);
+  const ordersResult = await query('SELECT * FROM orders WHERE user_id = $1', [customerId]);
+Оба запроса используют неверные поля. Должно быть telegram_id и user_telegram_id.
+Исправление:
+  SELECT * FROM users WHERE telegram_id = $1
+  SELECT * FROM orders WHERE user_telegram_id = $1 ORDER BY created_at DESC
+Приоритет: 🟠 Высокий
+
+[HIGH-020] pages/api/admin/manager-stats.ts — неверные поля
+Файл: pages/api/admin/manager-stats.ts, строки 10-25
+Проблема:
+  FROM users u LEFT JOIN orders o ON u.id = o.manager_id
+  WHERE u.role = 'manager'
+  GROUP BY u.id
+Поля u.id и o.manager_id не существуют. Правильно u.telegram_id и orders нет поля manager_id
+(есть manager_notes_updated_by из миграции 010).
+Исправление:
+  SELECT u.telegram_id as id, u.first_name, u.last_name,
+         COUNT(o.id) as orders_processed, ...
+  FROM users u LEFT JOIN orders o ON u.telegram_id = o.manager_notes_updated_by
+  WHERE u.role = 'manager'
+  GROUP BY u.telegram_id, u.first_name, u.last_name
+Приоритет: 🟠 Высокий
+
+[HIGH-021] Отсутствует таблица order_history
+Файл: pages/api/admin/orders.ts, строки ~175-185; 009_add_indexes.sql
+Проблема: Код записывает в order_history:
+  INSERT INTO order_history (order_id, user_telegram_id, old_status, new_status)
+Но таблица order_history нигде не создаётся. Есть order_status_history (в миграции
+012), но поля отличаются. Запрос упадёт.
+Исправление: В новой миграции создать:
+  CREATE TABLE IF NOT EXISTS order_history (
+    id SERIAL PRIMARY KEY,
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    user_telegram_id BIGINT REFERENCES users(telegram_id),
+    old_status VARCHAR(50),
+    new_status VARCHAR(50) NOT NULL,
+    note TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+  );
+Приоритет: 🟠 Высокий
+
+[HIGH-022] pages/api/products/recommendations.ts — неверный JOIN
+Файл: pages/api/products/recommendations.ts, строки 12-30
+Проблема:
+  FROM orders o LEFT JOIN order_items oi ON o.id = oi.order_id
+  WHERE o.user_id = $1  ← неверное поле! должно быть user_telegram_id
+Исправление: user_id → user_telegram_id
+Приоритет: 🟠 Высокий
+
+[HIGH-023] Отсутствует таблица admin_logs (создана в 022, но...)
+Файл: pages/api/admin/pickup-points.ts, pages/api/admin/import.ts
+Проблема: Обе функции делают INSERT INTO admin_logs. Таблица создаётся в миграции
+022_admin_logs.sql, но только если миграции применяются по порядку. При этом
+в activate.ts используется admin_logs, а в других местах — audit_log. Необходима
+консолидация: использовать одну таблицу.
+Исправление: Везде использовать audit_log (создана в 015_critical_security_fixes.sql
+и 010_role_improvements_part1.sql). Удалить admin_logs или сделать ALIAS.
+Приоритет: 🟠 Высокий
+
+[HIGH-024] pages/api/admin/orders-kanban.ts — SQL инъекция через строку period
+Файл: pages/api/admin/orders-kanban.ts, строки ~15-25
+Проблема: Нет этой проблемы в kanban, но в dashboard-stats.ts:
+  const dateRange = "NOW() - INTERVAL '24 hours'";
+  const groupBy = "DATE_TRUNC('hour', o.created_at)::TIMESTAMP";
+  // эти строки вставляются напрямую в запрос через string interpolation:
+  `FROM orders WHERE created_at > ${dateRange} GROUP BY ${groupBy}`
+period из req.query используется в switch, что безопасно. Но dateRange и groupBy
+— это строки, которые напрямую вставляются в SQL без параметризации.
+Хотя значения строятся только из hardcoded строк (не из входных данных),
+это антипаттерн и потенциальная проблема при будущих изменениях.
+Исправление: Использовать parameterized intervals:
+  `FROM orders WHERE created_at > NOW() - $1::interval GROUP BY DATE_TRUNC($2, o.created_at)`
+  params: ['24 hours', 'hour']
+Приоритет: 🟠 Высокий
+
+[HIGH-025] lib/bot/handlers.ts — парсинг match некорректен
+Файл: lib/bot/handlers.ts, строки 15-25
+Проблема:
+  const startParam = (ctx as unknown as Record<string, string>).match;
+ctx.match в grammy — это RegExpMatchArray | null, не string. Для команды /start ref_XXX
+правильный способ получить параметр:
+  ctx.match — для команд это строка после команды (в grammy v1 это работает)
+Но приведение к Record<string, string> некорректно и может вернуть неверные данные.
+Исправление:
+  const startParam = ctx.match as string | undefined; // grammy типизирует match как string для команд
+  if (startParam?.startsWith('ref_')) { ... }
+Приоритет: 🟠 Высокий
+
+[HIGH-026] Отсутствует проверка productIds в pages/api/compare.ts
+Файл: pages/api/compare.ts, строки ~65-85
+Проблема:
+  const productsCheck = await query(
+    `SELECT COUNT(*) as cnt FROM products WHERE id = ANY($1) AND is_active = true`,
+    [product_ids]
+  );
+  if (productsCheck.rows[0].cnt !== product_ids.length) {
+cnt возвращается как string из pg, не number. Сравнение cnt !== product_ids.length
+всегда будет false (string !== number). Проверка не работает.
+Исправление:
+  if (parseInt(productsCheck.rows[0].cnt) !== product_ids.length)
+Приоритет: 🟠 Высокий
+
+[HIGH-027] pages/api/admin/export-orders.ts — неверные поля
+Файл: pages/api/admin/export-orders.ts, строки ~45-70
+Проблема:
+  FROM orders o LEFT JOIN users u ON o.user_id = u.telegram_id
+o.user_id не существует. Правильно: o.user_telegram_id. Также total_amount — это
+поле которое может называться total (см. миграцию 002_telegram_stars_payment.sql).
+Исправление: Унифицировать имена: везде использовать user_telegram_id и total.
+Проверить все SELECT к orders.
+Приоритет: 🟠 Высокий
+
+[HIGH-028] pages/api/admin/broadcast.ts — нет timeout для bot.api.sendMessage
+Файл: pages/api/admin/broadcast.ts, строки ~25-40
+Проблема: При рассылке на 10000 пользователей функция будет выполняться очень долго
+(Telegram API лимит 30 сообщений/сек). Vercel serverless function имеет timeout 30 сек
+(или 60 сек для Pro). Рассылка будет обрываться.
+Исправление: Использовать очередь (BullMQ/pg-boss) или ограничить рассылку до
+100 пользователей, добавить throttling:
+  for (const id of recipients) {
+    await bot.api.sendMessage(id, message);
+    await new Promise(r => setTimeout(r, 35)); // ~28 msg/sec
+  }
+  // + добавить проверку на Vercel timeout
+Приоритет: 🟠 Высокий
+
+───────────────────────────────────────────────────────────────────────────────
+РАЗДЕЛ 3: СРЕДНЕПРИОРИТЕТНЫЕ ПРОБЛЕМЫ 🟡
+───────────────────────────────────────────────────────────────────────────────
+
+[MED-001] Несогласованность в типах orders.id
+Файл: Множество файлов
+Проблема: В миграции 002 orders.id — UUID. В коде некоторые функции принимают orderId
+как string (что правильно для UUID), но в pages/api/orders/[id]/notes.ts:
+  INSERT INTO manager_notes_history (order_id, manager_id, note)
+manager_id не существует, правильно manager_notes_updated_by или created_by.
+Приоритет: 🟡 Средний
+
+[MED-002] Неиспользуемые параметры и импорты
+Файл: pages/profile.tsx, строки ~1-10
+Проблема: import { useEffect } импортируется в нескольких местах где он уже есть
+в деструктуризации. В pages/admin/dashboard.tsx и pages/tracking/index.tsx
+есть _user и _webapp (с underscore — подавление unused warnings, но это техдолг).
+Приоритет: 🟡 Средний
+
+[MED-003] console.log/console.error в production коде
+Файл: lib/auth.ts (строки 53, 110, 127), lib/notifications.ts (множество мест),
+pages/api/bot.ts, lib/bot/payments.ts
+Проблема: Повсеместное использование console.error/console.warn в production.
+На Vercel это попадает в логи, но не в структурированный мониторинг. Также
+logger.ts создан, но практически не используется.
+Исправление: Заменить console.* на logger.* из lib/logger.ts.
+Приоритет: 🟡 Средний
+
+[MED-004] Дублирование функции generate_referral_code
+Файл: db/migrations/010b_role_improvements_part2.sql vs 018_referral_system.sql
+Проблема: Функция generate_referral_code() создаётся в двух миграциях с разным
+телом. При повторном применении одна перезапишет другую. CREATE OR REPLACE FUNCTION
+сделает это молча без ошибки.
+Приоритет: 🟡 Средний
+
+[MED-005] Таблица saved_for_later создаётся 4 раза
+Файл: migrations/012, 010b, 018b, 019
+Проблема: saved_for_later создаётся в миграциях 012, 010b, 018b и 019 с разными
+схемами (user_id vs user_telegram_id, разные поля). IF NOT EXISTS спасает от ошибок,
+но реальная схема зависит от порядка применения миграций.
+Исправление: Оставить только одну каноническую миграцию, остальные закомментировать
+или удалить.
+Приоритет: 🟡 Средний
+
+[MED-006] compare_items создаётся дважды с разными схемами
+Файл: migrations/012 (product_ids INT[]) vs 010b (user_id BIGINT, product_id BIGINT отдельно)
+Проблема: Разные подходы к хранению — массив ID vs один товар на строку.
+Код pages/api/products/compare.ts использует массив, pages/api/compare.ts — разные
+подходы. Несогласованность критическая.
+Приоритет: 🟡 Средний
+
+[MED-007] Отсутствие метатегов для SEO
+Файл: pages/_app.tsx, pages/index.tsx
+Проблема: Нет <Head> с meta description, og:image, og:title. Для Telegram Mini App
+это менее критично, но для веб-версии важно.
+Исправление: Добавить next/head в страницы.
+Приоритет: 🟡 Средний
+
+[MED-008] Жёстко закодированные URL
+Файл: pages/profile.tsx (строки ~310), components/Phase4Components.tsx (строки ~65-75)
+Проблема: `https://your-app.com/?ref=${code}` — хардкод URL вместо process.env.WEBAPP_URL.
+Исправление: Заменить на ${process.env.NEXT_PUBLIC_WEBAPP_URL}/?.
+Приоритет: 🟡 Средний
+
+[MED-009] Отсутствует error boundary для async компонентов
+Файл: pages/admin/index.tsx, страницы с useEffect
+Проблема: Ошибки в useEffect не перехватываются ErrorBoundary (он только для render).
+Нет визуальной индикации ошибок загрузки на многих страницах.
+Приоритет: 🟡 Средний
+
+[MED-010] next.config.js — неверный redirect
+Файл: next.config.js, строки ~80-90
+Проблема:
+  { source: '/profile', destination: '/user/profile', permanent: false }
+Страница /user/profile не существует! Это сломает переход по /profile.
+Исправление: Удалить этот redirect или исправить destination на '/profile'.
+Приоритет: 🟡 Средний
+
+[MED-011] tailwind.config.js не включает все необходимые пути
+Файл: tailwind.config.js
+Проблема: content не включает 'styles/**/*.css', что может привести к purge
+кастомных классов. Также нет пути к './import-csv.js'.
+Приоритет: 🟡 Средний
+
+[MED-012] Отсутствует проверка на аутентификацию в фронтенде
+Файл: pages/admin/index.tsx, pages/admin/products.tsx и другие admin страницы
+Проблема: Проверка роли делается через checkAdmin() с задержкой. В момент загрузки
+кратко виден контент до редиректа. Нет server-side проверки через getServerSideProps.
+Исправление: В getServerSideProps (уже есть заготовки) добавить реальную проверку,
+или использовать middleware.ts для защиты /admin/* маршрутов.
+Приоритет: 🟡 Средний
+
+[MED-013] Неправильный тип для product.promotion
+Файл: db/migrations/001_initial_schema.sql vs pages/api/admin/activate.ts
+Проблема: В миграции поле называется is_promotion, в activate.ts INSERT использует promotion:
+  INSERT INTO products (..., promotion, is_hit, is_new, ...)
+Но в таблице: is_promotion BOOLEAN. Несоответствие имён столбцов.
+Приоритет: 🟡 Средний
+
+[MED-014] pages/api/cart.ts — CROSS JOIN LATERAL проблема
+Файл: pages/api/cart.ts, строки ~35-50
+Проблема:
+  CROSS JOIN LATERAL jsonb_array_elements(c.items) AS ci
+  JOIN products p ON (ci->>'product_id')::uuid = p.id
+Если c.items = null или [] — CROSS JOIN вернёт пустой результат (ок), но если элемент
+не имеет product_id или он не UUID — запрос упадёт с cast error.
+Исправление: Добавить WHERE ci ? 'product_id' и обработку ошибок.
+Приоритет: 🟡 Средний
+
+[MED-015] Страница 404 использует устаревший <Link> синтаксис
+Файл: pages/404.tsx, страницы 500.tsx, page/[slug].tsx
+Проблема:
+  <Link href="/"><a className="...">На главную</a></Link>
+В Next.js 13+ вложенный тег <a> не нужен — <Link> сам рендерит <a>.
+Текущий синтаксис вызывает предупреждение и может сломать стили.
+Исправление:
+  <Link href="/" className="...">На главную</Link>
+Приоритет: 🟡 Средний
+
+[MED-016] Отсутствует loading state в pages/index.tsx для фильтров
+Файл: pages/index.tsx, строки ~80-100
+Проблема: При изменении фильтров (category, brand) вызывается fetchProducts() немедленно,
+но loading устанавливается внутри, создавая мерцание. Нет debounce для search
+при изменении selectedCategory/selectedBrand (debounce есть только для search).
+Приоритет: 🟡 Средний
+
+[MED-017] Отсутствует pagination в pages/api/admin/users.ts
+Файл: pages/api/admin/users.ts
+Проблема: Возвращаются все пользователи без LIMIT/OFFSET. При 10000+ пользователей
+запрос будет очень медленным.
+Исправление: Добавить параметры page/limit и пагинацию.
+Приоритет: 🟡 Средний
+
+[MED-018] lib/bot/keyboards.ts — хардкод URL
+Файл: lib/bot/keyboards.ts, строки 10, 20, 30
+Проблема: URL хардкодированы: url: process.env.WEBAPP_URL || 'https://your-app.vercel.app'
+Fallback 'https://your-app.vercel.app' неверный. При отсутствии WEBAPP_URL
+кнопки бота будут вести на несуществующий сайт.
+Исправление: Убрать fallback URL или добавить проверку:
+  if (!process.env.WEBAPP_URL) throw new Error('WEBAPP_URL is required');
+Приоритет: 🟡 Средний
+
+[MED-019] Отсутствует очистка cart после оплаты
+Файл: lib/bot/payments.ts, строки ~110-130
+Проблема: В handlePaymentSuccess после успешной оплаты корзина очищается только через
+pages/api/orders.ts (в transaction). Но если заказ создан не через pages/api/orders.ts
+(например через Telegram Invoice напрямую), корзина останется заполненной.
+Исправление: Добавить очистку корзины в handlePaymentSuccess:
+  await query('DELETE FROM carts WHERE user_telegram_id = $1', [telegramId]);
+Приоритет: 🟡 Средний
+
+[MED-020] ab_tests таблица создаётся дважды
+Файл: db/migrations/014_sprint4_gamification_analytics.sql vs 010c_role_improvements_part3.sql
+Проблема: CREATE TABLE IF NOT EXISTS ab_tests создаётся в двух миграциях с разными
+схемами (строки ~15-20 в 014 и ~210-225 в 010c). Если 010c применяется первой,
+таблица будет с одной схемой; если 014 — с другой.
+Приоритет: 🟡 Средний
+
+[MED-021] pages/tracking/index.tsx — неверный import
+Файл: pages/tracking/index.tsx, строки 1-5
+Проблема: 'use client' — директива React Server Components. В Next.js Pages Router
+она не нужна и ни на что не влияет, но создаёт путаницу.
+useSearchParams() из 'next/navigation' работает в App Router, но не в Pages Router!
+В Pages Router нужно использовать useRouter().query.
+Исправление:
+  import { useRouter } from 'next/router';
+  const router = useRouter();
+  const orderId = router.query.orderId as string;
+Приоритет: 🟡 Средний
+
+[MED-022] pages/admin/kanban.tsx — неверный import
+Файл: pages/admin/kanban.tsx, строки 1-5
+Проблема: 'use client' — та же проблема. Pages Router не поддерживает эту директиву.
+Также useRouter, useSearchParams из 'next/navigation' не работают в Pages Router.
+Исправление: Убрать 'use client'. Использовать useRouter из 'next/router'.
+Приоритет: 🟡 Средний
+
+[MED-023] Отсутствует middleware.ts для защиты admin routes
+Файл: (не существует)
+Проблема: Нет middleware.ts в корне для server-side защиты /admin/* маршрутов.
+Любой пользователь может попытаться открыть /admin/* — защита только на клиенте.
+Исправление: Создать middleware.ts:
+  import { NextResponse } from 'next/server';
+  export function middleware(request: Request) {
+    // Проверить заголовки/куки для admin маршрутов
+    return NextResponse.next();
+  }
+  export const config = { matcher: ['/admin/:path*'] };
+Приоритет: 🟡 Средний
+
+[MED-024] Отсутствует проверка initData expiry
+Файл: lib/auth.ts, функция verifyTelegramInitData
+Проблема: Telegram рекомендует проверять auth_date в initData — данные действительны
+только 24 часа. Текущая реализация не проверяет auth_date.
+Исправление:
+  const authDate = parseInt(params.get('auth_date') || '0');
+  const maxAge = 24 * 60 * 60; // 24 hours
+  if (Date.now() / 1000 - authDate > maxAge) {
+    console.warn('initData expired');
+    return false;
+  }
+Приоритет: 🟡 Средний
+
+[MED-025] import-csv.js — production скрипт без безопасности
+Файл: import-csv.js
+Проблема: Скрипт содержит хардкодированный DATABASE_URL с реальными кредами как fallback:
+  process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_uX6MnvH5OCBR@...'
+Это такая же утечка секретов как и в .env.local.
+Исправление: Убрать fallback значение:
+  const DATABASE_URL = process.env.DATABASE_URL;
+  if (!DATABASE_URL) { console.error('DATABASE_URL required'); process.exit(1); }
+Приоритет: 🟡 Средний
+
+[MED-026] Отсутствует загрузка изображений в Supabase
+Файл: pages/api/admin/activate.ts, lib/imageOptimization.ts
+Проблема: Код принимает image URLs как строки, но нет реального endpoint для загрузки
+файлов в Supabase Storage. Пользователь должен вводить URL вручную — это плохой UX.
+SUPABASE_URL и SUPABASE_ANON_KEY есть в .env, но ни один файл не использует Supabase SDK.
+Приоритет: 🟡 Средний
+
+[MED-027] Отсутствует error handling в pages/api/cron/*
+Файл: pages/api/cron/abandoned-cart.ts, pages/api/cron/price-drop-notifications.ts
+Проблема: Нет проверки HTTP метода в abandoned-cart.ts (принимает GET и POST).
+Нет логирования ошибок в БД для отслеживания выполнения cron.
+Приоритет: 🟡 Средний
+
+[MED-028] Отсутствует таблица settings
+Файл: pages/api/admin/settings.ts, строки ~15-25
+Проблема:
+  query("SELECT value FROM settings WHERE key = 'min_stock_alert'")
+Таблица settings нигде не создаётся в миграциях! Запрос упадёт.
+Исправление: Создать миграцию:
+  CREATE TABLE IF NOT EXISTS settings (
+    key VARCHAR(100) PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW()
+  );
+Приоритет: 🟡 Средний
+
+[MED-029] Дублирование логики авторизации
+Файл: pages/admin/index.tsx, pages/admin/products.tsx, другие admin страницы
+Проблема: Каждая admin страница дублирует логику checkAdmin():
+  const res = await fetch(`/api/users/profile?telegram_id=${user?.id}`);
+  if (['admin', 'manager', 'seller'].includes(data.role)) { ... }
+Нет общего HOC или хука для защиты admin маршрутов.
+Исправление: Создать хук useAdminAuth() или HOC withAdminAuth().
+Приоритет: 🟡 Средний
+
+[MED-030] Toast компонент подключён неверно
+Файл: pages/tracking/index.tsx, страницы с Toast
+Проблема: import Toast from '@/components/Toast' — в Toast.tsx экспортируются
+{Toast} и {useToast}, а default export отсутствует! Импорт упадёт.
+Исправление: Либо добавить export default Toast, либо использовать named import:
+  import { Toast } from '@/components/Toast';
+Приоритет: 🟡 Средний
+
+[MED-031] pages/api/products.ts не использует индексы оптимально
+Файл: pages/api/products.ts, строки ~70-95
+Проблема: Запрос:
+  WHERE LOWER(name) ILIKE $1 OR LOWER(specification) ILIKE $1
+LOWER() делает индекс idx_products_name неэффективным. Нужен функциональный индекс.
+Исправление: Использовать ILIKE напрямую (PostgreSQL case-insensitive через pg_trgm):
+  CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  CREATE INDEX idx_products_name_trgm ON products USING gin(name gin_trgm_ops);
+Приоритет: 🟡 Средний
+
+───────────────────────────────────────────────────────────────────────────────
+РАЗДЕЛ 4: НИЗКОПРИОРИТЕТНЫЕ ПРОБЛЕМЫ ⚪
+───────────────────────────────────────────────────────────────────────────────
+
+[LOW-001] Несогласованный стиль именования в миграциях
+Файл: db/migrations/*.sql
+Проблема: Часть миграций использует нумерацию 001-024, часть — 010a/010b/010c.
+Порядок применения неочевиден. Нет таблицы schema_migrations для отслеживания.
+Исправление: lib/migrate.ts уже есть, но не используется. Добавить команду
+npm run migrate в CI/CD процесс.
+Приоритет: ⚪ Низкий
+
+[LOW-002] Закомментированный код
+Файл: db/migrations/001_initial_schema.sql, строки ~100-115
+Проблема: Закомментированный CREATE TABLE promocodes. Также в 023_super_admin_init.sql
+закомментирован VALIDATE CONSTRAINT. Закомментированный код без пояснения «почему».
+Приоритет: ⚪ Низкий
+
+[LOW-003] Магические числа
+Файл: pages/api/orders/verify-code.ts (100000, 999999), lib/rateLimit.ts
+Проблема: Числа вроде 100000, 999999, 86400 без именованных констант.
+Исправление: Использовать константы из lib/constants.ts или новые:
+  const MIN_CODE = 100000;
+  const MAX_CODE = 999999;
+Приоритет: ⚪ Низкий
+
+[LOW-004] Неполный .gitignore
+Файл: .gitignore
+Проблема: .gitignore дублируется (node_modules/ написано 3 раза). Также нет:
+  .vercel/
+  *.log
+  coverage/
+Приоритет: ⚪ Низкий
+
+[LOW-005] pages/api/admin/kanban.ts использует declare const _e
+Файл: pages/api/admin/kanban.ts
+Проблема: Переменная _e не объявлена в catch блоке (см. CRIT/HIGH выше),
+но это уже отмечено. Дополнительно: console.error(_e) подавляется компилятором
+из-за underscore, но TypeScript strict mode должен выдать ошибку.
+Приоритет: ⚪ Низкий
+
+[LOW-006] Отсутствует favicon и open graph изображение
+Файл: public/ (проверить наличие)
+Проблема: Нет информации о favicon.ico и og-image.png в public/. Нет no-image.png
+который используется в ProductCard и ProductPage как DEFAULT_PRODUCT_IMAGE.
+Исправление: Создать public/no-image.png и public/favicon.ico.
+Приоритет: ⚪ Низкий
+
+[LOW-007] TypeScript strict unused parameters
+Файл: tsconfig.json
+Проблема: "noUnusedLocals": true, "noUnusedParameters": true установлены,
+но в коде множество мест с _var конвенцией для подавления. Это ОК, но
+нужно убедиться что сборка проходит без ошибок.
+Приоритет: ⚪ Низкий
+
+[LOW-008] Отсутствует описание API endpoints
+Файл: Все pages/api/**
+Проблема: Нет JSDoc комментариев для API эндпоинтов (какие параметры принимает,
+что возвращает). Усложняет поддержку.
+Приоритет: ⚪ Низкий
+
+[LOW-009] Старый синтаксис Link в нескольких компонентах
+Файл: pages/404.tsx, pages/500.tsx, pages/faq.tsx, pages/page/[slug].tsx,
+components/EmptyState.tsx, components/BannerSlider.tsx
+Проблема: <Link href="..."><a ...>текст</a></Link> — устаревший синтаксис Next.js 12.
+В Next.js 13+ используется <Link href="..." className="...">текст</Link>.
+Приоритет: ⚪ Низкий
+
+[LOW-010] Отсутствует robots.txt и sitemap.xml
+Файл: public/ (не существует)
+Проблема: Нет robots.txt и sitemap.xml для SEO.
+Исправление: Создать pages/api/sitemap.xml.ts и public/robots.txt.
+Приоритет: ⚪ Низкий
+
+[LOW-011] next.config.js experimental optimizePackageImports
+Файл: next.config.js, строки ~95-100
+Проблема:
+  experimental: { optimizePackageImports: ['@/components'] }
+@/components — локальный алиас, не npm пакет. optimizePackageImports предназначен
+для библиотек типа 'lodash'. Не даёт эффекта для локальных модулей.
+Приоритет: ⚪ Низкий
+
+[LOW-012] Vercel.json содержит несуществующие cron endpoints
+Файл: vercel.json
+Проблема:
+  "/api/cron/backup-database" — не существует (есть db-backup.ts с другим именем)
+  "/api/cron/cleanup-sessions" — не существует
+  "/api/cron/check-low-stock" — не существует
+Создать правильные endpoints или исправить пути.
+Приоритет: ⚪ Низкий
+
+[LOW-013] ESLint отключает @typescript-eslint/no-explicit-any
+Файл: .eslintrc.json
+Проблема: "@typescript-eslint/no-explicit-any": "error" — правильно, но в коде
+есть несколько мест с eslint-disable-next-line комментариями в lib/analytics.ts.
+Приоритет: ⚪ Низкий
+
+[LOW-014] Dockerfile не исключает dev зависимости
+Файл: Dockerfile
+Проблема: RUN npm ci --only=production — правильно, но потом COPY . . копирует
+всё включая .env.local если он есть. Нужен .dockerignore с .env* паттерном
+(уже есть в .dockerignore, но стоит проверить).
+Приоритет: ⚪ Низкий
+
+───────────────────────────────────────────────────────────────────────────────
+РАЗДЕЛ 5: НЕЗАВЕРШЁННЫЙ ФУНКЦИОНАЛ
+───────────────────────────────────────────────────────────────────────────────
+
+[FEAT-001] Система изображений не реализована
+Описание: Supabase Storage настроен в .env, но код загрузки изображений отсутствует.
+В ActivationModal пользователь вводит URL вручную. Нет endpoint для upload.
+Необходимо: Создать pages/api/admin/upload-image.ts с Supabase Storage client.
+
+[FEAT-002] A/B тестирование не завершено
+Описание: Таблицы ab_tests и ab_test_results созданы, getABTestVariant() реализован,
+но нет UI для управления тестами, нет аналитики результатов, нет применения тестов
+к реальным компонентам.
+
+[FEAT-003] Геймификация без наград
+Описание: user_levels, badges таблицы созданы. addExperience() реализован.
+Но: нигде не вызывается addExperience() при покупке/отзыве. Геймификация не
+интегрирована в бизнес-логику.
+
+[FEAT-004] GPS трекинг курьера без реализации
+Описание: Таблица courier_gps_tracking создана, но нет endpoint для записи GPS
+координат и нет интерфейса для отображения на карте.
+
+[FEAT-005] Уведомления о снижении цен
+Описание: Таблица price_drop_notifications создана, cron job есть, но нет механизма
+заполнения таблицы при изменении цены товара. Триггер или webhook не реализован.
+
+[FEAT-006] Страница баланса не загружает реальные данные
+Описание: pages/balance.tsx существует, но balance_history таблица имеет колонку
+type (из одной миграции) и operation (из другой). Запрос упадёт.
+
+[FEAT-007] Real-time чат не реализован
+Описание: chat_messages и chat_conversations созданы. ChatWindow компонент использует
+HTTP polling, не WebSocket. Для production нужен WebSocket (Pusher/Ably) или
+Server-Sent Events.
+
+───────────────────────────────────────────────────────────────────────────────
+РАЗДЕЛ 6: СВОДНАЯ ТАБЛИЦА ПРОБЛЕМ
+───────────────────────────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────┬──────────┐
+│ Категория                                               │ Кол-во   │
+├─────────────────────────────────────────────────────────┼──────────┤
+│ 🔴 Критические (немедленное исправление)                │    9     │
+│ 🟠 Высокие (до деплоя)                                  │   28     │
+│ 🟡 Средние (первые 2 недели после деплоя)               │   31     │
+│ ⚪ Низкие (технический долг)                             │   14     │
+│ Незавершённый функционал                                │    7     │
+├─────────────────────────────────────────────────────────┼──────────┤
+│ ИТОГО                                                   │   89     │
+└─────────────────────────────────────────────────────────┴──────────┘
+
+По категориям:
+- Безопасность: 18 проблем
+- Ошибки в коде/SQL: 22 проблемы
+- Архитектура БД: 12 проблем
+- TypeScript/типизация: 8 проблем
+- UX/UI: 11 проблем
+- Производительность: 8 проблем
+- Незавершённый функционал: 7 проблем
+- Конфигурация: 3 проблемы
+
+───────────────────────────────────────────────────────────────────────────────
+РАЗДЕЛ 7: РЕКОМЕНДАЦИИ ПО ПОРЯДКУ ИСПРАВЛЕНИЙ
+───────────────────────────────────────────────────────────────────────────────
+
+ДЕНЬ 1 (СЕГОДНЯ — БЕЗОПАСНОСТЬ):
+1. CRIT-001: Ротировать BOT_TOKEN и DATABASE_URL. Убрать секреты из .env.local.example.
+2. CRIT-009: Добавить импорты в pages/api/admin/rbac.ts.
+3. HIGH-014: Добавить import в pages/api/admin/pages.ts.
+4. MED-025: Убрать хардкод DATABASE_URL из import-csv.js.
+5. HIGH-012: Исправить синтаксическую ошибку в pages/api/admin/kanban.ts.
+6. HIGH-013: Исправить catch блок в pages/api/cron/db-backup.ts.
+
+ДЕНЬ 2-3 (КРИТИЧЕСКИЕ БАГИ):
+7. CRIT-006: Добавить FOR UPDATE в транзакцию создания заказа.
+8. HIGH-016: Добавить referralStats в pages/profile.tsx.
+9. HIGH-008: Исправить pages/api/product-ratings.ts (requireAuth → getTelegramIdFromRequest).
+10. HIGH-017: Исправить таблицы в pages/api/gamification/leaderboard.ts.
+11. HIGH-018: Исправить pages/api/user/balance.ts.
+12. HIGH-019: Исправить pages/api/support/customers/[id].ts.
+13. HIGH-020: Исправить pages/api/admin/manager-stats.ts.
+14. HIGH-022: Исправить pages/api/products/recommendations.ts.
+15. HIGH-027: Исправить pages/api/admin/export-orders.ts.
+
+ДЕНЬ 4-5 (АРХИТЕКТУРА БД):
+16. Создать консолидирующую миграцию 025_consolidation.sql:
+    - Определить каноническую схему carts (или cart_items)
+    - Устранить дублирование saved_for_later, compare_items, ab_tests
+    - Создать отсутствующие таблицы: order_history, settings
+    - Добавить все отсутствующие индексы
+17. HIGH-006: Синхронизировать имена таблиц и столбцов во всём коде.
+18. HIGH-015: Создать или выбрать таблицу carts с правильной схемой.
+
+ДЕНЬ 6-7 (ФУНКЦИОНАЛЬНОСТЬ):
+19. HIGH-003: Убрать UPDATE used_count из promocodes/apply.ts.
+20. HIGH-004: Обернуть Telegram уведомления в отдельные try-catch.
+21. CRIT-007: Добавить bot.catch() в pages/api/bot.ts.
+22. HIGH-025: Исправить парсинг ctx.match в bot/handlers.ts.
+23. MED-021, MED-022: Убрать 'use client' и исправить роутер в tracking и kanban.
+24. MED-010: Исправить redirect в next.config.js.
+25. MED-030: Исправить import Toast (default vs named export).
+
+НЕДЕЛЯ 2 (ПРОИЗВОДИТЕЛЬНОСТЬ И UX):
+26. CRIT-002: Перенести CSRF хранение в Redis (или убрать CSRF для Telegram Mini App).
+27. CRIT-003: Перенести Rate Limiting в Redis (@upstash/ratelimit).
+28. HIGH-001: Добавить timeout для всех fetch запросов.
+29. HIGH-002: Оптимизировать N+1 в activate.ts.
+30. MED-017: Добавить пагинацию в admin/users.ts.
+31. MED-024: Добавить проверку auth_date в verifyTelegramInitData.
+32. HIGH-023: Консолидировать admin_logs и audit_log.
+
+НЕДЕЛЯ 3 (ЗАВЕРШЕНИЕ):
+33. MED-026: Реализовать загрузку изображений через Supabase Storage.
+34. FEAT-003: Интегрировать геймификацию (вызывать addExperience при покупке).
+35. MED-012: Добавить middleware.ts для защиты admin маршрутов.
+36. LOW-006: Создать public/no-image.png и public/favicon.ico.
+37. LOW-012: Исправить vercel.json cron endpoints.
+38. MED-003: Заменить console.* на logger.*.
+39. LOW-009: Обновить все Link компоненты до нового синтаксиса.
+
+───────────────────────────────────────────────────────────────────────────────
+РАЗДЕЛ 8: ФИНАЛЬНЫЙ ЧЕК-ЛИСТ ДЛЯ PRODUCTION READY
+───────────────────────────────────────────────────────────────────────────────
+
+БЕЗОПАСНОСТЬ:
+[ ] Ротировать TELEGRAM_BOT_TOKEN в BotFather
+[ ] Ротировать DATABASE_URL пароль в Neon console
+[ ] Очистить .env.local.example — заменить все реальные значения на <placeholder>
+[ ] Убрать хардкод DATABASE_URL из import-csv.js (строка 7)
+[ ] Добавить FOR UPDATE в транзакцию создания заказа (pages/api/orders.ts, строки ~95-110)
+[ ] Добавить проверку auth_date в lib/auth.ts функция verifyTelegramInitData
+[ ] Исправить self-role-change в pages/api/users/role.ts — запретить полностью
+[ ] Добавить бота error handler: bot.catch((err) => ...) в pages/api/bot.ts
+[ ] Перенести CSRF токены из in-memory в Redis ИЛИ убрать CSRF (initData верификации достаточно)
+[ ] Перенести Rate Limiting из in-memory в Redis (@upstash/ratelimit)
+
+ИСПРАВЛЕНИЕ ОШИБОК:
+[ ] Добавить import { requireAuth } + import { query } в pages/api/admin/rbac.ts (начало файла)
+[ ] Добавить import { requireAuth } в pages/api/admin/pages.ts (начало файла)
+[ ] Исправить catch блок в pages/api/admin/kanban.ts: catch {} → catch (err) { console.error(err) }
+[ ] Исправить catch блок в pages/api/cron/db-backup.ts: _e → err
+[ ] Исправить pages/api/product-ratings.ts: requireAuth(req, res) → getTelegramIdFromRequest(req)
+[ ] Исправить pages/api/gamification/leaderboard.ts: u.id → u.telegram_id, o.user_id → o.user_telegram_id
+[ ] Исправить pages/api/user/balance.ts: WHERE id=$1 → WHERE telegram_id=$1
+[ ] Исправить pages/api/support/customers/[id].ts: WHERE id=$1 → WHERE telegram_id=$1
+[ ] Исправить pages/api/admin/manager-stats.ts: JOIN orders ON u.id → JOIN orders ON u.telegram_id
+[ ] Исправить pages/api/products/recommendations.ts: o.user_id → o.user_telegram_id
+[ ] Исправить pages/api/admin/export-orders.ts: o.user_id → o.user_telegram_id
+[ ] Добавить referralStats state и загрузку в pages/profile.tsx
+[ ] Исправить parseInt() в pages/api/compare.ts: cnt !== length → parseInt(cnt) !== length
+[ ] Исправить 'use client' и useSearchParams в pages/tracking/index.tsx → useRouter из 'next/router'
+[ ] Исправить 'use client' в pages/admin/kanban.tsx → useRouter из 'next/router'
+[ ] Исправить DEFAULT_PRODUCT_IMAGE — создать public/no-image.png
+[ ] Исправить import Toast в pages/tracking/index.tsx: добавить default export в Toast.tsx ИЛИ использовать { Toast }
+
+БАЗА ДАННЫХ:
+[ ] Создать миграцию 025_fix_carts_table.sql — определить каноническую схему таблицы carts
+[ ] Создать миграцию 026_create_missing_tables.sql с:
+    CREATE TABLE order_history (...) — см. [HIGH-021]
+    CREATE TABLE settings (...) — см. [MED-028]
+[ ] Устранить дублирование: сделать DROP TABLE IF EXISTS в новых миграциях для:
+    - saved_for_later (оставить схему из 019)
+    - compare_items (выбрать схему и применить везде)
+    - ab_tests (выбрать схему и применить везде)
+[ ] Создать CREATE EXTENSION IF NOT EXISTS pg_trgm для полнотекстового поиска
+[ ] Унифицировать использование audit_log vs admin_logs — использовать только audit_log
+[ ] Добавить индекс: CREATE INDEX idx_orders_status ON orders(status)
+[ ] Добавить индекс: CREATE INDEX idx_orders_user_telegram_id ON orders(user_telegram_id)
+
+КОД И ФУНКЦИОНАЛЬНОСТЬ:
+[ ] Убрать инкремент used_count промокода из pages/api/promocodes/apply.ts — перенести в оплату
+[ ] Обернуть все bot.api.sendMessage() в отдельные try-catch в payments.ts
+[ ] Убрать хардкод 'https://your-app.vercel.app' из lib/bot/keyboards.ts
+[ ] Добавить AbortController с timeout (30сек) во все fetch запросы в компонентах
+[ ] Убрать хардкод URL из components/Phase4Components.tsx строки ~65-75
+
+КОНФИГУРАЦИЯ:
+[ ] Исправить next.config.js — удалить redirect /profile → /user/profile (строки ~85-90)
+[ ] Исправить vercel.json cron paths:
+    /api/cron/backup-database → /api/cron/db-backup
+    /api/cron/cleanup-sessions → /api/cron/cleanup-old-sessions
+    /api/cron/check-low-stock → /api/admin/low-stock (добавить cron endpoint)
+[ ] Добавить в vercel.json: WEBAPP_URL environment variable
+
+НЕДОСТАЮЩИЕ ФАЙЛЫ:
+[ ] Создать public/no-image.png (placeholder изображение)
+[ ] Создать public/favicon.ico
+[ ] Создать middleware.ts для server-side защиты /admin/* маршрутов
+
+ТЕСТИРОВАНИЕ ПЕРЕД ДЕПЛОЕМ:
+[ ] Запустить npm run lint — исправить все ESLint ошибки
+[ ] Запустить npm run build — сборка должна проходить без ошибок
+[ ] Применить все миграции к тестовой БД
+[ ] Протестировать Telegram bot webhook (ngrok для локального тестирования)
+[ ] Протестировать создание заказа и оплату через Telegram Stars (test mode)
+[ ] Проверить все admin endpoints через Postman/curl с валидным X-Telegram-Id
+
+───────────────────────────────────────────────────────────────────────────────
+ИТОГОВОЕ ЗАКЛЮЧЕНИЕ
+───────────────────────────────────────────────────────────────────────────────
+
+Проект VapeShop имеет хорошую архитектурную основу и широкий функционал. Основные
+проблемы можно разделить на три категории:
+
+1. КРИТИЧЕСКИЕ ДЕФЕКТЫ (9 проблем): Несколько файлов не будут компилироваться
+   из-за отсутствующих импортов (rbac.ts, pages.ts). Утечка секретов. Race condition
+   в платёжной системе. In-memory хранилища которые не работают на Vercel.
+
+2. НЕСООТВЕТСТВИЕ СХЕМЫ БД (20+ проблем): Код и миграции используют разные имена
+   таблиц и полей. Множество таблиц создаётся несколько раз в разных миграциях
+   с разными схемами. Это главная архитектурная проблема.
+
+3. ЛОГИЧЕСКИЕ ОШИБКИ В ЗАПРОСАХ (15+ проблем): Большинство API endpoint'ов к
+   users, orders используют users.id вместо users.telegram_id. Эти endpoint'ы
+   вернут пустые результаты или ошибки.
+
+После устранения всех критических и высокоприоритетных проблем (3-4 недели работы
+опытного разработчика) проект будет готов к production деплою на Vercel с Neon БД.
+
+═══════════════════════════════════════════════════════════════════════════════
+КОНЕЦ ОТЧЁТА
+Всего проблем: 89
+Критических: 9 | Высоких: 28 | Средних: 31 | Низких: 14 | Незавершённых фич: 7
+═══════════════════════════════════════════════════════════════════════════════

@@ -52,12 +52,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
 
       res.status(200).json({ data: orders });
-    } catch {
-      console.error(_e);
+    } catch (err) {
+      console.error('kanban error:', err);
       res.status(500).json({ error: 'Failed to fetch orders' });
     }
   } else if (req.method === 'PUT') {
     const { orderId, newStatus, notes } = req.body;
+
+    // Валидация статуса - предотвращаем SQL injection
+    const VALID_STATUSES = [
+      'pending',
+      'confirmed',
+      'in_progress',
+      'ready_for_pickup',
+      'on_delivery',
+      'completed',
+      'cancelled',
+    ];
+
+    if (!VALID_STATUSES.includes(newStatus)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
 
     try {
       await query(
@@ -66,7 +81,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch {
+    } catch (err) {
       res.status(500).json({ error: 'Failed to update order' });
     }
   } else {

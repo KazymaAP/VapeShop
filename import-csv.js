@@ -2,10 +2,15 @@ const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-// Строка подключения (возьмите из переменной окружения или укажите явно)
-const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  'postgresql://neondb_owner:npg_uX6MnvH5OCBR@ep-small-mouse-amsy1py5-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+// Строка подключения (возьмите из переменной окружения)
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  console.error('❌ ERROR: DATABASE_URL переменная окружения не установлена');
+  console.error('Установите DATABASE_URL перед запуском скрипта:');
+  console.error('  export DATABASE_URL="postgresql://..."');
+  process.exit(1);
+}
 
 const csvFilePath = path.join(__dirname, 'price_import_ready.csv');
 

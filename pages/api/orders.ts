@@ -85,6 +85,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // 🔄 ЗАЩИТА: Используем транзакцию для создания заказа и уменьшения остатков
     // Это предотвращает race condition, когда несколько запросов создают заказы одновременно
     const order = await transaction(async (client) => {
+      // Получаем товары с блокировкой (FOR UPDATE) - запрос будет заблокирован до конца транзакции
+      const lockedProducts = await client.query(
+        'SELECT id, stock, price FROM products WHERE id = ANY($1::uuid[]) AND is_active = true FOR UPDATE',
+        [productIds]
+      );
+
+      // Перепроверяем количество товара после получения блокировки
+      const lockedProductMap = new Map(lockedProducts.rows.map((p) => [p.id, p]));
+      for (const item of items) {
+        const product = lockedProductMap.get(item.product_id);
+        if (!product || product.stock < item.quantity) {
+          throw new Error(
+            `Insufficient stock for product ${item.product_id}. Available: ${product?.stock || 0}`
+          );
+        }
+      }
+
       // Создаём заказ
       const orderRes = await client.query(
         `INSERT INTO orders (user_telegram_id, status, total, delivery_method, delivery_date, address, promo_code, discount)

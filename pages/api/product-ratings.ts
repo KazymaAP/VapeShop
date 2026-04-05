@@ -6,7 +6,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { getTelegramIdFromRequest } from '@/lib/auth';
 import { ApiResponse } from '@/types/api';
 
 interface RatingPayload {
@@ -28,8 +28,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Требуем авторизацию
-    const telegram_id = await requireAuth(req, res);
-    if (!telegram_id) return;
+    const telegram_id = await getTelegramIdFromRequest(req);
+    if (!telegram_id) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     const { productId, rating, reviewText }: RatingPayload = req.body;
 

@@ -82,12 +82,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       backupId: backupData.id,
       timestamp,
     });
-  } catch {
-    console.error('Database backup failed:', _e);
+  } catch (err) {
+    console.error('Database backup failed:', err);
 
     return res.status(500).json({
       error: 'Database backup failed',
-      message: _e instanceof Error ? _e.message : 'Unknown error',
+      message: err instanceof Error ? err.message : 'Unknown error',
     });
   }
 }

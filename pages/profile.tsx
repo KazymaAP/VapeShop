@@ -84,6 +84,7 @@ export default function ProfilePage() {
   const [formAddress, setFormAddress] = useState('');
   const [savingAddress, setSavingAddress] = useState(false);
   const [addressError, setAddressError] = useState('');
+  const [referralStats, setReferralStats] = useState({ count: 0, earned: 0 });
 
   useEffect(() => {
     if (!user) return;
@@ -91,6 +92,7 @@ export default function ProfilePage() {
     fetchOrders();
     fetchFavorites();
     fetchAddresses();
+    fetchReferralStats();
   }, [user]);
 
   const fetchProfile = async () => {
@@ -132,6 +134,25 @@ export default function ProfilePage() {
       setAddresses(data.addresses || []);
     } catch (err) {
       console.error('Error fetching addresses:', err);
+    }
+  };
+
+  const fetchReferralStats = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/user/referral?telegram_id=${user.id}`);
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
+      const data = await res.json();
+      setReferralStats({
+        count: data.data?.referrals_count || 0,
+        earned: data.data?.total_earned || 0,
+      });
+    } catch (err) {
+      console.error('Error fetching referral stats:', err);
+      // Используем значения по умолчанию при ошибке
+      setReferralStats({ count: 0, earned: 0 });
     }
   };
 
