@@ -43,7 +43,14 @@ async function handleGet(
   res: NextApiResponse<PaginationResponse | ErrorResponse>
 ): Promise<void> {
   try {
-    const { page = '1', limit = '20', is_activated, search, sort = 'created_at', order = 'desc' } = req.query;
+    const {
+      page = '1',
+      limit = '20',
+      is_activated,
+      search,
+      sort = 'created_at',
+      order = 'desc',
+    } = req.query;
 
     const pageNum = Math.max(1, parseInt(String(page), 10));
     const limitNum = Math.min(100, Math.max(1, parseInt(String(limit), 10)));
@@ -67,9 +74,10 @@ async function handleGet(
 
     // Валидация полей сортировки
     const allowedSortFields = ['created_at', 'name', 'is_activated'];
-    const sortField = String(sort).includes(',') || !allowedSortFields.includes(String(sort)) 
-      ? 'created_at' 
-      : String(sort);
+    const sortField =
+      String(sort).includes(',') || !allowedSortFields.includes(String(sort))
+        ? 'created_at'
+        : String(sort);
     const sortOrder = String(order).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     // Получаем общее количество
@@ -122,4 +130,3 @@ async function handler(
 }
 
 export default requireAuth(handler, ['admin']);
-

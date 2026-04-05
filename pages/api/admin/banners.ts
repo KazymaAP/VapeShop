@@ -28,7 +28,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         `INSERT INTO banners (image_url, link, title, description, order_index, is_active)
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING id`,
-        [image_url, link || null, title || null, description || null, order_index || 0, is_active !== false]
+        [
+          image_url,
+          link || null,
+          title || null,
+          description || null,
+          order_index || 0,
+          is_active !== false,
+        ]
       );
 
       res.status(201).json({ success: true, id: result.rows[0].id, message: 'Баннер создан' });
@@ -42,4 +49,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin']);
-

@@ -12,7 +12,8 @@ import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const telegramId = (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
+  const telegramId =
+    (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
 
   if (!telegramId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -36,7 +37,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           return res.status(200).json({
             success: true,
             data: result.rows[0],
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         }
 
@@ -51,7 +52,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         res.status(200).json({
           success: true,
           data: codeResult.rows[0],
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       } catch (err) {
         console.error(err);
@@ -71,13 +72,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           user_telegram_id: telegramId,
           total_earned: 0,
           available_balance: 0,
-          spent: 0
+          spent: 0,
         };
 
         res.status(200).json({
           success: true,
           data: bonusData,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       } catch (err) {
         console.error(err);
@@ -98,7 +99,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         res.status(200).json({
           success: true,
           data: result.rows,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       } catch (err) {
         console.error(err);
@@ -143,12 +144,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
 
         if (refCode.max_uses && refCode.used_count >= refCode.max_uses) {
-          return res.status(400).json({ success: false, error: 'Referral code usage limit reached' });
+          return res
+            .status(400)
+            .json({ success: false, error: 'Referral code usage limit reached' });
         }
 
         // Проверяем, что пользователь не использовал собственный код
         if (refCode.user_telegram_id === telegramId) {
-          return res.status(400).json({ success: false, error: 'Cannot use your own referral code' });
+          return res
+            .status(400)
+            .json({ success: false, error: 'Cannot use your own referral code' });
         }
 
         // Проверяем, что пользователь уже не получал бонус от этого кода
@@ -174,16 +179,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           );
 
           // Начисляем бонус рефереру
-          await query(
-            `SELECT add_user_bonus($1, $2, $3, $4)`,
-            [refCode.user_telegram_id, refCode.bonus_amount, 'Реферальный бонус', useResult.rows[0].id]
-          );
+          await query(`SELECT add_user_bonus($1, $2, $3, $4)`, [
+            refCode.user_telegram_id,
+            refCode.bonus_amount,
+            'Реферальный бонус',
+            useResult.rows[0].id,
+          ]);
 
           // Обновляем счётчик использований кода
-          await query(
-            `UPDATE referral_codes SET used_count = used_count + 1 WHERE id = $1`,
-            [refCode.id]
-          );
+          await query(`UPDATE referral_codes SET used_count = used_count + 1 WHERE id = $1`, [
+            refCode.id,
+          ]);
 
           await query('COMMIT');
 
@@ -194,9 +200,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             success: true,
             data: {
               message: `Вы получили бонус! Реферер получил ${refCode.bonus_amount}₽`,
-              bonus_awarded: refCode.bonus_amount
+              bonus_awarded: refCode.bonus_amount,
             },
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         } catch (err) {
           await query('ROLLBACK');

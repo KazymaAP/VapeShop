@@ -7,10 +7,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 
-export default requireAuth(async (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
+export default requireAuth(async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -70,8 +67,17 @@ export default requireAuth(async (
 
     if (format === 'csv') {
       // CSV формат
-      const headers = ['ID', 'Пользователь', 'Телефон', 'Товары', 'Сумма₽', 'Статус', 'Доставка', 'Дата'];
-      const rows = result.rows.map(row => [
+      const headers = [
+        'ID',
+        'Пользователь',
+        'Телефон',
+        'Товары',
+        'Сумма₽',
+        'Статус',
+        'Доставка',
+        'Дата',
+      ];
+      const rows = result.rows.map((row) => [
         row.id,
         row.user_name,
         row.phone || '',
@@ -84,11 +90,14 @@ export default requireAuth(async (
 
       const csv = [
         headers.join(','),
-        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+        ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
       ].join('\n');
 
       res.setHeader('Content-Type', 'text/csv;charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="orders-export-${Date.now()}.csv"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="orders-export-${Date.now()}.csv"`
+      );
       res.write(csv);
       res.end();
     } else {

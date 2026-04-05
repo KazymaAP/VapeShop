@@ -39,7 +39,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!product_id) return res.status(400).json({ error: 'Missing field: product_id' });
 
       // Проверяем, что товар существует и активен
-      const productCheck = await query('SELECT id FROM products WHERE id = $1 AND is_active = true', [product_id]);
+      const productCheck = await query(
+        'SELECT id FROM products WHERE id = $1 AND is_active = true',
+        [product_id]
+      );
       if (productCheck.rows.length === 0) {
         return res.status(404).json({ error: 'Product not found' });
       }
@@ -64,7 +67,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { product_id } = req.query;
       if (!product_id) return res.status(400).json({ error: 'Missing field: product_id' });
 
-      await query('DELETE FROM wishlist WHERE user_telegram_id = $1 AND product_id = $2', [currentTelegramId, product_id]);
+      await query('DELETE FROM wishlist WHERE user_telegram_id = $1 AND product_id = $2', [
+        currentTelegramId,
+        product_id,
+      ]);
 
       res.status(200).json({ success: true });
     } catch (err) {
@@ -75,4 +81,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
-

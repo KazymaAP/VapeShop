@@ -32,7 +32,7 @@ export default function ChatWindow({ orderId, supportTicketId }: ChatWindowProps
         : `/api/support/tickets/${supportTicketId}/messages`;
 
       const response = await fetch(endpoint, {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
 
       if (!response.ok) {
@@ -59,9 +59,9 @@ export default function ChatWindow({ orderId, supportTicketId }: ChatWindowProps
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Telegram-Id': user?.id.toString() || ''
+          'X-Telegram-Id': user?.id.toString() || '',
         },
-        body: JSON.stringify({ text: input })
+        body: JSON.stringify({ text: input }),
       });
 
       if (!response.ok) {

@@ -38,7 +38,15 @@ export default function ProductPage() {
   const [isInCompare, setIsInCompare] = useState(false);
   const [isInFavorites, setIsInFavorites] = useState(false);
   const [alsoBought, setAlsoBought] = useState<Product[]>([]);
-  const [reviews, setReviews] = useState<{ id: string; comment: string; first_name: string | null; username: string | null; created_at: string }[]>([]);
+  const [reviews, setReviews] = useState<
+    {
+      id: string;
+      comment: string;
+      first_name: string | null;
+      username: string | null;
+      created_at: string;
+    }[]
+  >([]);
   const [newReview, setNewReview] = useState('');
   const [showReviews, setShowReviews] = useState(false);
 
@@ -106,7 +114,11 @@ export default function ProductPage() {
     await fetch('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: product.id, user_telegram_id: user.id, comment: newReview }),
+      body: JSON.stringify({
+        product_id: product.id,
+        user_telegram_id: user.id,
+        comment: newReview,
+      }),
     });
     setNewReview('');
     fetch(`/api/reviews?product_id=${id}`)
@@ -134,7 +146,9 @@ export default function ProductPage() {
   const toggleFavorite = async () => {
     if (!user || !product) return;
     if (isInFavorites) {
-      await fetch(`/api/favorites?telegram_id=${user.id}&product_id=${product.id}`, { method: 'DELETE' });
+      await fetch(`/api/favorites?telegram_id=${user.id}&product_id=${product.id}`, {
+        method: 'DELETE',
+      });
     } else {
       await fetch('/api/favorites', {
         method: 'POST',
@@ -187,7 +201,14 @@ export default function ProductPage() {
           onClick={() => router.back()}
           className="flex items-center gap-2 text-textSecondary hover:text-neon transition-colors"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
           Назад
@@ -198,7 +219,14 @@ export default function ProductPage() {
             isInFavorites ? 'text-danger' : 'text-textSecondary hover:text-danger'
           }`}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill={isInFavorites ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill={isInFavorites ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
@@ -228,13 +256,19 @@ export default function ProductPage() {
             />
           )}
           {product.promotion && (
-            <span className="absolute top-4 left-4 bg-danger text-white text-sm font-bold px-3 py-1.5 rounded-full">Акция</span>
+            <span className="absolute top-4 left-4 bg-danger text-white text-sm font-bold px-3 py-1.5 rounded-full">
+              Акция
+            </span>
           )}
           {product.is_new && !product.promotion && (
-            <span className="absolute top-4 left-4 bg-neon text-white text-sm font-bold px-3 py-1.5 rounded-full">Новинка</span>
+            <span className="absolute top-4 left-4 bg-neon text-white text-sm font-bold px-3 py-1.5 rounded-full">
+              Новинка
+            </span>
           )}
           {product.is_hit && !product.promotion && !product.is_new && (
-            <span className="absolute top-4 left-4 bg-warning text-white text-sm font-bold px-3 py-1.5 rounded-full">Хит</span>
+            <span className="absolute top-4 left-4 bg-warning text-white text-sm font-bold px-3 py-1.5 rounded-full">
+              Хит
+            </span>
           )}
         </div>
 
@@ -249,11 +283,11 @@ export default function ProductPage() {
                   idx === currentImage ? 'border-neon' : 'border-border'
                 }`}
               >
-                <Image 
-                  src={img} 
-                  alt="" 
-                  width={64} 
-                  height={64} 
+                <Image
+                  src={img}
+                  alt=""
+                  width={64}
+                  height={64}
                   className="object-cover w-full h-full"
                   onError={(e) => {
                     e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
@@ -277,7 +311,9 @@ export default function ProductPage() {
 
         {/* Price */}
         <div className="mt-4 flex items-baseline gap-3">
-          <span className="text-3xl font-bold text-neon">{product.price.toLocaleString('ru-RU')} ₽</span>
+          <span className="text-3xl font-bold text-neon">
+            {product.price.toLocaleString('ru-RU')} ₽
+          </span>
           {product.stock > 0 ? (
             <span className="text-success text-sm">● В наличии ({product.stock} шт)</span>
           ) : (
@@ -334,7 +370,13 @@ export default function ProductPage() {
               : 'bg-cardBg border-border text-textSecondary hover:border-neon hover:text-neon'
           }`}
         >
-          <svg className="inline w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            className="inline w-4 h-4 mr-2"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M18 3H6C4.89543 3 4 3.89543 4 5V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V5C20 3.89543 19.1046 3 18 3Z" />
             <path d="M9 8L11 11L15 7" />
           </svg>
@@ -347,25 +389,29 @@ export default function ProductPage() {
             <h3 className="text-lg font-bold text-textPrimary mb-4">С этим также покупают</h3>
             <div className="grid grid-cols-2 gap-3">
               {alsoBought.map((p) => (
-                <Link key={p.id} href={`/product/${p.id}`} className="bg-cardBg border border-border rounded-2xl overflow-hidden hover:border-neon transition-colors">
+                <Link
+                  key={p.id}
+                  href={`/product/${p.id}`}
+                  className="bg-cardBg border border-border rounded-2xl overflow-hidden hover:border-neon transition-colors"
+                >
                   <div className="aspect-square bg-gradient-to-br from-[#1f1f2a] to-[#131318] flex items-center justify-center">
                     {p.images?.[0] ? (
-                      <Image 
-                        src={p.images[0]} 
-                        alt={p.name} 
-                        width={120} 
-                        height={120} 
+                      <Image
+                        src={p.images[0]}
+                        alt={p.name}
+                        width={120}
+                        height={120}
                         className="object-contain"
                         onError={(e) => {
                           e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
                         }}
                       />
                     ) : (
-                      <Image 
-                        src={DEFAULT_PRODUCT_IMAGE} 
-                        alt={p.name} 
-                        width={120} 
-                        height={120} 
+                      <Image
+                        src={DEFAULT_PRODUCT_IMAGE}
+                        alt={p.name}
+                        width={120}
+                        height={120}
                         className="object-contain"
                       />
                     )}
@@ -387,7 +433,15 @@ export default function ProductPage() {
             className="flex items-center justify-between w-full text-left"
           >
             <h3 className="text-lg font-bold text-textPrimary">Отзывы ({reviews.length})</h3>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-textSecondary transition-transform ${showReviews ? 'rotate-180' : ''}`}>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={`text-textSecondary transition-transform ${showReviews ? 'rotate-180' : ''}`}
+            >
               <path d="M6 9l6 6 6-6" />
             </svg>
           </button>
@@ -404,8 +458,12 @@ export default function ProductPage() {
                         {review.first_name?.[0] || review.username?.[0] || 'U'}
                       </div>
                       <div>
-                        <p className="text-sm text-textPrimary font-medium">{review.first_name || review.username || 'Пользователь'}</p>
-                        <p className="text-xs text-textSecondary">{new Date(review.created_at).toLocaleDateString('ru-RU')}</p>
+                        <p className="text-sm text-textPrimary font-medium">
+                          {review.first_name || review.username || 'Пользователь'}
+                        </p>
+                        <p className="text-xs text-textSecondary">
+                          {new Date(review.created_at).toLocaleDateString('ru-RU')}
+                        </p>
                       </div>
                     </div>
                     <p className="text-textSecondary text-sm">{review.comment}</p>
@@ -443,12 +501,21 @@ export default function ProductPage() {
           disabled={product.stock === 0}
           className="w-full bg-gradient-to-r from-[#7c3aed] to-neon rounded-full py-3.5 text-white font-bold text-lg flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50 ripple"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+          >
             <circle cx="9" cy="21" r="1" />
             <circle cx="20" cy="21" r="1" />
             <path d="M1 1H5L7.68 14.39A2 2 0 0 0 9.66 16H19.4A2 2 0 0 0 21.28 14.63L23 6H6" />
           </svg>
-          {product.stock === 0 ? 'Нет в наличии' : `В корзину — ${(product.price * quantity).toLocaleString('ru-RU')} ₽`}
+          {product.stock === 0
+            ? 'Нет в наличии'
+            : `В корзину — ${(product.price * quantity).toLocaleString('ru-RU')} ₽`}
         </button>
       </div>
     </div>

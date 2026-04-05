@@ -1,11 +1,11 @@
 /**
  * Скрипт применения миграций БД
- * 
+ *
  * Использование:
  * node scripts/migrate.ts         # Применить все миграции
  * ts-node scripts/migrate.ts      # С TypeScript
  * npm run migrate                 # Если добавлена в package.json
- * 
+ *
  * На production должен запускаться автоматически при деплое.
  */
 
@@ -47,7 +47,7 @@ async function initMigrationsTable(): Promise<void> {
 async function getAppliedMigrations(): Promise<Set<string>> {
   try {
     const result = await query('SELECT version FROM schema_migrations');
-    return new Set(result.rows.map((r: any) => r.version));
+    return new Set(result.rows.map((r: Record<string, unknown>) => String(r.version)));
   } catch (err) {
     console.error('❌ Ошибка чтения примененных миграций:', err);
     return new Set();
@@ -59,11 +59,12 @@ async function getAppliedMigrations(): Promise<Set<string>> {
  */
 function getMigrationFiles(): Migration[] {
   try {
-    const files = fs.readdirSync(MIGRATIONS_DIR)
-      .filter(file => file.endsWith('.sql'))
+    const files = fs
+      .readdirSync(MIGRATIONS_DIR)
+      .filter((file) => file.endsWith('.sql'))
       .sort();
 
-    return files.map(file => ({
+    return files.map((file) => ({
       name: file,
       path: path.join(MIGRATIONS_DIR, file),
       content: fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf-8'),
@@ -91,8 +92,9 @@ async function applyMigration(migration: Migration): Promise<void> {
     );
 
     console.log(`✅ Миграция ${migration.name} успешно применена`);
-  } catch (err: any) {
-    console.error(`❌ Ошибка при применении ${migration.name}:`, err.message);
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error(`❌ Ошибка при применении ${migration.name}:`, errMsg);
     throw err;
   }
 }

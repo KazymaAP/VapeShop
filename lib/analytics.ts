@@ -3,31 +3,32 @@
  * Используется в pages/_app.tsx
  */
 
-import { useEffect } from "react";
-import { useRouter } from "next/router";
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 declare global {
   interface Window {
-    amplitude?: any;
+    amplitude?: Record<string, unknown>;
   }
 }
 
 export function initAmplitude() {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
 
   const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
   if (!apiKey) {
-    console.warn("Amplitude API key not configured");
+    console.warn('Amplitude API key not configured');
     return;
   }
 
   // Загружаем Amplitude SDK
-  const script = document.createElement("script");
-  script.src = "https://cdn.amplitude.com/libs/amplitude-8.10.0-min.js.gz";
+  const script = document.createElement('script');
+  script.src = 'https://cdn.amplitude.com/libs/amplitude-8.10.0-min.js.gz';
   script.async = true;
   script.onload = () => {
     if (window.amplitude) {
-      window.amplitude.getInstance().init(apiKey, null, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window.amplitude as any).getInstance().init(apiKey, null, {
         saveEvents: true,
         includeUtm: true,
         includeFbclid: true,
@@ -52,7 +53,8 @@ export function initAmplitude() {
       });
 
       // Отслеживаем page views
-      window.amplitude.getInstance().logEvent("page_view", {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window.amplitude as any).getInstance().logEvent('page_view', {
         path: window.location.pathname,
         timestamp: new Date().toISOString(),
       });
@@ -61,9 +63,10 @@ export function initAmplitude() {
   document.head.appendChild(script);
 }
 
-export function trackEvent(eventName: string, properties?: Record<string, any>) {
-  if (typeof window !== "undefined" && window.amplitude) {
-    window.amplitude.getInstance().logEvent(eventName, {
+export function trackEvent(eventName: string, properties?: Record<string, unknown>) {
+  if (typeof window !== 'undefined' && window.amplitude) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window.amplitude as any).getInstance().logEvent(eventName, {
       ...properties,
       timestamp: new Date().toISOString(),
     });
@@ -71,14 +74,16 @@ export function trackEvent(eventName: string, properties?: Record<string, any>) 
 }
 
 export function setUserId(userId: string) {
-  if (typeof window !== "undefined" && window.amplitude) {
-    window.amplitude.getInstance().setUserId(userId);
+  if (typeof window !== 'undefined' && window.amplitude) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window.amplitude as any).getInstance().setUserId(userId);
   }
 }
 
-export function setUserProperties(properties: Record<string, any>) {
-  if (typeof window !== "undefined" && window.amplitude) {
-    window.amplitude.getInstance().setUserProperties(properties);
+export function setUserProperties(properties: Record<string, unknown>) {
+  if (typeof window !== 'undefined' && window.amplitude) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window.amplitude as any).getInstance().setUserProperties(properties);
   }
 }
 
@@ -88,15 +93,15 @@ export function useAmplitudePageView() {
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
-      trackEvent("page_view", {
+      trackEvent('page_view', {
         path: url,
       });
     };
 
-    router.events.on("routeChangeComplete", handleRouteChange);
+    router.events.on('routeChangeComplete', handleRouteChange);
 
     return () => {
-      router.events.off("routeChangeComplete", handleRouteChange);
+      router.events.off('routeChangeComplete', handleRouteChange);
     };
   }, [router.events]);
 }

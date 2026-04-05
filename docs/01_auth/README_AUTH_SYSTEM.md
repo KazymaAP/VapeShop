@@ -69,6 +69,7 @@ requireAuth(handler, allowedRoles) → NextApiHandler
 ```
 
 **Использование:**
+
 ```typescript
 import { requireAuth, getTelegramId } from '../../../lib/auth';
 
@@ -102,6 +103,7 @@ fetchWithAuthAndHandle(url, options) → Promise<any>
 ```
 
 **Использование:**
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -113,12 +115,12 @@ const response = await fetchWithAuth('/api/admin/products', {
 
 ## 👥 Роли и права
 
-| Роль | Может делать | Не может делать |
-|------|-------------|-----------------|
-| **admin** | Всё (управление товарами, заказами, пользователями, статистика, импорт) | Ничего (полный доступ) |
-| **manager** | Просмотр заказов, изменение статуса | Товары, пользователи, настройки |
-| **seller** | Подтверждение кодов доставки (в будущем) | Товары, заказы (без кодов), пользователи |
-| **buyer** | Покупки, корзина, профиль | Админ-панель, управление другими пользователями |
+| Роль        | Может делать                                                            | Не может делать                                 |
+| ----------- | ----------------------------------------------------------------------- | ----------------------------------------------- |
+| **admin**   | Всё (управление товарами, заказами, пользователями, статистика, импорт) | Ничего (полный доступ)                          |
+| **manager** | Просмотр заказов, изменение статуса                                     | Товары, пользователи, настройки                 |
+| **seller**  | Подтверждение кодов доставки (в будущем)                                | Товары, заказы (без кодов), пользователи        |
+| **buyer**   | Покупки, корзина, профиль                                               | Админ-панель, управление другими пользователями |
 
 ## 🚀 Быстрый старт
 
@@ -210,12 +212,14 @@ curl -X GET http://localhost:3000/api/admin/products \
 ## 📊 Статус реализации
 
 ### Фаза 1: Backend (100% ✅)
+
 - [x] lib/auth.ts - Все функции реализованы
 - [x] lib/frontend/auth.ts - Все утилиты готовы
 - [x] /api/admin/products.ts - Защищен requireAuth
 - [x] /api/cart.ts - Защищен от блокировки
 
 ### Фаза 2: Остальные Admin API (20%)
+
 - [x] /api/admin/products.ts - ✓ ГОТОВ
 - [ ] /api/admin/orders.ts - TODO
 - [ ] /api/admin/users.ts - TODO
@@ -226,6 +230,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 - [ ] /api/admin/faq.ts - TODO (если есть)
 
 ### Фаза 3: Frontend (0%)
+
 - [ ] pages/admin/products.tsx - TODO
 - [ ] pages/admin/orders.tsx - TODO
 - [ ] pages/admin/users.tsx - TODO
@@ -236,11 +241,13 @@ curl -X GET http://localhost:3000/api/admin/products \
 - [ ] pages/admin/faq.tsx - TODO
 
 ### Фаза 4: База данных (0%)
+
 - [ ] Таблица admin_logs создана
 - [ ] Индексы добавлены
 - [ ] Миграция выполнена
 
 ### Фаза 5: Тестирование (0%)
+
 - [ ] Unit тесты для lib/auth.ts
 - [ ] Интеграционные тесты для API
 - [ ] E2E тесты для админки
@@ -250,6 +257,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 ## 🔐 Безопасность
 
 ### Текущая реализация
+
 - ✅ Заголовок X-Telegram-Id для аутентификации
 - ✅ Проверка ролей на бэкенде
 - ✅ Проверка блокировки на бэкенде
@@ -257,6 +265,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 - ⚠️ Заголовок не криптографически защищен (может быть подделан)
 
 ### Будущие улучшения
+
 - [ ] HMAC-SHA256 верификация initData
 - [ ] Refresh tokens для долгоживущих сессий
 - [ ] Rate limiting по IP и пользователю
@@ -266,6 +275,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 ## 📋 Требования к БД
 
 ### Таблица users
+
 ```sql
 -- Обязательные поля
 telegram_id BIGINT PRIMARY KEY
@@ -281,6 +291,7 @@ CREATE INDEX idx_users_is_blocked ON users(is_blocked);
 ```
 
 ### Таблица admin_logs (требуется создать)
+
 ```sql
 id SERIAL PRIMARY KEY
 user_telegram_id BIGINT NOT NULL (REFERENCES users.telegram_id)
@@ -309,25 +320,33 @@ TELEGRAM_BOT_SECRET=your_secret_key
 ## 💡 Лучшие практики
 
 1. **Всегда используйте requireAuth для adminских API**
+
    ```typescript
    export default requireAuth(handler, ['admin']);
    ```
 
 2. **Логируйте критические действия**
+
    ```typescript
    const telegramId = getTelegramId(req);
    await query('INSERT INTO admin_logs ...');
    ```
 
 3. **Используйте fetchWithAuth на фронтенде**
+
    ```typescript
    const res = await fetchWithAuth('/api/admin/products');
    ```
 
 4. **Всегда обрабатывайте 401/403**
+
    ```typescript
-   if (response.status === 401) { /* не аутентифицирован */ }
-   if (response.status === 403) { /* нет прав */ }
+   if (response.status === 401) {
+     /* не аутентифицирован */
+   }
+   if (response.status === 403) {
+     /* нет прав */
+   }
    ```
 
 5. **Тестируйте в DevTools перед коммитом**
@@ -336,12 +355,12 @@ TELEGRAM_BOT_SECRET=your_secret_key
 
 ## 🆘 Частые проблемы
 
-| Проблема | Решение |
-|----------|---------|
-| 401 Unauthorized | Проверьте заголовок X-Telegram-Id в DevTools |
-| 403 Forbidden | Проверьте роль пользователя: `SELECT role FROM users WHERE telegram_id = X` |
-| Заголовок не отправляется | Используйте `fetchWithAuth()` вместо `fetch()` |
-| Логирование не работает | Убедитесь что таблица admin_logs создана |
+| Проблема                  | Решение                                                                     |
+| ------------------------- | --------------------------------------------------------------------------- |
+| 401 Unauthorized          | Проверьте заголовок X-Telegram-Id в DevTools                                |
+| 403 Forbidden             | Проверьте роль пользователя: `SELECT role FROM users WHERE telegram_id = X` |
+| Заголовок не отправляется | Используйте `fetchWithAuth()` вместо `fetch()`                              |
+| Логирование не работает   | Убедитесь что таблица admin_logs создана                                    |
 
 ## 📞 Помощь
 
@@ -353,6 +372,7 @@ TELEGRAM_BOT_SECRET=your_secret_key
 ## 📅 История обновлений
 
 ### Версия 1.0 (текущая)
+
 - ✅ Backend аутентификация (lib/auth.ts)
 - ✅ Frontend утилиты (lib/frontend/auth.ts)
 - ✅ Пример защиты API (products.ts)

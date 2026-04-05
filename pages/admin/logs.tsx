@@ -69,9 +69,7 @@ export default function AuditLogs() {
             type="text"
             placeholder="Target Type"
             value={filters.target_type}
-            onChange={(e) =>
-              setFilters({ ...filters, target_type: e.target.value })
-            }
+            onChange={(e) => setFilters({ ...filters, target_type: e.target.value })}
             className="p-2 bg-bgDark border border-border rounded text-textPrimary"
           />
           <input
@@ -100,9 +98,7 @@ export default function AuditLogs() {
                   {new Date(log.created_at).toLocaleString()}
                 </p>
               </div>
-              <span className="text-textSecondary text-sm">
-                User: {log.user_id}
-              </span>
+              <span className="text-textSecondary text-sm">User: {log.user_id}</span>
             </div>
             {log.details && (
               <p className="text-textSecondary text-xs mt-2 bg-bgDark p-2 rounded">
@@ -122,10 +118,7 @@ export default function AuditLogs() {
           Previous
         </button>
         <span className="text-textPrimary">Page {page}</span>
-        <button
-          onClick={() => setPage(page + 1)}
-          className="px-4 py-2 bg-neon text-bgDark rounded"
-        >
+        <button onClick={() => setPage(page + 1)} className="px-4 py-2 bg-neon text-bgDark rounded">
           Next
         </button>
       </div>

@@ -7,11 +7,13 @@
 ## Способ 1: Используем готовую функцию `fetchWithAuth` (рекомендуется)
 
 ### Импорт
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 ```
 
 ### Использование
+
 ```typescript
 // Вместо
 // const response = await fetch('/api/admin/products', { ... });
@@ -24,6 +26,7 @@ const response = await fetchWithAuth('/api/admin/products', {
 ```
 
 ### С обработкой ошибок
+
 ```typescript
 import { fetchWithAuthAndHandle } from '../../../lib/frontend/auth';
 
@@ -63,6 +66,7 @@ async function createProduct(data) {
 ## Примеры для каждого компонента админки
 
 ### pages/admin/products.tsx
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -103,6 +107,7 @@ async function handleDeleteProduct(productId) {
 ```
 
 ### pages/admin/orders.tsx
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -123,6 +128,7 @@ async function updateOrderStatus(orderId, newStatus) {
 ```
 
 ### pages/admin/users.tsx
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -152,6 +158,7 @@ async function changeUserRole(userId, newRole) {
 ```
 
 ### pages/admin/stats.tsx
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -169,6 +176,7 @@ async function loadChart(period) {
 ```
 
 ### pages/admin/import.tsx
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -191,6 +199,7 @@ async function handleImportCSV(file) {
 ```
 
 ### pages/admin/settings.tsx
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -211,6 +220,7 @@ async function saveSettings(newSettings) {
 ```
 
 ### pages/admin/broadcast.tsx
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -283,19 +293,24 @@ if (response) {
 ## Возможные проблемы
 
 ### Проблема: получаю 401 Unauthorized
+
 **Причина**: `X-Telegram-Id` заголовок не отправляется
 **Решение**: Убедитесь, что используете `fetchWithAuth()` или `getTelegramIdHeader()`
 
 ### Проблема: получаю 403 Forbidden
+
 **Причина**: Пользователь не имеет требуемой роли
 **Решение**: Проверьте, что ваш пользователь имеет роль `admin` в БД. Запрос в консоли:
+
 ```sql
 SELECT telegram_id, role FROM users WHERE telegram_id = <YOUR_ID>;
 ```
 
 ### Проблема: window.Telegram undefined
+
 **Причина**: Компонент отрисовывается на сервере (SSR)
 **Решение**: Используйте `useEffect` для получения данных:
+
 ```typescript
 useEffect(() => {
   const header = getTelegramIdHeader();

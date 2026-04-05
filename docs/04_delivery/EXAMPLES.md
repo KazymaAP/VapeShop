@@ -25,6 +25,7 @@
 **Сценарий:** Администратор хочет добавить новый пункт выдачи в Санкт-Петербурге.
 
 **Запрос:**
+
 ```bash
 curl -X POST http://localhost:3000/api/admin/pickup-points \
   -H "Content-Type: application/json" \
@@ -36,6 +37,7 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 ```
 
 **Ответ (201 Created):**
+
 ```json
 {
   "pickup_point": {
@@ -50,8 +52,9 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 ```
 
 **Проверка в БД:**
+
 ```sql
-SELECT * FROM pickup_points 
+SELECT * FROM pickup_points
 WHERE name = 'Пункт выдачи - Санкт-Петербург';
 ```
 
@@ -60,6 +63,7 @@ WHERE name = 'Пункт выдачи - Санкт-Петербург';
 **Сценарий:** Нужно изменить адрес существующего пункта.
 
 **Запрос:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/admin/pickup-points \
   -H "Content-Type: application/json" \
@@ -72,6 +76,7 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "success": true
@@ -79,8 +84,9 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
 ```
 
 **Проверка:**
+
 ```sql
-SELECT * FROM pickup_points 
+SELECT * FROM pickup_points
 WHERE id = 'a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6';
 -- Проверяем что address обновлен и updated_at изменился
 ```
@@ -90,12 +96,14 @@ WHERE id = 'a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6';
 **Сценарий:** Администратор смотрит все пункты выдачи.
 
 **Запрос:**
+
 ```bash
 curl -H "X-Telegram-Id: 987654321" \
      "http://localhost:3000/api/admin/pickup-points?page=1&limit=10"
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "pickup_points": [
@@ -130,12 +138,14 @@ curl -H "X-Telegram-Id: 987654321" \
 **Сценарий:** Администратор хочет отключить пункт (сделать его неактивным).
 
 **Запрос:**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6" \
   -H "X-Telegram-Id: 987654321"
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "success": true
@@ -143,8 +153,9 @@ curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=a1b2c3d4-e5f6-4
 ```
 
 **Проверка:**
+
 ```sql
-SELECT * FROM pickup_points 
+SELECT * FROM pickup_points
 WHERE id = 'a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6';
 -- is_active должен быть false
 ```
@@ -154,11 +165,13 @@ WHERE id = 'a1b2c3d4-e5f6-47a8-b9c0-d1e2f3a4b5c6';
 **Сценарий:** Пользователь при оформлении заказа видит доступные пункты.
 
 **Запрос (БЕЗ аутентификации):**
+
 ```bash
 curl "http://localhost:3000/api/pickup-points"
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "pickup_points": [
@@ -183,6 +196,7 @@ curl "http://localhost:3000/api/pickup-points"
 **Сценарий:** Клиент добавляет адрес для доставки.
 
 **Запрос:**
+
 ```bash
 curl -X POST http://localhost:3000/api/addresses \
   -H "Content-Type: application/json" \
@@ -194,6 +208,7 @@ curl -X POST http://localhost:3000/api/addresses \
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "address": {
@@ -212,11 +227,13 @@ curl -X POST http://localhost:3000/api/addresses \
 **Сценарий:** Клиент открывает свой профиль и видит сохраненные адреса.
 
 **Запрос:**
+
 ```bash
 curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "addresses": [
@@ -245,6 +262,7 @@ curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 **Сценарий:** Клиент выбирает адрес, который будет предложен первым.
 
 **Запрос:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/addresses \
   -H "Content-Type: application/json" \
@@ -255,6 +273,7 @@ curl -X PUT http://localhost:3000/api/addresses \
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "success": true
@@ -262,6 +281,7 @@ curl -X PUT http://localhost:3000/api/addresses \
 ```
 
 **Проверка в БД:**
+
 ```sql
 SELECT * FROM addresses WHERE user_telegram_id = 123456789;
 -- Должны быть оба адреса
@@ -274,6 +294,7 @@ SELECT * FROM addresses WHERE user_telegram_id = 123456789;
 **Сценарий:** Клиент хочет изменить сохраненный адрес (исправить опечатку).
 
 **Запрос:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/addresses \
   -H "Content-Type: application/json" \
@@ -284,6 +305,7 @@ curl -X PUT http://localhost:3000/api/addresses \
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "success": true
@@ -295,11 +317,13 @@ curl -X PUT http://localhost:3000/api/addresses \
 **Сценарий:** Клиент удаляет устаревший адрес.
 
 **Запрос:**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/addresses?id=addr-uuid-002"
 ```
 
 **Ответ (200 OK):**
+
 ```json
 {
   "success": true
@@ -307,6 +331,7 @@ curl -X DELETE "http://localhost:3000/api/addresses?id=addr-uuid-002"
 ```
 
 **Проверка:**
+
 ```sql
 SELECT * FROM addresses WHERE id = 'addr-uuid-002';
 -- Должен вернуть пусто (адрес удален)
@@ -805,11 +830,7 @@ export async function getUserAddresses(telegramId: number) {
 /**
  * Добавить новый адрес
  */
-export async function addAddress(
-  telegramId: number,
-  address: string,
-  isDefault: boolean = false
-) {
+export async function addAddress(telegramId: number, address: string, isDefault: boolean = false) {
   try {
     const response = await fetch('/api/addresses', {
       method: 'POST',
@@ -936,12 +957,12 @@ SELECT * FROM pickup_points WHERE is_active = true ORDER BY name;
 SELECT * FROM addresses WHERE user_telegram_id = 123456789 ORDER BY is_default DESC;
 
 -- 4. Получить адрес по умолчанию для пользователя
-SELECT * FROM addresses 
+SELECT * FROM addresses
 WHERE user_telegram_id = 123456789 AND is_default = true;
 
 -- 5. Получить заказы с указанным способом доставки
-SELECT * FROM orders 
-WHERE delivery_method = 'pickup' 
+SELECT * FROM orders
+WHERE delivery_method = 'pickup'
 ORDER BY created_at DESC LIMIT 10;
 
 -- 6. Получить заказы с самовывозом конкретного пункта
@@ -952,8 +973,8 @@ WHERE o.delivery_method = 'pickup'
 ORDER BY o.created_at DESC;
 
 -- 7. Получить заказы одного пользователя
-SELECT * FROM orders 
-WHERE user_telegram_id = 123456789 
+SELECT * FROM orders
+WHERE user_telegram_id = 123456789
 ORDER BY created_at DESC;
 
 -- 8. Статистика: сколько заказов с каким способом доставки
@@ -968,12 +989,12 @@ GROUP BY user_telegram_id, address
 HAVING COUNT(*) > 1;
 
 -- 10. Проверить целостность ключей (нет мусора)
-SELECT * FROM orders 
+SELECT * FROM orders
 WHERE delivery_method = 'pickup' AND pickup_point_id NOT IN (SELECT id FROM pickup_points);
 
 -- 11. Обновить статус заказа в зависимости от типа доставки
-UPDATE orders 
-SET status = CASE 
+UPDATE orders
+SET status = CASE
   WHEN delivery_method = 'pickup' THEN 'ready_for_pickup'
   WHEN delivery_method = 'delivery' THEN 'delivery_in_progress'
   ELSE status
@@ -991,21 +1012,21 @@ ORDER BY orders_count DESC;
 -- 13. Получить пунктов, где нет заказов за 30 дней
 SELECT * FROM pickup_points pp
 WHERE pp.id NOT IN (
-  SELECT DISTINCT pickup_point_id 
-  FROM orders 
+  SELECT DISTINCT pickup_point_id
+  FROM orders
   WHERE delivery_method = 'pickup'
   AND created_at >= NOW() - INTERVAL '30 days'
 );
 
 -- 14. Получить адреса, которые используются в активных заказах
-SELECT DISTINCT address FROM orders 
+SELECT DISTINCT address FROM orders
 WHERE delivery_method = 'delivery'
 AND status NOT IN ('cancelled', 'completed')
 ORDER BY address;
 
 -- 15. Очистка: удалить старые заказы с delivery (более 90 дней)
-DELETE FROM orders 
-WHERE delivery_method = 'delivery' 
+DELETE FROM orders
+WHERE delivery_method = 'delivery'
 AND created_at < NOW() - INTERVAL '90 days'
 AND status IN ('cancelled', 'completed');
 ```
@@ -1021,4 +1042,3 @@ AND status IN ('cancelled', 'completed');
 **Версия:** 1.0  
 **Статус:** ✅ Production Ready  
 **Примеров:** 15+
-

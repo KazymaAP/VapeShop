@@ -54,7 +54,12 @@ interface OrderCardProps {
 }
 
 function OrderCard({ order, isDragging }: OrderCardProps) {
-  const { setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({ id: order.id });
+  const {
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: order.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -130,9 +135,9 @@ function KanbanColumn({ status, orders, onStatusChange }: KanbanColumnProps) {
       <h3 className="font-bold text-lg mb-4 text-neon">
         {STATUS_LABELS[status]} ({orders.length})
       </h3>
-      <SortableContext items={orders.map(o => o.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={orders.map((o) => o.id)} strategy={verticalListSortingStrategy}>
         <div className="space-y-2">
-          {orders.map(order => (
+          {orders.map((order) => (
             <div key={order.id} onClick={() => handleOrderClick(order)} className="cursor-pointer">
               <OrderCard order={order} isDragging={isLoading} />
             </div>
@@ -225,7 +230,9 @@ export default function KanbanPage() {
 
     // Здесь можно реализовать логику перемещения между колонками
     // Пока просто показываем сообщение
-    alert('Перемещение заказов между колонками - используйте кнопки на карточках для изменения статуса');
+    alert(
+      'Перемещение заказов между колонками - используйте кнопки на карточках для изменения статуса'
+    );
   };
 
   if (!isReady || loading) {
@@ -249,7 +256,14 @@ export default function KanbanPage() {
     );
   }
 
-  const statuses: Array<keyof KanbanData> = ['new', 'confirmed', 'readyship', 'shipped', 'done', 'cancelled'];
+  const statuses: Array<keyof KanbanData> = [
+    'new',
+    'confirmed',
+    'readyship',
+    'shipped',
+    'done',
+    'cancelled',
+  ];
 
   return (
     <div className="min-h-screen bg-bgDark text-white p-4">
@@ -267,7 +281,7 @@ export default function KanbanPage() {
               <input
                 type="date"
                 value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
+                onChange={(e) => setDateFrom(e.target.value)}
                 className="w-full bg-bgDark border border-border rounded px-3 py-2 text-white"
               />
             </div>
@@ -278,7 +292,7 @@ export default function KanbanPage() {
               <input
                 type="date"
                 value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
+                onChange={(e) => setDateTo(e.target.value)}
                 className="w-full bg-bgDark border border-border rounded px-3 py-2 text-white"
               />
             </div>
@@ -290,7 +304,7 @@ export default function KanbanPage() {
                 type="text"
                 placeholder="Введите имя или ID..."
                 value={searchCustomer}
-                onChange={e => setSearchCustomer(e.target.value)}
+                onChange={(e) => setSearchCustomer(e.target.value)}
                 className="w-full bg-bgDark border border-border rounded px-3 py-2 text-white placeholder-gray-600"
               />
             </div>
@@ -325,7 +339,7 @@ export default function KanbanPage() {
           onDragEnd={handleDragEnd}
         >
           <div className="flex gap-4 overflow-x-auto pb-4">
-            {statuses.map(status => (
+            {statuses.map((status) => (
               <KanbanColumn
                 key={status}
                 status={status}

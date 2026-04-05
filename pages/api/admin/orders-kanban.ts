@@ -62,12 +62,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Группируем заказы по статусам
     const kanbanData: KanbanResponse = {
-      'new': [],
-      'confirmed': [],
-      'readyship': [],
-      'shipped': [],
-      'done': [],
-      'cancelled': [],
+      new: [],
+      confirmed: [],
+      readyship: [],
+      shipped: [],
+      done: [],
+      cancelled: [],
     };
 
     result.rows.forEach((order: KanbanOrder) => {
@@ -85,5 +85,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin', 'manager']);
-
-

@@ -9,9 +9,11 @@
 ## 🛍️ PRODUCTS API
 
 ### GET /products
+
 Получить список товаров с пагинацией и фильтрацией.
 
 **Query Params**:
+
 ```
 page=1                    (optional, default: 1)
 limit=20                  (optional, max: 100, default: 20)
@@ -21,6 +23,7 @@ sort=price_asc|price_desc (optional)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -30,7 +33,7 @@ sort=price_asc|price_desc (optional)
         "id": 1,
         "name": "Vape Pod 3000",
         "description": "High-performance pod",
-        "price": 1500.00,
+        "price": 1500.0,
         "stock": 50,
         "image_url": "https://...",
         "category_id": 3,
@@ -47,6 +50,7 @@ sort=price_asc|price_desc (optional)
 ```
 
 **Error** (400):
+
 ```json
 {
   "success": false,
@@ -58,9 +62,11 @@ sort=price_asc|price_desc (optional)
 ---
 
 ### GET /products/:id
+
 Получить детали товара.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -68,7 +74,7 @@ sort=price_asc|price_desc (optional)
     "id": 1,
     "name": "Vape Pod 3000",
     "description": "High-performance pod",
-    "price": 1500.00,
+    "price": 1500.0,
     "stock": 50,
     "image_url": "https://...",
     "category_id": 3,
@@ -90,20 +96,23 @@ sort=price_asc|price_desc (optional)
 ---
 
 ### POST /products (Admin)
+
 Создать новый товар.
 
 **Headers**:
+
 ```
 X-Telegram-ID: 1656233031  (для тестирования, или через WebApp initData)
 X-Init-Data: <hash>        (Telegram signature)
 ```
 
 **Body**:
+
 ```json
 {
   "name": "Vape Pod 3000",
   "description": "High-performance pod",
-  "price": 1500.00,
+  "price": 1500.0,
   "stock": 50,
   "image_url": "https://...",
   "category_id": 3
@@ -111,6 +120,7 @@ X-Init-Data: <hash>        (Telegram signature)
 ```
 
 **Response** (201):
+
 ```json
 {
   "success": true,
@@ -124,6 +134,7 @@ X-Init-Data: <hash>        (Telegram signature)
 ```
 
 **Errors**:
+
 - 400: Validation error
 - 401: Unauthorized
 - 403: Forbidden (not admin)
@@ -132,24 +143,27 @@ X-Init-Data: <hash>        (Telegram signature)
 ---
 
 ### PUT /products/:id (Admin)
+
 Обновить товар.
 
 **Body**:
+
 ```json
 {
-  "price": 1600.00,
+  "price": 1600.0,
   "stock": 45
 }
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
   "data": {
     "id": 1,
     "name": "Vape Pod 3000",
-    "price": 1600.00,
+    "price": 1600.0,
     "stock": 45,
     "updated_at": "2026-04-04T10:35:00Z"
   },
@@ -160,9 +174,11 @@ X-Init-Data: <hash>        (Telegram signature)
 ---
 
 ### DELETE /products/:id (Admin)
+
 Удалить товар (soft delete).
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -179,9 +195,11 @@ X-Init-Data: <hash>        (Telegram signature)
 ## 🛒 CART API
 
 ### GET /cart
+
 Получить содержимое корзины пользователя.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -192,12 +210,12 @@ X-Init-Data: <hash>        (Telegram signature)
         "product_id": 5,
         "product_name": "Vape Pod 3000",
         "quantity": 2,
-        "price": 1500.00,
-        "subtotal": 3000.00,
+        "price": 1500.0,
+        "subtotal": 3000.0,
         "image_url": "https://..."
       }
     ],
-    "total": 3000.00,
+    "total": 3000.0,
     "item_count": 2
   },
   "timestamp": "2026-04-04T10:45:00Z"
@@ -207,9 +225,11 @@ X-Init-Data: <hash>        (Telegram signature)
 ---
 
 ### POST /cart
+
 Добавить товар в корзину или увеличить количество.
 
 **Body**:
+
 ```json
 {
   "product_id": 5,
@@ -218,13 +238,14 @@ X-Init-Data: <hash>        (Telegram signature)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
   "data": {
     "product_id": 5,
     "quantity": 2,
-    "total": 3000.00
+    "total": 3000.0
   },
   "timestamp": "2026-04-04T10:50:00Z"
 }
@@ -233,15 +254,17 @@ X-Init-Data: <hash>        (Telegram signature)
 ---
 
 ### DELETE /cart/:product_id
+
 Удалить товар из корзины.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
   "data": {
     "removed_product_id": 5,
-    "new_total": 0.00
+    "new_total": 0.0
   },
   "timestamp": "2026-04-04T10:55:00Z"
 }
@@ -252,9 +275,11 @@ X-Init-Data: <hash>        (Telegram signature)
 ## 📋 ORDERS API
 
 ### GET /orders
+
 Получить историю заказов пользователя.
 
 **Query Params**:
+
 ```
 page=1        (optional, default: 1)
 limit=10      (optional)
@@ -262,6 +287,7 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -270,7 +296,7 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
       {
         "id": 456,
         "status": "delivered",
-        "total": 3500.00,
+        "total": 3500.0,
         "delivery_type": "courier",
         "created_at": "2026-03-15T14:00:00Z",
         "items_count": 3
@@ -286,16 +312,18 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### GET /orders/:id
+
 Получить детали заказа.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
   "data": {
     "id": 456,
     "status": "delivered",
-    "total": 3500.00,
+    "total": 3500.0,
     "delivery_type": "courier",
     "address": "ул. Кутузова, 12",
     "created_at": "2026-03-15T14:00:00Z",
@@ -307,7 +335,7 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
         "product_id": 5,
         "product_name": "Vape Pod 3000",
         "quantity": 2,
-        "price": 1500.00
+        "price": 1500.0
       }
     ]
   },
@@ -318,14 +346,16 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### POST /orders
+
 Создать новый заказ.
 
 **Body**:
+
 ```json
 {
   "items": [
-    {"product_id": 5, "quantity": 2},
-    {"product_id": 8, "quantity": 1}
+    { "product_id": 5, "quantity": 2 },
+    { "product_id": 8, "quantity": 1 }
   ],
   "delivery_type": "courier",
   "address": "ул. Кутузова, 12"
@@ -333,13 +363,14 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ```
 
 **Response** (201):
+
 ```json
 {
   "success": true,
   "data": {
     "order_id": 457,
     "status": "pending",
-    "total": 3500.00,
+    "total": 3500.0,
     "invoice_url": "https://t.me/..."
   },
   "timestamp": "2026-04-04T11:10:00Z"
@@ -347,15 +378,18 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ```
 
 **Errors**:
+
 - 400: Invalid items
 - 422: Out of stock
 
 ---
 
 ### POST /orders/search-orders (Admin, Manager)
+
 Поиск заказов с фильтрацией (для админки).
 
 **Body**:
+
 ```json
 {
   "status": "paid",
@@ -368,6 +402,7 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -385,9 +420,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ## 👤 USERS API
 
 ### GET /users/profile
+
 Получить профиль текущего пользователя.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -407,9 +444,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### PUT /users/profile
+
 Обновить профиль.
 
 **Body**:
+
 ```json
 {
   "phone": "+7 900 987 65 43",
@@ -418,6 +457,7 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -434,9 +474,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### GET /users/role
+
 Получить роль текущего пользователя.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -453,9 +495,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ## ⭐ REVIEWS API
 
 ### GET /reviews?product_id=5
+
 Получить отзывы товара.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -481,9 +525,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### POST /reviews
+
 Создать отзыв.
 
 **Body**:
+
 ```json
 {
   "product_id": 5,
@@ -494,12 +540,13 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ```
 
 **Response** (201):
+
 ```json
 {
   "success": true,
   "data": {
     "id": 202,
-    "cashback_amount": 50.00
+    "cashback_amount": 50.0
   },
   "timestamp": "2026-04-04T11:40:00Z"
 }
@@ -510,18 +557,20 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ## 🎁 REFERRAL API
 
 ### GET /referral
+
 Получить реферальную информацию пользователя.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
   "data": {
     "referral_code": "JOHN123",
     "referral_url": "https://t.me/bot?startapp=ref_JOHN123",
-    "bonus_balance": 1500.00,
+    "bonus_balance": 1500.0,
     "referrals_count": 5,
-    "total_earned": 2500.00
+    "total_earned": 2500.0
   },
   "timestamp": "2026-04-04T11:45:00Z"
 }
@@ -530,9 +579,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### POST /referral/use
+
 Использовать реферальный код.
 
 **Body**:
+
 ```json
 {
   "referral_code": "JOHN123"
@@ -540,12 +591,13 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
   "data": {
-    "bonus_applied": 500.00,
-    "new_balance": 2000.00
+    "bonus_applied": 500.0,
+    "new_balance": 2000.0
   },
   "timestamp": "2026-04-04T11:50:00Z"
 }
@@ -556,9 +608,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ## 💾 SAVED FOR LATER API
 
 ### GET /saved-for-later
+
 Получить сохранённые товары.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -568,7 +622,7 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
         "id": 1,
         "product_id": 5,
         "product_name": "Vape Pod 3000",
-        "price": 1500.00,
+        "price": 1500.0,
         "image_url": "https://...",
         "saved_at": "2026-03-20T14:00:00Z"
       }
@@ -582,9 +636,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### POST /saved-for-later
+
 Сохранить товар.
 
 **Body**:
+
 ```json
 {
   "product_id": 5
@@ -592,6 +648,7 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ```
 
 **Response** (201):
+
 ```json
 {
   "success": true,
@@ -607,9 +664,11 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### DELETE /saved-for-later/:id
+
 Удалить из сохранённых.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -623,15 +682,17 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ---
 
 ### POST /saved-for-later/:id/move-to-cart
+
 Переместить в корзину.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
   "data": {
     "moved_product_id": 5,
-    "cart_total": 3000.00
+    "cart_total": 3000.0
   },
   "timestamp": "2026-04-04T12:10:00Z"
 }
@@ -642,14 +703,17 @@ status=paid   (optional: pending, paid, shipped, delivered, cancelled)
 ## 🔍 COMPARE API
 
 ### GET /compare
+
 Получить сравнение товаров.
 
 **Query Params**:
+
 ```
 product_ids=1,5,8  (max 4)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -670,9 +734,11 @@ product_ids=1,5,8  (max 4)
 ---
 
 ### POST /compare
+
 Сохранить сравнение.
 
 **Body**:
+
 ```json
 {
   "product_ids": [1, 5, 8]
@@ -680,6 +746,7 @@ product_ids=1,5,8  (max 4)
 ```
 
 **Response** (201):
+
 ```json
 {
   "success": true,
@@ -695,25 +762,26 @@ product_ids=1,5,8  (max 4)
 ## 📊 ADMIN API
 
 ### GET /admin/stats
+
 Получить аналитику (Admin).
 
 **Query Params**:
+
 ```
 period=month  (day, week, month, year)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
   "data": {
     "total_orders": 450,
-    "total_revenue": 450000.00,
-    "average_order": 1000.00,
+    "total_revenue": 450000.0,
+    "average_order": 1000.0,
     "new_customers": 23,
-    "top_products": [
-      {"id": 5, "name": "Pod 3000", "sold": 120}
-    ]
+    "top_products": [{ "id": 5, "name": "Pod 3000", "sold": 120 }]
   },
   "timestamp": "2026-04-04T12:25:00Z"
 }
@@ -722,9 +790,11 @@ period=month  (day, week, month, year)
 ---
 
 ### POST /admin/broadcast
+
 Отправить массовую рассылку (Admin).
 
 **Body**:
+
 ```json
 {
   "message": "Скидка 20% на все товары!",
@@ -733,6 +803,7 @@ period=month  (day, week, month, year)
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -747,14 +818,17 @@ period=month  (day, week, month, year)
 ---
 
 ### POST /admin/import
+
 Импортировать товары из CSV (Admin).
 
 **Body** (multipart/form-data):
+
 ```
 file: products.csv
 ```
 
 **Response** (202):
+
 ```json
 {
   "success": true,
@@ -770,9 +844,11 @@ file: products.csv
 ---
 
 ### GET /admin/orders (Admin, Manager)
+
 Получить все заказы (не только свои).
 
 **Query Params**:
+
 ```
 status=paid
 limit=50
@@ -780,6 +856,7 @@ offset=0
 ```
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -796,9 +873,11 @@ offset=0
 ## 🏥 HEALTH API
 
 ### GET /health
+
 Проверка здоровья сервиса.
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -816,16 +895,16 @@ offset=0
 
 ## ❌ Error Codes
 
-| Code | Meaning | Solution |
-|------|---------|----------|
-| 400 | Bad Request | Проверь тело запроса |
-| 401 | Unauthorized | Нужна Telegram авторизация |
-| 403 | Forbidden | У тебя нет прав на эту операцию |
-| 404 | Not Found | Ресурс не существует |
-| 409 | Conflict | Ресурс уже существует |
-| 422 | Unprocessable Entity | Бизнес-логика ошибка (e.g., нет товара) |
-| 429 | Too Many Requests | Лимит запросов превышен |
-| 500 | Server Error | Ошибка на сервере |
+| Code | Meaning              | Solution                                |
+| ---- | -------------------- | --------------------------------------- |
+| 400  | Bad Request          | Проверь тело запроса                    |
+| 401  | Unauthorized         | Нужна Telegram авторизация              |
+| 403  | Forbidden            | У тебя нет прав на эту операцию         |
+| 404  | Not Found            | Ресурс не существует                    |
+| 409  | Conflict             | Ресурс уже существует                   |
+| 422  | Unprocessable Entity | Бизнес-логика ошибка (e.g., нет товара) |
+| 429  | Too Many Requests    | Лимит запросов превышен                 |
+| 500  | Server Error         | Ошибка на сервере                       |
 
 ---
 

@@ -10,7 +10,8 @@ import { query } from '@/lib/db';
 import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const telegramId = (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
+  const telegramId =
+    (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
 
   if (!telegramId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -46,14 +47,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(200).json({
           success: true,
           data: null,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
 
       res.status(200).json({
         success: true,
         data: result.rows[0],
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (err) {
       console.error(err);
@@ -63,7 +64,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { product_ids, note } = req.body;
 
     if (!Array.isArray(product_ids) || product_ids.length === 0) {
-      return res.status(400).json({ success: false, error: 'product_ids must be a non-empty array' });
+      return res
+        .status(400)
+        .json({ success: false, error: 'product_ids must be a non-empty array' });
     }
 
     if (product_ids.length > 4) {
@@ -94,7 +97,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         success: true,
         data: { id: result.rows[0]?.id },
         message: 'Comparison saved',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (_err) {
       console.error(_err);
@@ -102,15 +105,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   } else if (req.method === 'DELETE') {
     try {
-      await query(
-        `DELETE FROM product_comparisons WHERE user_telegram_id = $1`,
-        [telegramId]
-      );
+      await query(`DELETE FROM product_comparisons WHERE user_telegram_id = $1`, [telegramId]);
 
       res.status(200).json({
         success: true,
         message: 'Comparison cleared',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (_err) {
       console.error(_err);

@@ -132,7 +132,10 @@ export function SearchInput() {
           aria-controls="search-results"
           aria-expanded={isOpen}
         />
-        <span id="search-help" className="sr-only">Введите минимум 2 символа для поиска товаров. Используйте стрелки вверх/вниз для навигации, Enter для выбора.</span>
+        <span id="search-help" className="sr-only">
+          Введите минимум 2 символа для поиска товаров. Используйте стрелки вверх/вниз для
+          навигации, Enter для выбора.
+        </span>
 
         {/* Clear button */}
         {query && (
@@ -171,10 +174,7 @@ export function SearchInput() {
             <>
               {/* Результаты поиска */}
               {results.map((product, index) => (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.id}`}
-                >
+                <Link key={product.id} href={`/product/${product.id}`}>
                   <div
                     className={clsx(
                       'flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0 cursor-pointer transition',

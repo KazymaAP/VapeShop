@@ -7,6 +7,7 @@
 ## ✅ DAY 1: SETUP & PREPARATION (30 min - 2 hours)
 
 ### Morning (Install & Configure)
+
 - [ ] Read `docs/10_role_improvements/GETTING_STARTED.md` (10 min)
 - [ ] Install npm packages: `npm install socket.io-client exceljs papaparse recharts leaflet react-leaflet date-fns react-hook-form zod socket.io`
 - [ ] Apply migrations: `psql < db/migrations/010_role_improvements_part1.sql` (and part 2, 3)
@@ -15,6 +16,7 @@
 - [ ] Run dev server: `npm run dev`
 
 ### Afternoon (First API)
+
 - [ ] Read `docs/10_role_improvements/sprint1_api_endpoints.md`
 - [ ] Create `pages/api/admin/audit-logs.ts` (copy code from GETTING_STARTED.md)
 - [ ] Test with curl: `curl -H "X-Telegram-Id: 111111111" http://localhost:3000/api/admin/audit-logs?page=1`
@@ -26,6 +28,7 @@
 ## ✅ DAY 2-3: API ENDPOINTS (15-20 hours)
 
 ### Create these endpoints (in order):
+
 1. [ ] `pages/api/admin/audit-logs.ts` — GET audit logs ✓ (done Day 1)
 2. [ ] `pages/api/admin/rbac.ts` — GET/POST/PUT/DELETE roles
 3. [ ] `pages/api/admin/dashboard-advanced.ts` — GET analytics with charts
@@ -34,6 +37,7 @@
 6. [ ] `pages/api/admin/gift-certificates.ts` — GET/POST gift certificates
 
 For each endpoint:
+
 - [ ] Read documentation in `sprint1_api_endpoints.md`
 - [ ] Implement the handler function
 - [ ] Add error handling and validation
@@ -45,6 +49,7 @@ For each endpoint:
 ## ✅ DAY 4-5: UI PAGES (20-25 hours)
 
 ### Create these pages (in order):
+
 1. [ ] `pages/admin/super/index.tsx` — Super-admin dashboard
 2. [ ] `pages/admin/super/roles.tsx` — RBAC role manager
 3. [ ] `pages/admin/logs.tsx` — Audit logs viewer
@@ -53,6 +58,7 @@ For each endpoint:
 6. [ ] `pages/admin/orders/export.tsx` — Order export form
 
 For each page:
+
 - [ ] Review macke in `sprint1_ui_components.md`
 - [ ] Create React component with hooks
 - [ ] Use existing components: AdminLayout, Card, Modal, Toast
@@ -67,6 +73,7 @@ For each page:
 ## ✅ DAY 6: TESTING (15-20 hours)
 
 ### Run all test scenarios from `testing_guide.md`:
+
 1. [ ] TEST 1.1: Audit logs filtering and pagination
 2. [ ] TEST 1.2: RBAC create/edit roles
 3. [ ] TEST 1.3: Bulk product updates (price, discount, status)
@@ -75,6 +82,7 @@ For each page:
 6. [ ] TEST 1.6: Admin dashboard with charts
 
 For each test:
+
 - [ ] Follow step-by-step scenario
 - [ ] Verify expected results
 - [ ] Check browser console for errors
@@ -86,6 +94,7 @@ For each test:
 ## ✅ DAY 7: POLISH & SUBMIT (10-15 hours)
 
 ### Code Quality
+
 - [ ] Run `npm run lint` → fix any errors
 - [ ] Check all components use Tailwind classes
 - [ ] Verify Neon theme colors are used consistently
@@ -93,17 +102,20 @@ For each test:
 - [ ] Remove console.log() debug statements
 
 ### Documentation
+
 - [ ] Update API response examples if changed
 - [ ] Update UI component descriptions
 - [ ] Add your own notes to testing_guide.md if needed
 
 ### Git & Commit
+
 - [ ] Ensure all changes are committed
 - [ ] Use clear commit messages: `feat:`, `fix:`, `refactor:` prefixes
 - [ ] Create pull request for review
 - [ ] Address review comments
 
 ### Final Checks
+
 - [ ] All 6 API endpoints working (curl test each)
 - [ ] All 6 UI pages accessible and functional
 - [ ] All 6 test scenarios passing
@@ -151,6 +163,7 @@ For each test:
 ## 🎯 SUCCESS CRITERIA
 
 By end of Sprint 1 (Day 7):
+
 - ✅ 6 API endpoints created and tested
 - ✅ 6 UI pages created and functional
 - ✅ All 6 test scenarios passing

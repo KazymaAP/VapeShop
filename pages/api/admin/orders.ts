@@ -99,8 +99,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Обновление примечания менеджера
       if (manager_note !== undefined) {
-        await query('UPDATE orders SET manager_note = $1, updated_at = NOW() WHERE id = $2', [manager_note, id]);
-        
+        await query('UPDATE orders SET manager_note = $1, updated_at = NOW() WHERE id = $2', [
+          manager_note,
+          id,
+        ]);
+
         // Логируем
         const adminTelegramId = getTelegramId(req);
         await query(
@@ -117,7 +120,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Получаем старый статус
-      const oldOrder = await query('SELECT status, user_telegram_id, total_price FROM orders WHERE id = $1', [id]);
+      const oldOrder = await query(
+        'SELECT status, user_telegram_id, total_price FROM orders WHERE id = $1',
+        [id]
+      );
       if (oldOrder.rows.length === 0) {
         return res.status(404).json({ error: 'Order not found' });
       }
@@ -140,7 +146,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await query(
         `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
          VALUES ($1, $2, $3, $4)`,
-        [adminTelegramId, 'UPDATE_ORDER_STATUS', 'orders', JSON.stringify({ order_id: id, old_status: oldStatus, new_status: status })]
+        [
+          adminTelegramId,
+          'UPDATE_ORDER_STATUS',
+          'orders',
+          JSON.stringify({ order_id: id, old_status: oldStatus, new_status: status }),
+        ]
       ).catch(() => {});
 
       // Отправляем уведомление пользователю (опционально)
@@ -160,4 +171,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(rateLimit(handler, RATE_LIMIT_PRESETS.normal), ['admin', 'manager']);
-

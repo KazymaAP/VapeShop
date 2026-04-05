@@ -71,11 +71,13 @@
 **Защита:** requireAuth(['admin', 'manager'])
 
 **Параметры запроса:**
+
 - `dateFrom` (optional) — дата начала в формате YYYY-MM-DD
 - `dateTo` (optional) — дата конца в формате YYYY-MM-DD
 - `searchCustomer` (optional) — строка для поиска по имени или ID
 
 **Ответ:**
+
 ```json
 {
   "new": [
@@ -102,6 +104,7 @@
 Используется существующий endpoint: **PATCH `/api/orders/[id]/status`**
 
 При изменении статуса:
+
 1. Отправляется запрос на PATCH `/api/orders/{id}/status` с новым статусом
 2. Сервер валидирует переход
 3. Отправляет уведомление покупателю (Telegram)
@@ -161,10 +164,10 @@ new ──→ confirmed ──→ readyship ──→ shipped ──→ done
 ### Состояние приложения
 
 ```typescript
-const [kanbanData, setKanbanData] = useState<KanbanData>();  // Заказы по статусам
-const [loading, setLoading] = useState(boolean);              // Идёт ли загрузка
-const [dateFrom, setDateFrom] = useState(string);             // Фильтр начало даты
-const [dateTo, setDateTo] = useState(string);                 // Фильтр конец даты
+const [kanbanData, setKanbanData] = useState<KanbanData>(); // Заказы по статусам
+const [loading, setLoading] = useState(boolean); // Идёт ли загрузка
+const [dateFrom, setDateFrom] = useState(string); // Фильтр начало даты
+const [dateTo, setDateTo] = useState(string); // Фильтр конец даты
 const [searchCustomer, setSearchCustomer] = useState(string); // Фильтр поиска
 ```
 
@@ -176,6 +179,7 @@ const [searchCustomer, setSearchCustomer] = useState(string); // Фильтр п
 - **Границы:** `border-border` (#2a2a33)
 
 Разные статусы имеют разные цветовые оттенки для быстрого визуального распознавания:
+
 - new: `bg-blue-900`
 - confirmed: `bg-yellow-900`
 - readyship: `bg-orange-900`

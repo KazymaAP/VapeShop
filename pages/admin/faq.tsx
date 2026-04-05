@@ -89,7 +89,11 @@ export default function AdminFaq() {
         <div className="flex items-center justify-between mb-6 mt-10 md:mt-0">
           <h1 className="text-2xl font-bold gradient-text">FAQ</h1>
           <button
-            onClick={() => { setShowForm(!showForm); setEditingId(null); setFormData({ question: '', answer: '', sort_order: 0 }); }}
+            onClick={() => {
+              setShowForm(!showForm);
+              setEditingId(null);
+              setFormData({ question: '', answer: '', sort_order: 0 });
+            }}
             className="bg-gradient-to-r from-[#7c3aed] to-neon rounded-full px-4 py-2 text-sm text-white font-medium ripple"
           >
             {showForm ? 'Отмена' : '+ Добавить'}
@@ -97,7 +101,10 @@ export default function AdminFaq() {
         </div>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="bg-cardBg border border-border rounded-2xl p-6 mb-6 space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-cardBg border border-border rounded-2xl p-6 mb-6 space-y-4"
+          >
             <input
               type="text"
               value={formData.question}
@@ -120,7 +127,9 @@ export default function AdminFaq() {
                 <input
                   type="number"
                   value={formData.sort_order}
-                  onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })
+                  }
                   className="ml-2 w-20 bg-bgDark border border-border rounded-lg px-3 py-1.5 text-sm text-textPrimary focus:outline-none focus:border-neon"
                 />
               </label>
@@ -136,7 +145,9 @@ export default function AdminFaq() {
         )}
 
         {message && (
-          <div className={`mb-4 p-3 rounded-xl text-sm ${message.startsWith('Ошибка') ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}>
+          <div
+            className={`mb-4 p-3 rounded-xl text-sm ${message.startsWith('Ошибка') ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}
+          >
             {message}
           </div>
         )}
@@ -144,7 +155,10 @@ export default function AdminFaq() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16"
+              />
             ))}
           </div>
         ) : faq.length === 0 ? (
@@ -160,7 +174,9 @@ export default function AdminFaq() {
                   <div className="flex-1 min-w-0">
                     <p className="text-textPrimary font-medium">{item.question}</p>
                     <p className="text-textSecondary text-sm mt-1 line-clamp-2">{item.answer}</p>
-                    <span className="text-xs text-textSecondary mt-2 inline-block">Порядок: {item.sort_order}</span>
+                    <span className="text-xs text-textSecondary mt-2 inline-block">
+                      Порядок: {item.sort_order}
+                    </span>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
                     <button

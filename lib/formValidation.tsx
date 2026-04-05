@@ -5,11 +5,17 @@
 /**
  * Loading Spinner компонент
  */
-export function LoadingSpinner({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
+export function LoadingSpinner({
+  size = 'md',
+  className = '',
+}: {
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}) {
   const sizeClass = {
     sm: 'w-4 h-4',
     md: 'w-8 h-8',
-    lg: 'w-12 h-12'
+    lg: 'w-12 h-12',
   }[size];
 
   return (
@@ -33,7 +39,14 @@ interface FormFieldProps {
   hint?: string;
 }
 
-export function FormField({ label, error, success, children, required = false, hint }: FormFieldProps) {
+export function FormField({
+  label,
+  error,
+  success,
+  children,
+  required = false,
+  hint,
+}: FormFieldProps) {
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-textPrimary mb-2">
@@ -52,18 +65,10 @@ export function FormField({ label, error, success, children, required = false, h
         )}
 
         {/* Success state */}
-        {success && !error && (
-          <span className="block text-xs text-success mt-1">
-            ✓ Правильно
-          </span>
-        )}
+        {success && !error && <span className="block text-xs text-success mt-1">✓ Правильно</span>}
 
         {/* Hint */}
-        {hint && !error && (
-          <span className="block text-xs text-textSecondary mt-1">
-            {hint}
-          </span>
-        )}
+        {hint && !error && <span className="block text-xs text-textSecondary mt-1">{hint}</span>}
       </div>
     </div>
   );
@@ -72,8 +77,7 @@ export function FormField({ label, error, success, children, required = false, h
 /**
  * Input компонент с встроенной валидацией
  */
-interface ValidatedInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+interface ValidatedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   success?: boolean;
 }
@@ -83,8 +87,8 @@ export function ValidatedInput({ error, success, className = '', ...props }: Val
   const stateClass = error
     ? 'border-danger focus:ring-danger'
     : success
-    ? 'border-success focus:ring-success'
-    : 'border-border focus:ring-neon';
+      ? 'border-success focus:ring-success'
+      : 'border-border focus:ring-neon';
 
   return (
     <input
@@ -99,8 +103,7 @@ export function ValidatedInput({ error, success, className = '', ...props }: Val
 /**
  * Button компонент с loading state
  */
-interface LoadingButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   loadingText?: string;
 }

@@ -15,10 +15,7 @@ interface RatingPayload {
   reviewText?: string;
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
   if (req.method === 'POST') {
     return handlePost(req, res);
   } else if (req.method === 'GET') {
@@ -80,10 +77,11 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     if (avgRating.rows.length > 0) {
       const { avg_rating, count } = avgRating.rows[0];
-      await query(
-        `UPDATE products SET rating = $1, rating_count = $2 WHERE id = $3`,
-        [avg_rating || 0, count || 0, productId]
-      );
+      await query(`UPDATE products SET rating = $1, rating_count = $2 WHERE id = $3`, [
+        avg_rating || 0,
+        count || 0,
+        productId,
+      ]);
     }
 
     // Логируем действие

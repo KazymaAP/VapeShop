@@ -67,8 +67,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const telegramId = getTelegramId(req);
       await query(
         `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [telegramId, 'create_pickup_point', JSON.stringify({ pickup_point_id: pickupPoint.id, name })]
-      ).catch(err => console.error('Logging error:', err));
+        [
+          telegramId,
+          'create_pickup_point',
+          JSON.stringify({ pickup_point_id: pickupPoint.id, name }),
+        ]
+      ).catch((err) => console.error('Logging error:', err));
 
       res.status(201).json({ pickup_point: pickupPoint });
     } catch (err) {
@@ -86,10 +90,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Check if pickup point exists
-      const existingResult = await query(
-        'SELECT * FROM pickup_points WHERE id = $1',
-        [id]
-      );
+      const existingResult = await query('SELECT * FROM pickup_points WHERE id = $1', [id]);
 
       if (existingResult.rows.length === 0) {
         return res.status(404).json({ error: 'Пункт выдачи не найден' });
@@ -126,10 +127,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       fields.push(`updated_at = NOW()`);
       values.push(id);
 
-      await query(
-        `UPDATE pickup_points SET ${fields.join(', ')} WHERE id = $${idx}`,
-        values
-      );
+      await query(`UPDATE pickup_points SET ${fields.join(', ')} WHERE id = $${idx}`, values);
 
       const changes: Record<string, { old: unknown; new: unknown }> = {};
       if (name !== undefined && old.name !== name) {
@@ -147,7 +145,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await query(
         `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
         [telegramId, 'update_pickup_point', JSON.stringify({ pickup_point_id: id, changes })]
-      ).catch(err => console.error('Logging error:', err));
+      ).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({ success: true });
     } catch (err) {
@@ -165,27 +163,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Check if pickup point exists
-      const existingResult = await query(
-        'SELECT * FROM pickup_points WHERE id = $1',
-        [id]
-      );
+      const existingResult = await query('SELECT * FROM pickup_points WHERE id = $1', [id]);
 
       if (existingResult.rows.length === 0) {
         return res.status(404).json({ error: 'Пункт выдачи не найден' });
       }
 
       // Soft delete - set is_active=false
-      await query(
-        'UPDATE pickup_points SET is_active = FALSE, updated_at = NOW() WHERE id = $1',
-        [id]
-      );
+      await query('UPDATE pickup_points SET is_active = FALSE, updated_at = NOW() WHERE id = $1', [
+        id,
+      ]);
 
       // Log admin action
       const telegramId = getTelegramId(req);
       await query(
         `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
         [telegramId, 'delete_pickup_point', JSON.stringify({ pickup_point_id: id })]
-      ).catch(err => console.error('Logging error:', err));
+      ).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({ success: true });
     } catch (err) {
@@ -198,4 +192,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin']);
-

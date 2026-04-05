@@ -8,7 +8,6 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import clsx from 'clsx';
 import ProductCard from './ProductCard';
-import { SkeletonLoader } from './SkeletonLoader';
 
 const DEFAULT_PRODUCT_IMAGE = '/no-image.png';
 
@@ -68,12 +67,8 @@ export function FeaturedProducts({
       {/* Заголовок */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            {title}
-          </h2>
-          {description && (
-            <p className="text-gray-600 dark:text-gray-400 mt-1">{description}</p>
-          )}
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{title}</h2>
+          {description && <p className="text-gray-600 dark:text-gray-400 mt-1">{description}</p>}
         </div>
 
         {/* Фильтры сортировки */}
@@ -149,7 +144,10 @@ export function FeaturedProducts({
       {/* Кнопка "Показать все" */}
       {showViewMore && products.length > 0 && (
         <div className="text-center pt-4">
-          <Link href={category ? `/products?category=${category}` : '/products'} className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+          <Link
+            href={category ? `/products?category=${category}` : '/products'}
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+          >
             🛍️ Показать все товары
           </Link>
         </div>

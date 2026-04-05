@@ -16,7 +16,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'PUT') {
       // Обновление промокода
-      const { discount_type, discount_value, valid_from, valid_until, min_order_amount, max_uses } = req.body;
+      const { discount_type, discount_value, valid_from, valid_until, min_order_amount, max_uses } =
+        req.body;
 
       const fields: string[] = ['updated_at = NOW()'];
       const values: unknown[] = [];
@@ -81,10 +82,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(200).json({ promocode: result.rows[0] });
     } else if (req.method === 'DELETE') {
       // Удаление промокода
-      const result = await query(
-        'DELETE FROM promocodes WHERE code = $1 RETURNING code',
-        [code.toUpperCase()]
-      );
+      const result = await query('DELETE FROM promocodes WHERE code = $1 RETURNING code', [
+        code.toUpperCase(),
+      ]);
 
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Промокод не найден' });

@@ -67,7 +67,17 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [favorites, setFavorites] = useState<FavoriteProduct[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [activeTab, setActiveTab] = useState<'orders' | 'favorites' | 'addresses' | 'saved' | 'compare' | 'balance' | 'referral' | 'gamification' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<
+    | 'orders'
+    | 'favorites'
+    | 'addresses'
+    | 'saved'
+    | 'compare'
+    | 'balance'
+    | 'referral'
+    | 'gamification'
+    | 'settings'
+  >('orders');
   const [loading, setLoading] = useState(true);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
@@ -148,7 +158,11 @@ export default function ProfilePage() {
       await fetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_id: user.id, product_id: item.product_id, quantity: item.quantity }),
+        body: JSON.stringify({
+          telegram_id: user.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+        }),
       });
     }
     router.push('/cart');
@@ -167,9 +181,7 @@ export default function ProfilePage() {
 
     try {
       const method = editingAddressId ? 'PUT' : 'POST';
-      const url = editingAddressId
-        ? `/api/addresses/${editingAddressId}`
-        : '/api/addresses';
+      const url = editingAddressId ? `/api/addresses/${editingAddressId}` : '/api/addresses';
 
       const res = await fetch(url, {
         method,
@@ -255,9 +267,7 @@ export default function ProfilePage() {
             <h1 className="text-xl font-bold text-textPrimary">
               {user?.first_name} {user?.last_name || ''}
             </h1>
-            {user?.username && (
-              <p className="text-textSecondary text-sm">@{user.username}</p>
-            )}
+            {user?.username && <p className="text-textSecondary text-sm">@{user.username}</p>}
           </div>
         </div>
         {profile && (
@@ -303,17 +313,19 @@ export default function ProfilePage() {
         </button>
       </div>
       <div className="flex border-b border-border overflow-x-auto">
-        {([
-          { key: 'orders', label: 'Заказы' },
-          { key: 'favorites', label: 'Избранное' },
-          { key: 'addresses', label: 'Мои адреса' },
-          { key: 'saved', label: 'Отложено' },
-          { key: 'compare', label: 'Сравнение' },
-          { key: 'balance', label: 'Баланс' },
-          { key: 'referral', label: 'Рефералы' },
-          { key: 'gamification', label: 'Уровень' },
-          { key: 'settings', label: 'Настройки' },
-        ] as const).map((tab) => (
+        {(
+          [
+            { key: 'orders', label: 'Заказы' },
+            { key: 'favorites', label: 'Избранное' },
+            { key: 'addresses', label: 'Мои адреса' },
+            { key: 'saved', label: 'Отложено' },
+            { key: 'compare', label: 'Сравнение' },
+            { key: 'balance', label: 'Баланс' },
+            { key: 'referral', label: 'Рефералы' },
+            { key: 'gamification', label: 'Уровень' },
+            { key: 'settings', label: 'Настройки' },
+          ] as const
+        ).map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
@@ -335,7 +347,10 @@ export default function ProfilePage() {
           <div className="space-y-3">
             {loading ? (
               [1, 2, 3].map((i) => (
-                <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-20" />
+                <div
+                  key={i}
+                  className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-20"
+                />
               ))
             ) : orders.length === 0 ? (
               <div className="text-center py-12 text-textSecondary">
@@ -349,16 +364,26 @@ export default function ProfilePage() {
                 <div key={order.id} className="bg-cardBg border border-border rounded-2xl p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <p className="text-textPrimary font-semibold">Заказ #{order.id.slice(0, 8)}</p>
-                      <p className="text-textSecondary text-xs">{new Date(order.created_at).toLocaleDateString('ru-RU')}</p>
+                      <p className="text-textPrimary font-semibold">
+                        Заказ #{order.id.slice(0, 8)}
+                      </p>
+                      <p className="text-textSecondary text-xs">
+                        {new Date(order.created_at).toLocaleDateString('ru-RU')}
+                      </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-border text-textSecondary'}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-border text-textSecondary'}`}
+                    >
                       {statusLabels[order.status] || order.status}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-3">
-                    <span className="text-textSecondary text-sm">{order.items?.length || 0} товаров</span>
-                    <span className="text-neon font-bold">{order.total?.toLocaleString('ru-RU')} ₽</span>
+                    <span className="text-textSecondary text-sm">
+                      {order.items?.length || 0} товаров
+                    </span>
+                    <span className="text-neon font-bold">
+                      {order.total?.toLocaleString('ru-RU')} ₽
+                    </span>
                   </div>
                   <button
                     onClick={() => repeatOrder(order)}
@@ -377,29 +402,55 @@ export default function ProfilePage() {
           <div className="space-y-3">
             {favorites.length === 0 ? (
               <div className="text-center py-12 text-textSecondary">
-                <svg className="w-16 h-16 mx-auto mb-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <svg
+                  className="w-16 h-16 mx-auto mb-4 opacity-50"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
                 <p>Избранное пусто</p>
               </div>
             ) : (
               favorites.map((product) => (
-                <div key={product.id} className="bg-cardBg border border-border rounded-2xl p-4 flex gap-4">
+                <div
+                  key={product.id}
+                  className="bg-cardBg border border-border rounded-2xl p-4 flex gap-4"
+                >
                   <div className="w-20 h-20 bg-gradient-to-br from-[#1f1f2a] to-[#131318] rounded-xl flex items-center justify-center flex-shrink-0">
                     {product.images?.[0] ? (
-                      <Image src={product.images[0]} alt={product.name} className="w-full h-full object-contain rounded-xl" width={80} height={80} />
+                      <Image
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-contain rounded-xl"
+                        width={80}
+                        height={80}
+                      />
                     ) : (
-                      <svg className="w-8 h-8 text-neon opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <svg
+                        className="w-8 h-8 text-neon opacity-50"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
                         <path d="M7 9H5L3 12L5 15H7M17 9H19L21 12L19 15H17" />
                       </svg>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-textPrimary truncate">{product.name}</h3>
-                    {product.brand_name && <p className="text-textSecondary text-xs">{product.brand_name}</p>}
-                    <p className="text-neon font-bold mt-1">{product.price.toLocaleString('ru-RU')} ₽</p>
+                    {product.brand_name && (
+                      <p className="text-textSecondary text-xs">{product.brand_name}</p>
+                    )}
+                    <p className="text-neon font-bold mt-1">
+                      {product.price.toLocaleString('ru-RU')} ₽
+                    </p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-success">{product.stock > 0 ? `● ${product.stock} шт` : 'Нет в наличии'}</span>
+                      <span className="text-xs text-success">
+                        {product.stock > 0 ? `● ${product.stock} шт` : 'Нет в наличии'}
+                      </span>
                       <div className="flex gap-2">
                         <button
                           onClick={() => addFavoriteToCart(product.id)}
@@ -447,9 +498,7 @@ export default function ProfilePage() {
                     rows={3}
                     required
                   />
-                  {addressError && (
-                    <p className="text-danger text-xs px-2">{addressError}</p>
-                  )}
+                  {addressError && <p className="text-danger text-xs px-2">{addressError}</p>}
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -472,19 +521,30 @@ export default function ProfilePage() {
 
             {addresses.length === 0 ? (
               <div className="text-center py-12 text-textSecondary">
-                <svg className="w-16 h-16 mx-auto mb-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <svg
+                  className="w-16 h-16 mx-auto mb-4 opacity-50"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
                 <p>Адреса не добавлены</p>
               </div>
             ) : (
               addresses.map((addr) => (
-                <div key={addr.id} className="bg-cardBg border border-border rounded-2xl p-4 flex justify-between items-start">
+                <div
+                  key={addr.id}
+                  className="bg-cardBg border border-border rounded-2xl p-4 flex justify-between items-start"
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <p className="text-textPrimary font-medium">{addr.address}</p>
                       {addr.is_default && (
-                        <span className="bg-neon/20 text-neon text-xs px-2 py-1 rounded-full">⭐ Основной</span>
+                        <span className="bg-neon/20 text-neon text-xs px-2 py-1 rounded-full">
+                          ⭐ Основной
+                        </span>
                       )}
                     </div>
                   </div>
@@ -567,13 +627,29 @@ export default function ProfilePage() {
               className="w-full bg-cardBg border border-border rounded-2xl p-4 flex items-center justify-between hover:border-neon transition-colors text-left"
             >
               <span className="text-textPrimary">Мои адреса</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-textSecondary">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-textSecondary"
+              >
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
             <button className="w-full bg-cardBg border border-border rounded-2xl p-4 flex items-center justify-between hover:border-neon transition-colors text-left">
               <span className="text-textPrimary">Уведомления</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-textSecondary">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-textSecondary"
+              >
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
@@ -582,7 +658,15 @@ export default function ProfilePage() {
               className="block bg-cardBg border border-border rounded-2xl p-4 flex items-center justify-between hover:border-neon transition-colors"
             >
               <span className="text-textPrimary">Помощь / FAQ</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-textSecondary">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-textSecondary"
+              >
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </Link>
@@ -592,8 +676,13 @@ export default function ProfilePage() {
         {/* Saved for Later */}
         {activeTab === 'saved' && (
           <div className="space-y-3">
-            <p className="text-center text-textSecondary py-8">Отложенные товары синхронизируются с приложением</p>
-            <Link href="/saved-for-later" className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all">
+            <p className="text-center text-textSecondary py-8">
+              Отложенные товары синхронизируются с приложением
+            </p>
+            <Link
+              href="/saved-for-later"
+              className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all"
+            >
               Перейти в отложенное
             </Link>
           </div>
@@ -602,8 +691,13 @@ export default function ProfilePage() {
         {/* Compare */}
         {activeTab === 'compare' && (
           <div className="space-y-3">
-            <p className="text-center text-textSecondary py-8">Сравнивайте характеристики товаров</p>
-            <Link href="/compare" className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all">
+            <p className="text-center text-textSecondary py-8">
+              Сравнивайте характеристики товаров
+            </p>
+            <Link
+              href="/compare"
+              className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all"
+            >
               Перейти в сравнение
             </Link>
           </div>
@@ -613,7 +707,10 @@ export default function ProfilePage() {
         {activeTab === 'balance' && (
           <div className="space-y-3">
             <p className="text-center text-textSecondary py-8">История бонусов и платежей</p>
-            <Link href="/balance" className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all">
+            <Link
+              href="/balance"
+              className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all"
+            >
               Перейти в баланс
             </Link>
           </div>
@@ -623,7 +720,10 @@ export default function ProfilePage() {
         {activeTab === 'gamification' && (
           <div className="space-y-3">
             <p className="text-center text-textSecondary py-8">Уровни и достижения</p>
-            <Link href="/gamification" className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all">
+            <Link
+              href="/gamification"
+              className="block bg-gradient-to-r from-[#7c3aed] to-neon text-white rounded-xl px-4 py-3 font-medium text-center hover:shadow-neon transition-all"
+            >
               Перейти в достижения
             </Link>
           </div>
@@ -633,21 +733,48 @@ export default function ProfilePage() {
       {/* Bottom Tab Bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-cardBg/95 backdrop-blur-md border-t border-border z-30">
         <div className="flex justify-around py-2">
-          <Link href="/" className="flex flex-col items-center py-1 px-3 text-textSecondary hover:text-neon transition-colors">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <Link
+            href="/"
+            className="flex flex-col items-center py-1 px-3 text-textSecondary hover:text-neon transition-colors"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z" />
             </svg>
             <span className="text-xs mt-0.5">Каталог</span>
           </Link>
-          <Link href="/compare" className="flex flex-col items-center py-1 px-3 text-textSecondary hover:text-neon transition-colors">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <Link
+            href="/compare"
+            className="flex flex-col items-center py-1 px-3 text-textSecondary hover:text-neon transition-colors"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M18 3H6C4.89543 3 4 3.89543 4 5V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V5C20 3.89543 19.1046 3 18 3Z" />
               <path d="M9 8L11 11L15 7" />
             </svg>
             <span className="text-xs mt-0.5">Сравнить</span>
           </Link>
           <Link href="/profile" className="flex flex-col items-center py-1 px-3 text-neon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>

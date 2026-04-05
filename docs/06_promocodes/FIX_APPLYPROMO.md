@@ -23,7 +23,7 @@ const applyPromo = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         code: promoCode.toUpperCase(),
-        cartTotal: total,  // ❌ ОШИБКА: total не определено
+        cartTotal: total, // ❌ ОШИБКА: total не определено
       }),
     });
 
@@ -43,6 +43,7 @@ const applyPromo = async () => {
 ### Суть проблемы
 
 В `pages/cart.tsx` не существует переменной `total`. Вместо этого есть:
+
 - `subtotal` — сумма всех товаров (без учёта доставки и скидок)
 - `deliveryCost` — стоимость доставки
 - Вычисляемое значение: `subtotal + deliveryCost - appliedPromo?.discountAmount`
@@ -67,7 +68,7 @@ const applyPromo = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         code: promoCode.toUpperCase(),
-        cartTotal: subtotal,  // ✅ ИСПРАВЛЕНО: используем subtotal
+        cartTotal: subtotal, // ✅ ИСПРАВЛЕНО: используем subtotal
       }),
     });
 
@@ -112,7 +113,7 @@ const [promoCode, setPromoCode] = useState('');
 const [promoError, setPromoError] = useState('');
 
 // Вычисляемые значения
-const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 const deliveryCost = calculateDelivery(address, subtotal);
 
 // ИТОГО = subtotal + доставка - скидка
@@ -144,8 +145,8 @@ POST /api/promocodes/apply
   "code": "SUMMER2024",
   "discountType": "percent",
   "discountValue": 15,
-  "discountAmount": 750,   // ← скидка в рублях
-  "newTotal": 4250         // ← итого со скидкой (в интерфейсе не используется)
+  "discountAmount": 750, // ← скидка в рублях
+  "newTotal": 4250 // ← итого со скидкой (в интерфейсе не используется)
 }
 ```
 
@@ -186,6 +187,7 @@ POST /api/promocodes/apply
 ### Если ошибка появится снова
 
 1. **Проверить переменную:**
+
    ```typescript
    console.log('subtotal:', subtotal);
    console.log('total:', total);
@@ -193,6 +195,7 @@ POST /api/promocodes/apply
    ```
 
 2. **Убедиться в типах данных:**
+
    ```typescript
    if (typeof subtotal !== 'number' || isNaN(subtotal)) {
      console.error('❌ subtotal не является числом!');
@@ -239,6 +242,7 @@ POST /api/promocodes/apply
 ## 🎯 Результат
 
 Функция `applyPromo()` теперь:
+
 - ✅ Отправляет правильное значение суммы
 - ✅ Получает правильный ответ от сервера
 - ✅ Правильно отображает скидку

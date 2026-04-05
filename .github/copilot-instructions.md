@@ -5,6 +5,7 @@
 **VapeShop Mini App** is a Telegram Mini App (web app running inside Telegram) built with Next.js. It's an e-commerce platform for vape products that integrates deeply with Telegram's Bot API for user authentication and notifications.
 
 ### Tech Stack
+
 - **Frontend**: Next.js 14 + React 18 + TypeScript + Tailwind CSS
 - **Backend**: Next.js API Routes
 - **Database**: PostgreSQL (via Neon)
@@ -81,6 +82,7 @@ npm run lint         # Run ESLint
 ### API Route Patterns
 
 **Standard HTTP method handling** in route files:
+
 ```typescript
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -98,6 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 **Database queries**: Use the `query()` helper from `lib/db.ts` with parameterized queries for SQL injection prevention.
 
 **Error handling**: Always use try-catch blocks and return appropriate HTTP status codes:
+
 ```typescript
 try {
   const result = await query('SELECT * FROM products WHERE id = $1', [productId]);
@@ -112,6 +115,7 @@ try {
 ### Telegram WebApp Integration
 
 **Client-side hook usage**:
+
 ```typescript
 import { useTelegramWebApp } from '../lib/telegram';
 import { useMainButton, hapticSuccess, hapticError } from '../lib/telegram';
@@ -120,20 +124,26 @@ const { user, webapp } = useTelegramWebApp();
 ```
 
 The hook provides:
+
 - `user`: Telegram user object (id, first_name, last_name, username)
 - `webapp`: Direct access to Telegram WebApp API for advanced features
 
 **UI Controls and Feedback**:
+
 ```typescript
 // Main button control
-useMainButton('Send Order', () => {
-  submitOrder();
-}, true);  // visible parameter
+useMainButton(
+  'Send Order',
+  () => {
+    submitOrder();
+  },
+  true
+); // visible parameter
 
 // Haptic feedback for interactions
-hapticSuccess();    // Success notification (vibration)
-hapticError();      // Error notification (vibration)
-hapticImpact('medium');  // Light/medium/heavy impact
+hapticSuccess(); // Success notification (vibration)
+hapticError(); // Error notification (vibration)
+hapticImpact('medium'); // Light/medium/heavy impact
 ```
 
 **Data persists across the session** — users maintain the same Telegram user ID from initial load, so you can rely on `user.id` for all API calls.
@@ -166,10 +176,11 @@ bot.on('callback_query:data', async (ctx) => {
   // Handle inline button clicks
 });
 
-export default webhookCallback(bot, 'http');  // Vercel webhook handler
+export default webhookCallback(bot, 'http'); // Vercel webhook handler
 ```
 
 **Bot Commands Structure**:
+
 - Commands are defined in `lib/bot/handlers.ts` (start, menu, orders, etc.)
 - Payments handled via `lib/bot/payments.ts`
 - Inline keyboards built in `lib/bot/keyboards.ts`
@@ -177,6 +188,7 @@ export default webhookCallback(bot, 'http');  // Vercel webhook handler
 
 **Sending Messages to Users**:
 Use `getBot()` from `lib/notifications.ts` to send messages from backend:
+
 ```typescript
 const bot = getBot();
 await bot.api.sendMessage(telegramUserId, 'Your order is confirmed!');
@@ -185,18 +197,20 @@ await bot.api.sendMessage(telegramUserId, 'Your order is confirmed!');
 ### Data Fetching Patterns
 
 **Frontend Pages** use `getServerSideProps` for initial data (optional) and `useEffect` for client-side fetches:
+
 ```typescript
 // No auth needed - Telegram user sent in request
 const [products, setProducts] = useState<Product[]>([]);
 
 useEffect(() => {
   fetch('/api/products?page=1')
-    .then(r => r.json())
-    .then(data => setProducts(data.products));
+    .then((r) => r.json())
+    .then((data) => setProducts(data.products));
 }, []);
 ```
 
 **API Routes** typically return paginated results with filtering:
+
 - Pagination: `page` and `PAGE_SIZE` constants (usually 12)
 - Filtering: `search`, `category`, `brand`, `price_min`, `price_max`
 - Sorting: `sort` and `order` (asc/desc) parameters
@@ -217,6 +231,7 @@ useEffect(() => {
 ### Environment Variables
 
 Required (see `.env.example`):
+
 - `TELEGRAM_BOT_TOKEN`: Bot API token for Telegram Bot
 - `NEON_DATABASE_URL`: PostgreSQL connection string
 - `WEBAPP_URL`: Deployed app URL (for Telegram bot settings)
@@ -299,6 +314,7 @@ bot.on('callback_query:data', async (ctx) => {
 ```
 
 Button markup example:
+
 ```typescript
 reply_markup: {
   inline_keyboard: [

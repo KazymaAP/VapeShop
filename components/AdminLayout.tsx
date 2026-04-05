@@ -14,9 +14,7 @@ export default function AdminLayout({ title, children }: AdminLayoutProps) {
         <header className="bg-cardBg border-b border-border p-4">
           <h1 className="text-2xl font-bold text-neon">{title}</h1>
         </header>
-        <main className="flex-1 p-4 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-4 overflow-auto">{children}</main>
       </div>
     </div>
   );

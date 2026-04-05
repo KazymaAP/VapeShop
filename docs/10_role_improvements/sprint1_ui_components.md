@@ -13,6 +13,7 @@
 **Назначение:** Главная страница для super-администратора
 
 **Макет:**
+
 ```
 ┌─────────────────────────────────────────────┐
 │  VapeShop Super-Admin Dashboard             │
@@ -56,6 +57,7 @@
 ```
 
 **Props:**
+
 ```typescript
 interface SuperAdminDashboardProps {
   admins: Admin[];
@@ -69,6 +71,7 @@ interface SuperAdminDashboardProps {
 ```
 
 **Импорты и использование:**
+
 ```typescript
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
@@ -115,6 +118,7 @@ export default function SuperAdminDashboard() {
 **Назначение:** Создание, редактирование, удаление ролей и разрешений
 
 **Макет:**
+
 ```
 ┌──────────────────────────────────────────────────┐
 │  RBAC Manager - Управление ролями               │
@@ -160,6 +164,7 @@ export default function SuperAdminDashboard() {
 ```
 
 **Функционал:**
+
 - Список всех ролей (система и пользовательские)
 - Просмотр разрешений для каждой роли
 - Добавление новых разрешений к роли
@@ -168,14 +173,15 @@ export default function SuperAdminDashboard() {
 - Удаление пользовательских ролей
 
 **Компонент Modal для создания роли:**
+
 ```typescript
 <Modal title="Создать новую роль" isOpen={showCreateRole} onClose={() => setShowCreateRole(false)}>
   <form onSubmit={handleCreateRole}>
     <input placeholder="Название роли" value={roleName} onChange={e => setRoleName(e.target.value)} />
     <textarea placeholder="Описание" value={roleDescription} onChange={e => setRoleDescription(e.target.value)} />
-    <MultiSelect 
-      options={allPermissions} 
-      selected={selectedPermissions} 
+    <MultiSelect
+      options={allPermissions}
+      selected={selectedPermissions}
       onChange={setSelectedPermissions}
       placeholder="Выберите разрешения"
     />
@@ -191,6 +197,7 @@ export default function SuperAdminDashboard() {
 **Назначение:** Детальная таблица с фильтрацией логов
 
 **Макет:**
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  AUDIT LOGS - Логирование действий                     │
@@ -229,6 +236,7 @@ export default function SuperAdminDashboard() {
 **Назначение:** Таблица товаров с возможностью массового обновления
 
 **Макет:**
+
 ```
 ┌───────────────────────────────────────────────────┐
 │  BULK EDIT PRODUCTS - Массовое редактирование    │
@@ -274,6 +282,7 @@ export default function SuperAdminDashboard() {
 **Назначение:** Аналитика с графиками (используется recharts)
 
 **Макет:**
+
 ```
 ┌──────────────────────────────────────────────────────┐
 │  Advanced Analytics Dashboard                        │
@@ -312,6 +321,7 @@ export default function SuperAdminDashboard() {
 ```
 
 **Графики (recharts):**
+
 ```typescript
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -336,6 +346,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 **Назначение:** Форма для экспорта данных в Excel, CSV, PDF
 
 **Макет:**
+
 ```
 ┌─────────────────────────────────────────────────┐
 │  EXPORT ORDERS - Экспорт заказов               │
@@ -371,6 +382,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 ```
 
 **Использование exceljs:**
+
 ```typescript
 import ExcelJS from 'exceljs';
 
@@ -384,7 +396,7 @@ worksheet.columns = [
   // ...
 ];
 
-orders.forEach(order => {
+orders.forEach((order) => {
   worksheet.addRow(order);
 });
 
@@ -397,6 +409,7 @@ const buffer = await workbook.xlsx.writeBuffer();
 ## 🧩 ПЕРЕИСПОЛЬЗУЕМЫЕ КОМПОНЕНТЫ
 
 ### 1. Card
+
 ```typescript
 <Card title="Управление админами" className="mb-4">
   {/* Контент */}
@@ -404,10 +417,11 @@ const buffer = await workbook.xlsx.writeBuffer();
 ```
 
 ### 2. Modal
+
 ```typescript
-<Modal 
-  title="Создать акцию" 
-  isOpen={isOpen} 
+<Modal
+  title="Создать акцию"
+  isOpen={isOpen}
   onClose={onClose}
   onSubmit={onSubmit}
 >
@@ -416,8 +430,9 @@ const buffer = await workbook.xlsx.writeBuffer();
 ```
 
 ### 3. Table
+
 ```typescript
-<Table 
+<Table
   headers={['ID', 'Название', 'Цена', 'Действия']}
   rows={products}
   onSelect={setSelectedRows}
@@ -425,6 +440,7 @@ const buffer = await workbook.xlsx.writeBuffer();
 ```
 
 ### 4. Toast (для уведомлений)
+
 ```typescript
 const { toast } = useToast();
 toast({ message: 'Товары обновлены', type: 'success' });
@@ -467,6 +483,7 @@ pages/admin/
 - **Шрифт:** Inter (система-ui fallback)
 
 **Tailwind классы:**
+
 ```typescript
 <div className="bg-cardBg border border-border rounded-lg p-4">
   <h2 className="text-lg text-textPrimary font-semibold">Заголовок</h2>

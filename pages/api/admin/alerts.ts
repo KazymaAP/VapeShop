@@ -3,7 +3,6 @@ import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-
   if (req.method === 'GET') {
     try {
       const alerts = [];
@@ -18,7 +17,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         alerts.push({
           type: 'pending_orders',
           count: pendingResult.rows[0].count,
-          message: `${pendingResult.rows[0].count} заказов ждут подтверждения более часа`
+          message: `${pendingResult.rows[0].count} заказов ждут подтверждения более часа`,
         });
       }
 
@@ -32,7 +31,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           type: 'low_stock',
           count: lowStockResult.rows.length,
           items: lowStockResult.rows,
-          message: `${lowStockResult.rows.length} товаров заканчиваются`
+          message: `${lowStockResult.rows.length} товаров заканчиваются`,
         });
       }
 
@@ -47,4 +46,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['manager', 'admin', 'super_admin']);
-

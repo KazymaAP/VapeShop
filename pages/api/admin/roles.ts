@@ -12,10 +12,7 @@ import { ApiResponse } from '@/types/api';
 
 const VALID_ROLES = ['customer', 'admin', 'manager', 'courier', 'support', 'seller', 'buyer'];
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
   const telegramId = getTelegramId(req);
 
   if (req.method === 'GET') {
@@ -52,10 +49,7 @@ async function handler(
       );
 
       const countParams = where ? [role] : [];
-      const totalResult = await query(
-        `SELECT COUNT(*) as count FROM users ${where}`,
-        countParams
-      );
+      const totalResult = await query(`SELECT COUNT(*) as count FROM users ${where}`, countParams);
 
       return res.status(200).json({
         data: result.rows,
@@ -83,10 +77,7 @@ async function handler(
       }
 
       // Проверяем существование пользователя
-      const user = await query(
-        `SELECT telegram_id FROM users WHERE telegram_id = $1`,
-        [userId]
-      );
+      const user = await query(`SELECT telegram_id FROM users WHERE telegram_id = $1`, [userId]);
 
       if (user.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });

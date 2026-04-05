@@ -3,6 +3,7 @@
 ## Обзор
 
 Все API эндпоинты в `pages/api/admin/*` должны быть защищены middleware `requireAuth()` для проверки:
+
 1. **Аутентификация**: Пользователь передал `X-Telegram-Id` заголовок
 2. **Авторизация**: Пользователь имеет требуемую роль
 3. **Блокировка**: Пользователь не в чёрном списке
@@ -29,11 +30,13 @@ export default requireAuth(handler, ['admin']);
 ## Применение к каждому эндпоинту
 
 ### 1. `/api/admin/products.ts` ✓ ГОТОВ
+
 - Статус: **ЗАЩИЩЁН**
 - Требуемые роли: `['admin']`
 - Действия: POST (создать), PUT (обновить), GET (список), DELETE (удалить)
 
 ### 2. `/api/admin/orders.ts`
+
 - Требуемые роли: `['admin', 'manager']` (менеджеры должны видеть заказы)
 - Действия: GET (список заказов), PUT (обновить статус)
 
@@ -43,6 +46,7 @@ export default requireAuth(handler, ['admin', 'manager']);
 ```
 
 ### 3. `/api/admin/users.ts`
+
 - Требуемые роли: `['admin']`
 - Действия: GET (список пользователей), PUT (изменить роль/блокировка), DELETE
 
@@ -51,6 +55,7 @@ export default requireAuth(handler, ['admin']);
 ```
 
 ### 4. `/api/admin/stats.ts`
+
 - Требуемые роли: `['admin']`
 - Действия: GET (статистика, графики)
 
@@ -59,6 +64,7 @@ export default requireAuth(handler, ['admin']);
 ```
 
 ### 5. `/api/admin/settings.ts`
+
 - Требуемые роли: `['admin']`
 - Действия: GET (получить настройки), PUT (сохранить)
 
@@ -67,6 +73,7 @@ export default requireAuth(handler, ['admin']);
 ```
 
 ### 6. `/api/admin/import.ts`
+
 - Требуемые роли: `['admin']`
 - Действия: POST (загрузить CSV с товарами)
 
@@ -75,6 +82,7 @@ export default requireAuth(handler, ['admin']);
 ```
 
 ### 7. `/api/admin/broadcast.ts`
+
 - Требуемые роли: `['admin']`
 - Действия: POST (отправить сообщение всем пользователям)
 
@@ -83,6 +91,7 @@ export default requireAuth(handler, ['admin']);
 ```
 
 ### 8. `/api/admin/faq.ts` (если существует)
+
 - Требуемые роли: `['admin']`
 - Действия: GET (список), POST (создать), PUT (обновить), DELETE
 
@@ -93,20 +102,25 @@ export default requireAuth(handler, ['admin']);
 ## Инструкция по обновлению каждого файла
 
 ### Шаг 1: Добавить импорты
+
 ```typescript
 import { requireAuth, getTelegramId } from '../../../lib/auth';
 ```
 
 ### Шаг 2: Переименовать export
+
 Изменить `export default async function handler` → `async function handler`
 
 ### Шаг 3: Добавить обертку в конце
+
 ```typescript
 export default requireAuth(handler, ['admin']); // или другие роли
 ```
 
 ### Шаг 4: Использовать getTelegramId() для логирования
+
 Везде, где нужно логировать действие админа:
+
 ```typescript
 const telegramId = getTelegramId(req);
 // Затем использовать telegramId для записи в БД
@@ -130,7 +144,7 @@ CREATE INDEX idx_admin_logs_user ON admin_logs(user_telegram_id);
 CREATE INDEX idx_admin_logs_created_at ON admin_logs(created_at DESC);
 ```
 
-## Использование на фронтенде (pages/admin/*)
+## Использование на фронтенде (pages/admin/\*)
 
 В каждом компоненте админки при запросе к API добавлять заголовок:
 
@@ -158,24 +172,30 @@ const response = await fetchWithAuth('/api/admin/products', {
 // Вариант 3: С обработкой ошибок аутентификации
 import { fetchWithAuthAndHandle } from '../../../lib/frontend/auth';
 
-const response = await fetchWithAuthAndHandle('/api/admin/products', {
-  method: 'POST',
-  body: JSON.stringify(data),
-}, (status) => {
-  if (status === 401) console.log('Требуется аутентификация');
-  if (status === 403) console.log('У вас недостаточно прав');
-});
+const response = await fetchWithAuthAndHandle(
+  '/api/admin/products',
+  {
+    method: 'POST',
+    body: JSON.stringify(data),
+  },
+  (status) => {
+    if (status === 401) console.log('Требуется аутентификация');
+    if (status === 403) console.log('У вас недостаточно прав');
+  }
+);
 ```
 
 ## Тестирование
 
 ### Через curl (без заголовка - должно быть 401)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products
 # Ответ: { error: 'Unauthorized' }, статус 401
 ```
 
 ### Через curl (с заголовком - роль admin - должно быть успех)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 123456789"
@@ -183,6 +203,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 ```
 
 ### Через curl (с заголовком - роль buyer - должно быть 403)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 987654321" # Пользователь с ролью buyer

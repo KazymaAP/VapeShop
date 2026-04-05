@@ -55,6 +55,7 @@ seed_test_data.sql                       # Тестовые данные (опц
 ### ✅ Текущее состояние
 
 Все миграции:
+
 - ✅ Имеют уникальные номера
 - ✅ Упорядочены в порядке возрастания
 - ✅ Расположены в правильной папке `db/migrations/`
@@ -69,34 +70,35 @@ seed_test_data.sql                       # Тестовые данные (опц
 SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename;
 
 -- Проверка таблиц пользователей и ролей
-SELECT * FROM information_schema.tables WHERE table_name IN 
+SELECT * FROM information_schema.tables WHERE table_name IN
 ('users', 'user_roles', 'user_balance', 'referral_codes', 'referrals');
 
 -- Проверка заказов и доставки
-SELECT * FROM information_schema.tables WHERE table_name IN 
+SELECT * FROM information_schema.tables WHERE table_name IN
 ('orders', 'courier_deliveries', 'delivery_addresses', 'pickup_points');
 
 -- Проверка товаров и сравнения
-SELECT * FROM information_schema.tables WHERE table_name IN 
+SELECT * FROM information_schema.tables WHERE table_name IN
 ('products', 'product_comparisons', 'favorites', 'reviews');
 
 -- Проверка поддержки
-SELECT * FROM information_schema.tables WHERE table_name IN 
+SELECT * FROM information_schema.tables WHERE table_name IN
 ('support_tickets', 'support_messages', 'kanban_cards');
 
 -- Проверка логирования
-SELECT * FROM information_schema.tables WHERE table_name IN 
+SELECT * FROM information_schema.tables WHERE table_name IN
 ('audit_log', 'admin_logs', 'payment_logs');
 ```
 
 ### 📝 Примечание о реферальной системе
 
 **Конфликт в миграциях 018a и 018b**:
+
 - 018_referral_system.sql создает: `referral_codes`, `referral_uses`
 - 018b_phase4_features.sql создает: `referral_codes`, `referrals`, `user_balance`
 
 **Решение**:
+
 - Обе используют `IF NOT EXISTS`, поэтому первая успешно создаст таблицы
 - Вторая не будет переделывать уже существующие таблицы
 - Может быть необходимо вручную объединить схемы (см. `all_issues.md`)
-

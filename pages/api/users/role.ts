@@ -16,7 +16,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (req.method === 'GET') {
       // Получить текущую роль пользователя
-      const result = await query('SELECT role FROM users WHERE telegram_id = $1', [currentTelegramId]);
+      const result = await query('SELECT role FROM users WHERE telegram_id = $1', [
+        currentTelegramId,
+      ]);
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -27,7 +29,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       // ⚠️ КРИТИЧНО: Пользователь может менять роль только себе (фронтенд не доверяем)
       // Изменение ролей других пользователей должно быть только в админ-панели
       const { role } = req.body;
-      
+
       if (!role) {
         return res.status(400).json({ error: 'Missing required field: role' });
       }
@@ -61,4 +63,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler);
-

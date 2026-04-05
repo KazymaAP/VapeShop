@@ -43,7 +43,7 @@ export default function AdminProducts() {
     const debounceTimer = setTimeout(() => {
       fetchProducts();
     }, 300);
-    
+
     return () => clearTimeout(debounceTimer);
   }, [user, search]);
 
@@ -66,7 +66,17 @@ export default function AdminProducts() {
       body: JSON.stringify(formData),
     });
     setShowForm(false);
-    setFormData({ name: '', specification: '', price: '', stock: '', brand_id: '', category_id: '', is_new: false, is_hit: false, promotion: false });
+    setFormData({
+      name: '',
+      specification: '',
+      price: '',
+      stock: '',
+      brand_id: '',
+      category_id: '',
+      is_new: false,
+      is_hit: false,
+      promotion: false,
+    });
     fetchProducts();
   };
 
@@ -100,7 +110,10 @@ export default function AdminProducts() {
         </div>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="bg-cardBg border border-border rounded-2xl p-6 mb-6 space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-cardBg border border-border rounded-2xl p-6 mb-6 space-y-4"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
@@ -136,19 +149,34 @@ export default function AdminProducts() {
             </div>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 text-sm text-textSecondary">
-                <input type="checkbox" checked={formData.is_new} onChange={(e) => setFormData({ ...formData, is_new: e.target.checked })} />
+                <input
+                  type="checkbox"
+                  checked={formData.is_new}
+                  onChange={(e) => setFormData({ ...formData, is_new: e.target.checked })}
+                />
                 Новинка
               </label>
               <label className="flex items-center gap-2 text-sm text-textSecondary">
-                <input type="checkbox" checked={formData.is_hit} onChange={(e) => setFormData({ ...formData, is_hit: e.target.checked })} />
+                <input
+                  type="checkbox"
+                  checked={formData.is_hit}
+                  onChange={(e) => setFormData({ ...formData, is_hit: e.target.checked })}
+                />
                 Хит
               </label>
               <label className="flex items-center gap-2 text-sm text-textSecondary">
-                <input type="checkbox" checked={formData.promotion} onChange={(e) => setFormData({ ...formData, promotion: e.target.checked })} />
+                <input
+                  type="checkbox"
+                  checked={formData.promotion}
+                  onChange={(e) => setFormData({ ...formData, promotion: e.target.checked })}
+                />
                 Акция
               </label>
             </div>
-            <button type="submit" className="bg-neon text-white rounded-full px-6 py-2.5 text-sm font-medium ripple">
+            <button
+              type="submit"
+              className="bg-neon text-white rounded-full px-6 py-2.5 text-sm font-medium ripple"
+            >
               Сохранить
             </button>
           </form>
@@ -167,7 +195,10 @@ export default function AdminProducts() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16"
+              />
             ))}
           </div>
         ) : (
@@ -175,28 +206,43 @@ export default function AdminProducts() {
             <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Название</th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Название
+                  </th>
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Цена</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Остаток</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Статус</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Действия</th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Остаток
+                  </th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Статус
+                  </th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Действия
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product.id} className="border-b border-border/50 hover:bg-bgDark/50 transition-colors">
+                  <tr
+                    key={product.id}
+                    className="border-b border-border/50 hover:bg-bgDark/50 transition-colors"
+                  >
                     <td className="p-4">
                       <p className="text-textPrimary font-medium">{product.name}</p>
                       <p className="text-textSecondary text-xs">{product.brand_name || ''}</p>
                     </td>
-                    <td className="p-4 text-neon font-bold">{product.price.toLocaleString('ru-RU')} ₽</td>
+                    <td className="p-4 text-neon font-bold">
+                      {product.price.toLocaleString('ru-RU')} ₽
+                    </td>
                     <td className="p-4">
                       <span className={product.stock < 5 ? 'text-warning' : 'text-success'}>
                         {product.stock} шт
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${product.is_active ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${product.is_active ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'}`}
+                      >
                         {product.is_active ? 'Активен' : 'Скрыт'}
                       </span>
                     </td>

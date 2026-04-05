@@ -53,8 +53,12 @@ export default function ComparePage() {
   };
 
   const attributes = [
-    { label: 'Цена', key: 'price' as const, format: (v: number) => `${v.toLocaleString('ru-RU')} ₽` },
-    { label: 'Наличие', key: 'stock' as const, format: (v: number) => v > 0 ? `${v} шт` : 'Нет' },
+    {
+      label: 'Цена',
+      key: 'price' as const,
+      format: (v: number) => `${v.toLocaleString('ru-RU')} ₽`,
+    },
+    { label: 'Наличие', key: 'stock' as const, format: (v: number) => (v > 0 ? `${v} шт` : 'Нет') },
   ];
 
   if (loading) {
@@ -69,12 +73,20 @@ export default function ComparePage() {
   if (compareList.length === 0) {
     return (
       <div className="min-h-screen bg-bgDark flex flex-col items-center justify-center px-4">
-        <svg className="w-20 h-20 text-neon opacity-50 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg
+          className="w-20 h-20 text-neon opacity-50 mb-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
           <path d="M18 3H6C4.89543 3 4 3.89543 4 5V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V5C20 3.89543 19.1046 3 18 3Z" />
           <path d="M9 8L11 11L15 7" />
         </svg>
         <h2 className="text-xl font-bold text-textPrimary">Список сравнения пуст</h2>
-        <p className="text-textSecondary mt-2 text-center">Добавьте товары для сравнения из каталога</p>
+        <p className="text-textSecondary mt-2 text-center">
+          Добавьте товары для сравнения из каталога
+        </p>
         <button
           onClick={() => router.push('/')}
           className="mt-6 bg-gradient-to-r from-[#7c3aed] to-neon rounded-full px-8 py-3 text-white font-semibold ripple"
@@ -90,7 +102,14 @@ export default function ComparePage() {
       <div className="sticky top-0 z-30 bg-bgDark/90 backdrop-blur-md border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <button onClick={() => router.back()} className="text-textSecondary hover:text-neon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </button>
@@ -114,9 +133,20 @@ export default function ComparePage() {
                     </button>
                     <div className="w-20 h-20 mx-auto bg-gradient-to-br from-[#1f1f2a] to-[#131318] rounded-xl flex items-center justify-center mb-2">
                       {product.images?.[0] ? (
-                        <Image src={product.images[0]} alt={product.name} className="w-full h-full object-contain rounded-xl" width={80} height={80} />
+                        <Image
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="w-full h-full object-contain rounded-xl"
+                          width={80}
+                          height={80}
+                        />
                       ) : (
-                        <svg className="w-8 h-8 text-neon opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <svg
+                          className="w-8 h-8 text-neon opacity-50"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
                           <path d="M7 9H5L3 12L5 15H7" />
                         </svg>
                       )}

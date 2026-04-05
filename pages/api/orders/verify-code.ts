@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 /**
  * API для проверки 6-значного кода доставки
  * Используется курьером при завершении доставки
- * 
+ *
  * POST /api/orders/verify-code
  * Body: { order_id: string, code_6digit: number }
  * Response: { success: boolean, message: string, order?: Order }
@@ -78,10 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     // Получаем обновленный заказ
-    const updatedOrderRes = await query(
-      'SELECT * FROM orders WHERE id = $1',
-      [order_id]
-    );
+    const updatedOrderRes = await query('SELECT * FROM orders WHERE id = $1', [order_id]);
 
     const updatedOrder = updatedOrderRes.rows[0];
 
@@ -104,4 +101,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
-

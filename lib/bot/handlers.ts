@@ -12,12 +12,14 @@ export async function handleStart(ctx: Context) {
   let referralCode = '';
   let referredBy: number | undefined;
 
-  const startParam = (ctx as any).match;
+  const startParam = (ctx as unknown as Record<string, string>).match;
   if (startParam && startParam.startsWith('ref_')) {
     referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     referredBy = parseInt(startParam.replace('ref_', ''), 10);
 
-    const referrer = await query('SELECT * FROM users WHERE referral_code = $1', [startParam.replace('ref_', '')]);
+    const referrer = await query('SELECT * FROM users WHERE referral_code = $1', [
+      startParam.replace('ref_', ''),
+    ]);
     if (referrer.rows.length > 0) {
       referredBy = referrer.rows[0].telegram_id;
     }
@@ -31,18 +33,28 @@ export async function handleStart(ctx: Context) {
     await query(
       `INSERT INTO users (telegram_id, first_name, last_name, username, referral_code, referred_by)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [telegramId, user.first_name, user.last_name || null, user.username || null, referralCode, referredBy || null]
+      [
+        telegramId,
+        user.first_name,
+        user.last_name || null,
+        user.username || null,
+        referralCode,
+        referredBy || null,
+      ]
     );
   } else {
     await query('UPDATE users SET last_seen = NOW() WHERE telegram_id = $1', [telegramId]);
   }
 
-  const isAdmin = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(Number).includes(telegramId);
+  const isAdmin = (process.env.ADMIN_TELEGRAM_IDS || '')
+    .split(',')
+    .map(Number)
+    .includes(telegramId);
 
   await ctx.reply(
     `👋 Добро пожаловать, ${user.first_name}!\n\n` +
-    `🛍️ Откройте наш магазин и выберите лучшие товары.\n` +
-    `💰 Реферальная программа — приглашайте друзей и получайте бонусы!`,
+      `🛍️ Откройте наш магазин и выберите лучшие товары.\n` +
+      `💰 Реферальная программа — приглашайте друзей и получайте бонусы!`,
     { reply_markup: getMainKeyboard() }
   );
 
@@ -91,9 +103,11 @@ export async function handleOrders(ctx: Context) {
 
   await ctx.reply(message, {
     reply_markup: {
-      inline_keyboard: orders.rows.slice(0, 3).map((order) => [
-        { text: `Заказ #${order.id.slice(0, 8)}`, callback_data: `order:${order.id}` },
-      ]),
+      inline_keyboard: orders.rows
+        .slice(0, 3)
+        .map((order) => [
+          { text: `Заказ #${order.id.slice(0, 8)}`, callback_data: `order:${order.id}` },
+        ]),
     },
   });
 }
@@ -121,26 +135,26 @@ export async function handleReferral(ctx: Context) {
 
   await ctx.reply(
     `🎁 Реферальная программа\n\n` +
-    `Ваша ссылка: ${link}\n\n` +
-    `👥 Приглашено: ${count}\n` +
-    `💰 Заработано: ${parseFloat(earned).toLocaleString('ru-RU')} ₽\n\n` +
-    `Отправьте ссылку друзьям и получайте 10% от их заказов!`
+      `Ваша ссылка: ${link}\n\n` +
+      `👥 Приглашено: ${count}\n` +
+      `💰 Заработано: ${parseFloat(earned).toLocaleString('ru-RU')} ₽\n\n` +
+      `Отправьте ссылку друзьям и получайте 10% от их заказов!`
   );
 }
 
 export async function handleHelp(ctx: Context) {
   await ctx.reply(
     `❓ Помощь\n\n` +
-    `📦 Как оформить заказ:\n` +
-    `1. Откройте магазин\n` +
-    `2. Выберите товары\n` +
-    `3. Добавьте в корзину\n` +
-    `4. Оформите заказ и оплатите\n\n` +
-    `🚚 Доставка:\n` +
-    `• Самовывоз — бесплатно\n` +
-    `• Курьер — от 300 ₽\n\n` +
-    `💳 Оплата через Telegram Stars\n\n` +
-    `По вопросам: @support`,
+      `📦 Как оформить заказ:\n` +
+      `1. Откройте магазин\n` +
+      `2. Выберите товары\n` +
+      `3. Добавьте в корзину\n` +
+      `4. Оформите заказ и оплатите\n\n` +
+      `🚚 Доставка:\n` +
+      `• Самовывоз — бесплатно\n` +
+      `• Курьер — от 300 ₽\n\n` +
+      `💳 Оплата через Telegram Stars\n\n` +
+      `По вопросам: @support`,
     {
       reply_markup: {
         inline_keyboard: [

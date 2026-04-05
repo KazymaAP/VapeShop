@@ -1,9 +1,9 @@
 /**
  * CSRF защита для Next.js API
- * 
+ *
  * Для Telegram Mini App у нас уже есть верификация Telegram через HMAC,
  * но всё равно нужна CSRF защита для пользовательских форм.
- * 
+ *
  * Стратегия:
  * 1. Все мутирующие операции (POST, PUT, DELETE) требуют CSRF token
  * 2. CSRF token генерируется на фронте и отправляется в X-CSRF-Token заголовке
@@ -67,7 +67,7 @@ export function verifyCSRFToken(sessionId: string, token: string): boolean {
 
 /**
  * Middleware для проверки CSRF токена на мутирующих операциях
- * 
+ *
  * Использование:
  * export default withCSRFProtection(handler, ['POST', 'PUT', 'DELETE']);
  */
@@ -78,7 +78,7 @@ export function withCSRFProtection(
   return async (req: NextApiRequest, res: NextApiResponse) => {
     if (protectedMethods.includes(req.method || '')) {
       // Получаем session ID (telegram ID пользователя)
-      const sessionId = (req as any).telegramId || req.headers['x-session-id'];
+      const sessionId = (req as unknown as Record<string, unknown>).telegramId || req.headers['x-session-id'];
 
       if (!sessionId) {
         return res.status(401).json({ error: 'No session ID found' });

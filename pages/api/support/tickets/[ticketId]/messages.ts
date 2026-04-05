@@ -28,22 +28,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       // Проверяем доступ к тикету
-      const ticketResult = await query(
-        `SELECT user_id FROM support_tickets WHERE id = $1`,
-        [ticketId]
-      );
+      const ticketResult = await query(`SELECT user_id FROM support_tickets WHERE id = $1`, [
+        ticketId,
+      ]);
 
       if (ticketResult.rows.length === 0) {
         return res.status(404).json({ error: 'Ticket not found' });
       }
 
       const ticket = ticketResult.rows[0];
-      const userResult = await query(
-        `SELECT role FROM users WHERE telegram_id = $1`,
-        [userId]
-      );
+      const userResult = await query(`SELECT role FROM users WHERE telegram_id = $1`, [userId]);
 
-      const isAdmin = userResult.rows.length > 0 && 
+      const isAdmin =
+        userResult.rows.length > 0 &&
         ['admin', 'super_admin', 'support'].includes(userResult.rows[0].role);
 
       // Проверяем доступ
@@ -78,7 +75,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         is_admin: ['admin', 'super_admin', 'support'].includes(row.role as string),
       }));
 
-      return res.status(200).json({ 
+      return res.status(200).json({
         success: true,
         data: replies,
         timestamp: Date.now(),
@@ -87,7 +84,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       console.error('Error fetching replies:', _);
       res.status(500).json({ error: 'Failed to fetch replies' });
     }
-  } 
+  }
   // POST - отправить ответ
   else if (req.method === 'POST') {
     try {
@@ -98,22 +95,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Проверяем доступ к тикету
-      const ticketResult = await query(
-        `SELECT user_id FROM support_tickets WHERE id = $1`,
-        [ticketId]
-      );
+      const ticketResult = await query(`SELECT user_id FROM support_tickets WHERE id = $1`, [
+        ticketId,
+      ]);
 
       if (ticketResult.rows.length === 0) {
         return res.status(404).json({ error: 'Ticket not found' });
       }
 
       const ticket = ticketResult.rows[0];
-      const userResult = await query(
-        `SELECT role FROM users WHERE telegram_id = $1`,
-        [userId]
-      );
+      const userResult = await query(`SELECT role FROM users WHERE telegram_id = $1`, [userId]);
 
-      const isAdmin = userResult.rows.length > 0 && 
+      const isAdmin =
+        userResult.rows.length > 0 &&
         ['admin', 'super_admin', 'support'].includes(userResult.rows[0].role);
 
       // Проверяем доступ
@@ -133,23 +127,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Обновляем timestamp тикета
-      await query(
-        `UPDATE support_tickets SET updated_at = NOW() WHERE id = $1`,
-        [ticketId]
-      ).catch(() => {});
+      await query(`UPDATE support_tickets SET updated_at = NOW() WHERE id = $1`, [ticketId]).catch(
+        () => {}
+      );
 
       // Логируем действие
       await query(
         `INSERT INTO admin_logs (user_telegram_id, action, details, created_at)
          VALUES ($1, $2, $3, NOW())`,
-        [userId, 'SUPPORT_REPLY', JSON.stringify({
-          ticket_id: ticketId,
-          reply_id: replyResult.rows[0].id,
-          is_admin: isAdmin,
-        })]
+        [
+          userId,
+          'SUPPORT_REPLY',
+          JSON.stringify({
+            ticket_id: ticketId,
+            reply_id: replyResult.rows[0].id,
+            is_admin: isAdmin,
+          }),
+        ]
       ).catch(() => {});
 
-      return res.status(201).json({ 
+      return res.status(201).json({
         success: true,
         data: replyResult.rows[0],
         timestamp: Date.now(),

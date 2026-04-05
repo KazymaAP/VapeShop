@@ -3,6 +3,7 @@
 ## Введение
 
 Реализована полнофункциональная система управления доступом (RBAC - Role-Based Access Control) для всех API эндпоинтов VapeShop. Система включает:
+
 - ✅ Аутентификацию через заголовок `X-Telegram-Id`
 - ✅ Проверку прав доступа по ролям (admin, manager, seller, buyer)
 - ✅ Проверку блокировки пользователей
@@ -14,6 +15,7 @@
 ### 1. Backend - lib/auth.ts
 
 **Основная функция**
+
 ```typescript
 export function requireAuth(handler: NextApiHandler, allowedRoles: string[]) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
@@ -25,12 +27,14 @@ export function requireAuth(handler: NextApiHandler, allowedRoles: string[]) {
 ```
 
 **Дополнительные функции**
+
 - `getTelegramIdFromRequest(req)` - Извлекает ID пользователя из заголовка
 - `getTelegramId(req)` - Alias для getTelegramIdFromRequest
 - `getUserRole(telegramId)` - Получает роль пользователя из БД
 - `isUserBlocked(telegramId)` - Проверяет, заблокирован ли пользователь
 
 **Использование**
+
 ```typescript
 import { requireAuth } from '../../../lib/auth';
 
@@ -44,6 +48,7 @@ export default requireAuth(handler, ['admin']); // Требует роль admin
 ### 2. Frontend - lib/frontend/auth.ts
 
 **Основная функция**
+
 ```typescript
 export function getTelegramIdHeader() {
   const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
@@ -52,11 +57,13 @@ export function getTelegramIdHeader() {
 ```
 
 **Удобные функции**
+
 - `fetchWithAuth(url, options)` - Wraps fetch, автоматически добавляет заголовок
 - `fetchWithAuthAndHandle(url, options, onError)` - С обработкой ошибок 401/403
 - `getCurrentTelegramId()` - Получает текущий telegram_id
 
 **Использование**
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -68,22 +75,24 @@ const response = await fetchWithAuth('/api/admin/products', {
 
 ## Роли и права
 
-| Роль | Сможет | Не сможет |
-|------|--------|----------|
-| **admin** | Все операции: товары, заказы, пользователи, статистика, импорт, рассылки | Ничего (полный доступ) |
-| **manager** | Просмотр заказов, обновление статуса | Товары, пользователи, статистика |
-| **seller** | Подтверждение кодов доставки (future API) | Товары, заказы, пользователи |
-| **buyer** | Покупки, корзина, профиль | Админ-панель, все |
+| Роль        | Сможет                                                                   | Не сможет                        |
+| ----------- | ------------------------------------------------------------------------ | -------------------------------- |
+| **admin**   | Все операции: товары, заказы, пользователи, статистика, импорт, рассылки | Ничего (полный доступ)           |
+| **manager** | Просмотр заказов, обновление статуса                                     | Товары, пользователи, статистика |
+| **seller**  | Подтверждение кодов доставки (future API)                                | Товары, заказы, пользователи     |
+| **buyer**   | Покупки, корзина, профиль                                                | Админ-панель, все                |
 
 ## Список защищённых эндпоинтов
 
 ### Готовые к защите (requireAuth уже применен)
+
 - ✅ `POST /api/admin/products` - Создание товара
 - ✅ `PUT /api/admin/products` - Обновление товара
 - ✅ `GET /api/admin/products` - Список товаров
 - ✅ `DELETE /api/admin/products` - Удаление товара
 
 ### Требуют защиты (TODO)
+
 - [ ] `GET /api/admin/orders` → `requireAuth(handler, ['admin', 'manager'])`
 - [ ] `PUT /api/admin/orders` → `requireAuth(handler, ['admin', 'manager'])`
 - [ ] `GET /api/admin/users` → `requireAuth(handler, ['admin'])`
@@ -95,6 +104,7 @@ const response = await fetchWithAuth('/api/admin/products', {
 - [ ] `PUT /api/admin/settings` → `requireAuth(handler, ['admin'])`
 
 ### Уже защищены (блокировка пользователей)
+
 - ✅ `POST /api/orders` - Создание заказа (проверка блокировки)
 - ✅ `GET /api/cart` - Получение корзины (проверка блокировки)
 - ✅ `POST /api/cart` - Добавление в корзину (проверка блокировки)
@@ -132,6 +142,7 @@ const response = await fetchWithAuth('/api/admin/products', {
 ## Схема базы данных
 
 ### Таблица users
+
 ```sql
 CREATE TABLE users (
   telegram_id BIGINT PRIMARY KEY,
@@ -149,6 +160,7 @@ CREATE INDEX idx_users_role ON users(role);
 ```
 
 ### Таблица admin_logs (для логирования)
+
 ```sql
 CREATE TABLE admin_logs (
   id SERIAL PRIMARY KEY,
@@ -165,12 +177,14 @@ CREATE TABLE admin_logs (
 ## Тестирование
 
 ### 1. Тест без заголовка (должен быть 401)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products
 # Ответ: {"error":"Unauthorized"}, статус 401
 ```
 
 ### 2. Тест с заголовком, роль admin (должен быть 200)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 123456789"
@@ -178,6 +192,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 ```
 
 ### 3. Тест с заголовком, роль buyer (должен быть 403)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 987654321"  # Пользователь с ролью buyer
@@ -185,6 +200,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 ```
 
 ### 4. Тест с заблокированным пользователем (должен быть 403)
+
 ```bash
 curl -X POST http://localhost:3000/api/orders \
   -H "X-Telegram-Id: 555555555" \  # is_blocked = true
@@ -196,19 +212,23 @@ curl -X POST http://localhost:3000/api/orders \
 ## Последовательность внедрения
 
 ### Фаза 1: Backend ✅ ГОТОВ
+
 - [x] lib/auth.ts создан и протестирован
 - [x] pages/api/admin/products.ts защищен requireAuth
 - [x] pages/api/cart.ts защищен isUserBlocked для всех методов
 
 ### Фаза 2: Остальные админские API (TODO)
-- [ ] Обновить все /api/admin/* эндпоинты
+
+- [ ] Обновить все /api/admin/\* эндпоинты
 - [ ] Использовать ADMIN_API_AUTH_GUIDE.md как шаблон
 
 ### Фаза 3: Frontend (TODO)
-- [ ] Обновить компоненты pages/admin/* для использования fetchWithAuth
+
+- [ ] Обновить компоненты pages/admin/\* для использования fetchWithAuth
 - [ ] Использовать FRONTEND_ADMIN_AUTH_SETUP.md как шаблон
 
 ### Фаза 4: Тестирование (TODO)
+
 - [ ] Интеграционные тесты для каждой роли
 - [ ] Проверка логирования в admin_logs
 - [ ] Проверка 401/403 ответов
@@ -222,6 +242,7 @@ curl -X POST http://localhost:3000/api/orders \
 ## Примеры кода
 
 ### Backend пример (уже готов)
+
 ```typescript
 // pages/api/admin/products.ts
 import { requireAuth, getTelegramId } from '../../../lib/auth';
@@ -229,13 +250,14 @@ import { requireAuth, getTelegramId } from '../../../lib/auth';
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const telegramId = getTelegramId(req);
-    
+
     // Логируем действие
-    await query(
-      `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-      [telegramId, 'create_product', JSON.stringify({ name: req.body.name })]
-    );
-    
+    await query(`INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+      telegramId,
+      'create_product',
+      JSON.stringify({ name: req.body.name }),
+    ]);
+
     // ... остальная логика
   }
 }
@@ -244,6 +266,7 @@ export default requireAuth(handler, ['admin']);
 ```
 
 ### Frontend пример
+
 ```typescript
 // pages/admin/products.tsx
 import { fetchWithAuth } from '../../../lib/frontend/auth';
@@ -253,13 +276,13 @@ async function createProduct(data) {
     method: 'POST',
     body: JSON.stringify(data),
   });
-  
+
   if (!response.ok) {
     if (response.status === 401) console.log('Требуется логин');
     if (response.status === 403) console.log('Нет прав доступа');
     return;
   }
-  
+
   const result = await response.json();
   // ... обработка результата
 }
@@ -267,22 +290,24 @@ async function createProduct(data) {
 
 ##常見проблемы и решения
 
-| Проблема | Решение |
-|----------|---------|
-| 401 Unauthorized | Проверьте заголовок X-Telegram-Id в запросе |
-| 403 Forbidden | Проверьте роль пользователя в БД: `SELECT role FROM users WHERE telegram_id = <ID>` |
-| Не добавляется заголовок на фронте | Используйте `fetchWithAuth` вместо `fetch` |
-| Заголовок есть, но 401 | Убедитесь, что X-Telegram-Id это число, не строка с кавычками |
+| Проблема                           | Решение                                                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------- |
+| 401 Unauthorized                   | Проверьте заголовок X-Telegram-Id в запросе                                         |
+| 403 Forbidden                      | Проверьте роль пользователя в БД: `SELECT role FROM users WHERE telegram_id = <ID>` |
+| Не добавляется заголовок на фронте | Используйте `fetchWithAuth` вместо `fetch`                                          |
+| Заголовок есть, но 401             | Убедитесь, что X-Telegram-Id это число, не строка с кавычками                       |
 
 ## Безопасность
 
 ### Текущая реализация
+
 - ✅ Заголовок X-Telegram-Id используется для простого тестирования
 - ✅ Проверка роли на бэкенде
 - ✅ Проверка блокировки на бэкенде
 - ⚠️ Заголовок не криптографически защищен (может быть подделан)
 
 ### Будущие улучшения
+
 - [ ] Добавить HMAC-SHA256 верификацию initData (уже есть заглушка в parseInitData)
 - [ ] Добавить refresh tokens
 - [ ] Добавить rate limiting по IP
@@ -291,6 +316,7 @@ async function createProduct(data) {
 ## Резюме
 
 ✅ **Что готово:**
+
 - Middleware для проверки аутентификации и авторизации
 - Функции для получения данных пользователя
 - Защита админского эндпоинта products.ts
@@ -299,12 +325,14 @@ async function createProduct(data) {
 - Подробная документация
 
 📝 **Что нужно сделать:**
-1. Применить requireAuth к остальным /api/admin/* эндпоинтам (см. ADMIN_API_AUTH_GUIDE.md)
+
+1. Применить requireAuth к остальным /api/admin/\* эндпоинтам (см. ADMIN_API_AUTH_GUIDE.md)
 2. Обновить все компоненты админки для использования fetchWithAuth (см. FRONTEND_ADMIN_AUTH_SETUP.md)
 3. Добавить таблицу admin_logs для логирования
 4. Протестировать все эндпоинты
 
 📋 **Чеклист внедрения:**
+
 - [x] lib/auth.ts создан
 - [x] lib/frontend/auth.ts создан
 - [x] pages/api/admin/products.ts защищен
@@ -315,6 +343,6 @@ async function createProduct(data) {
 - [ ] pages/api/admin/settings.ts защищен
 - [ ] pages/api/admin/import.ts защищен
 - [ ] pages/api/admin/broadcast.ts защищен
-- [ ] Обновлены все pages/admin/*.tsx компоненты
+- [ ] Обновлены все pages/admin/\*.tsx компоненты
 - [ ] Добавлена таблица admin_logs
 - [ ] Проведено тестирование

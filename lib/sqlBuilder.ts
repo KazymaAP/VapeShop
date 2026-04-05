@@ -12,23 +12,31 @@ const ALLOWED_FIELDS: Record<string, Set<string>> = {
   pickup_points: new Set(['name', 'address', 'is_active']),
   pages: new Set(['slug', 'title', 'content', 'is_published']),
   promocodes: new Set(['code', 'discount_percent', 'discount_fixed', 'max_uses', 'is_active']),
-  products: new Set(['name', 'description', 'price', 'stock', 'category_id', 'brand_id', 'is_active']),
+  products: new Set([
+    'name',
+    'description',
+    'price',
+    'stock',
+    'category_id',
+    'brand_id',
+    'is_active',
+  ]),
   users: new Set(['role', 'is_blocked', 'phone', 'email']),
 };
 
 /**
  * Безопасно строит SET часть UPDATE запроса
- * 
+ *
  * @param tableName Имя таблицы (используется для проверки белого списка)
  * @param updates Объект с полями и значениями
  * @returns Кортеж [SET clause, values array, параметр idx для WHERE]
- * 
+ *
  * @example
  * const [setClause, values, nextIdx] = buildUpdateSet('users', { email: 'new@example.com', role: 'admin' });
  * // setClause: 'email = $1, role = $2'
  * // values: ['new@example.com', 'admin']
  * // nextIdx: 3
- * 
+ *
  * await query(`UPDATE users SET ${setClause} WHERE id = $${nextIdx}`, [...values, userId]);
  */
 export function buildUpdateSet(
@@ -36,7 +44,7 @@ export function buildUpdateSet(
   updates: Record<string, unknown>
 ): [string, unknown[], number] {
   const allowedFields = ALLOWED_FIELDS[tableName];
-  
+
   if (!allowedFields) {
     throw new Error(`Таблица '${tableName}' не добавлена в белый список ALLOWED_FIELDS`);
   }
@@ -50,7 +58,7 @@ export function buildUpdateSet(
     if (!allowedFields.has(key)) {
       throw new Error(
         `Поле '${key}' не разрешено для таблицы '${tableName}'. ` +
-        `Разрешённые поля: ${Array.from(allowedFields).join(', ')}`
+          `Разрешённые поля: ${Array.from(allowedFields).join(', ')}`
       );
     }
 
@@ -71,7 +79,7 @@ export function buildUpdateSet(
 /**
  * Добавляет новую таблицу в белый список
  * Вызывайте это при добавлении новых таблиц
- * 
+ *
  * @param tableName Имя таблицы
  * @param fields Набор разрешённых полей
  */

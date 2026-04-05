@@ -24,7 +24,7 @@ interface ActivationModalProps {
 
 /**
  * ActivationModal - модальное окно для активации товаров
- * 
+ *
  * Позволяет выбрать финальную цену, категорию, бренд,
  * загрузить изображения и установить флаги товара.
  */
@@ -44,7 +44,9 @@ export default function ActivationModal({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const [priceType, setPriceType] = useState<'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual'>('tier1');
+  const [priceType, setPriceType] = useState<
+    'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual'
+  >('tier1');
   const [manualPrice, setManualPrice] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -127,7 +129,7 @@ export default function ActivationModal({
     }
 
     // Валидация изображений
-    const validUrls = imageUrls.filter(url => {
+    const validUrls = imageUrls.filter((url) => {
       try {
         const trimmed = url.trim();
         if (!trimmed) return false;
@@ -158,7 +160,7 @@ export default function ActivationModal({
     setLoading(true);
     try {
       const finalPrice = getSelectedPrice();
-      const validUrls = imageUrls.filter(url => url.trim());
+      const validUrls = imageUrls.filter((url) => url.trim());
 
       const payload = {
         price_import_ids: productIds,
@@ -216,10 +218,7 @@ export default function ActivationModal({
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/70 backdrop-blur z-40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/70 backdrop-blur z-40" onClick={onClose} />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
@@ -231,7 +230,14 @@ export default function ActivationModal({
               onClick={onClose}
               className="text-textSecondary hover:text-neon transition-colors p-1"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -265,10 +271,12 @@ export default function ActivationModal({
                       name="price"
                       value="tier1"
                       checked={priceType === 'tier1'}
-                      onChange={(e) => setPriceType(e.target.value as any)}
+                      onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-textSecondary">Tier 1: {tier1Price.toLocaleString('ru-RU')} ₽</span>
+                    <span className="text-sm text-textSecondary">
+                      Tier 1: {tier1Price.toLocaleString('ru-RU')} ₽
+                    </span>
                   </label>
                 )}
                 {tier2Price !== null && (
@@ -278,10 +286,12 @@ export default function ActivationModal({
                       name="price"
                       value="tier2"
                       checked={priceType === 'tier2'}
-                      onChange={(e) => setPriceType(e.target.value as any)}
+                      onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-textSecondary">Tier 2: {tier2Price.toLocaleString('ru-RU')} ₽</span>
+                    <span className="text-sm text-textSecondary">
+                      Tier 2: {tier2Price.toLocaleString('ru-RU')} ₽
+                    </span>
                   </label>
                 )}
                 {tier3Price !== null && (
@@ -291,10 +301,12 @@ export default function ActivationModal({
                       name="price"
                       value="tier3"
                       checked={priceType === 'tier3'}
-                      onChange={(e) => setPriceType(e.target.value as any)}
+                      onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-textSecondary">Tier 3: {tier3Price.toLocaleString('ru-RU')} ₽</span>
+                    <span className="text-sm text-textSecondary">
+                      Tier 3: {tier3Price.toLocaleString('ru-RU')} ₽
+                    </span>
                   </label>
                 )}
                 {distributorPrice !== null && (
@@ -304,10 +316,12 @@ export default function ActivationModal({
                       name="price"
                       value="distributor"
                       checked={priceType === 'distributor'}
-                      onChange={(e) => setPriceType(e.target.value as any)}
+                      onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-textSecondary">Дистрибьюторская: {distributorPrice.toLocaleString('ru-RU')} ₽</span>
+                    <span className="text-sm text-textSecondary">
+                      Дистрибьюторская: {distributorPrice.toLocaleString('ru-RU')} ₽
+                    </span>
                   </label>
                 )}
                 <label className="flex items-center gap-3 p-3 bg-bgDark rounded-xl border border-border hover:border-neon/50 cursor-pointer transition-colors">
@@ -316,7 +330,7 @@ export default function ActivationModal({
                     name="price"
                     value="manual"
                     checked={priceType === 'manual'}
-                    onChange={(e) => setPriceType(e.target.value as any)}
+                    onChange={(e) => setPriceType(e.target.value as 'tier1' | 'tier2' | 'tier3' | 'distributor' | 'manual')}
                     className="w-4 h-4"
                   />
                   <span className="text-sm text-textSecondary">Ручной ввод</span>
@@ -337,9 +351,7 @@ export default function ActivationModal({
 
             {/* Category Selection */}
             <div>
-              <label className="block text-sm font-medium text-textPrimary mb-2">
-                Категория *
-              </label>
+              <label className="block text-sm font-medium text-textPrimary mb-2">Категория *</label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
@@ -365,9 +377,7 @@ export default function ActivationModal({
 
             {/* Brand Selection */}
             <div>
-              <label className="block text-sm font-medium text-textPrimary mb-2">
-                Бренд *
-              </label>
+              <label className="block text-sm font-medium text-textPrimary mb-2">Бренд *</label>
               <select
                 value={brandId}
                 onChange={(e) => setBrandId(e.target.value)}
@@ -470,7 +480,9 @@ export default function ActivationModal({
                 disabled={loading}
                 className="flex-1 bg-gradient-to-r from-[#7c3aed] to-neon rounded-full px-4 py-2.5 text-sm text-white font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2"
               >
-                {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {loading && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
                 {loading ? 'Активация...' : 'Активировать'}
               </button>
               <button

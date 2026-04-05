@@ -7,10 +7,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Проверяем CRON_SECRET
   const cronSecret = req.headers['x-cron-secret'];
   if (cronSecret !== process.env.CRON_SECRET) {
@@ -72,7 +69,7 @@ export default async function handler(
        AND id IN (SELECT order_id FROM order_archive)`,
       []
     );
-    cleanedRows += (deleteArchivedResult.rowCount || 0);
+    cleanedRows += deleteArchivedResult.rowCount || 0;
 
     // Логируем операцию
     console.log(`Cleanup completed: Removed ${cleanedRows} old records`);

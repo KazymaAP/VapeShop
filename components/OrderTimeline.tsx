@@ -48,18 +48,9 @@ const STATUS_CONFIG = {
   },
 };
 
-export function OrderTimeline({
-  events,
-  currentStatus,
-  className = '',
-}: OrderTimelineProps) {
+export function OrderTimeline({ events, currentStatus, className = '' }: OrderTimelineProps) {
   // Определяем последовательность статусов
-  const statusOrder: TimelineEvent['status'][] = [
-    'pending',
-    'processing',
-    'shipped',
-    'delivered',
-  ];
+  const statusOrder: TimelineEvent['status'][] = ['pending', 'processing', 'shipped', 'delivered'];
 
   const currentIndex = statusOrder.indexOf(currentStatus);
 
@@ -75,7 +66,6 @@ export function OrderTimeline({
           const config = STATUS_CONFIG[status];
           const isCompleted = index < currentIndex;
           const isCurrent = index === currentIndex;
-          const isUpcoming = index > currentIndex;
 
           return (
             <div key={status} className="mb-6 last:mb-0">
@@ -87,8 +77,8 @@ export function OrderTimeline({
                     isCompleted
                       ? 'bg-success border-success'
                       : isCurrent
-                      ? 'bg-neon border-neon'
-                      : 'bg-bgDark border-border'
+                        ? 'bg-neon border-neon'
+                        : 'bg-bgDark border-border'
                   }
                 `}
               />
@@ -176,11 +166,7 @@ interface DeliveryTrackingProps {
   longitude?: number;
 }
 
-export function DeliveryTracking({
-  courierName,
-  courierPhone,
-  location,
-}: DeliveryTrackingProps) {
+export function DeliveryTracking({ courierName, courierPhone, location }: DeliveryTrackingProps) {
   return (
     <div className="p-4 rounded-lg border border-border bg-cardBg">
       <h3 className="font-semibold text-textPrimary mb-4 flex items-center gap-2">
@@ -198,10 +184,7 @@ export function DeliveryTracking({
         {courierPhone && (
           <div>
             <p className="text-xs text-textSecondary">Телефон курьера</p>
-            <a
-              href={`tel:${courierPhone}`}
-              className="font-medium text-neon hover:underline"
-            >
+            <a href={`tel:${courierPhone}`} className="font-medium text-neon hover:underline">
               {courierPhone}
             </a>
           </div>

@@ -1,3 +1,5 @@
+
+
 # SECURITY ISSUES - DETAILED FINDINGS
 
 ## Executive Summary
@@ -12,98 +14,98 @@
 
 ### 1. Admin Endpoints Protection
 
-| File | Status | Auth | Role Check | Notes |
-|------|--------|------|-----------|-------|
-| \/admin/activate.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/alerts.ts\ | ✅ PASS | requireAuth | ✅ 'manager', 'admin', 'super_admin' | OK |
-| \/admin/audit-logs.ts\ | ✅ PASS | requireAuth | ✅ 'super_admin', 'admin', 'manager' | OK |
-| \/admin/banners.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/broadcast.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/bulk-edit.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/dashboard-advanced.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'super_admin' | OK |
-| \/admin/dashboard-stats.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'super_admin' | OK |
-| \/admin/export-orders.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'manager' | OK |
-| \/admin/export-orders-v2.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'manager' | OK |
-| \/admin/faq.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/import.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/kanban.ts\ | ✅ PASS | requireAuth | ✅ 'manager', 'admin', 'super_admin' | OK |
-| \/admin/low-stock.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'manager' | OK |
-| \/admin/manager-stats.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'super_admin' | OK |
-| \/admin/orders.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'manager' | OK |
-| \/admin/orders-grouped.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'manager' | OK |
-| \/admin/orders-kanban.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'manager' | OK |
-| \/admin/pages.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/pickup-points.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/products.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/promotions.ts\ | ✅ PASS | requireAuth | ✅ 'admin', 'super_admin' | OK |
-| \/admin/rbac.ts\ | ✅ PASS | requireAuth | ✅ 'super_admin' | OK |
-| \/admin/roles.ts\ | ✅ PASS | requireAuth | ✅ 'super_admin' | OK |
-| \/admin/search-orders.ts\ | ✅ PASS | requireAuth | ✅ 'manager', 'admin', 'super_admin' | OK |
-| \/admin/settings.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/stats.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
-| \/admin/users.ts\ | ✅ PASS | requireAuth | ✅ 'admin' | OK |
+| File                            | Status  | Auth        | Role Check                           | Notes |
+| ------------------------------- | ------- | ----------- | ------------------------------------ | ----- |
+| \/admin/activate.ts\            | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/alerts.ts\              | ✅ PASS | requireAuth | ✅ 'manager', 'admin', 'super_admin' | OK    |
+| \/admin/audit-logs.ts\          | ✅ PASS | requireAuth | ✅ 'super_admin', 'admin', 'manager' | OK    |
+| \/admin/banners.ts\             | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/broadcast.ts\           | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/bulk-edit.ts\           | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/dashboard-advanced.ts\  | ✅ PASS | requireAuth | ✅ 'admin', 'super_admin'            | OK    |
+| \/admin/dashboard-stats.ts\     | ✅ PASS | requireAuth | ✅ 'admin', 'super_admin'            | OK    |
+| \/admin/export-orders.ts\       | ✅ PASS | requireAuth | ✅ 'admin', 'manager'                | OK    |
+| \/admin/export-orders-v2.ts\    | ✅ PASS | requireAuth | ✅ 'admin', 'manager'                | OK    |
+| \/admin/faq.ts\                 | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/import.ts\              | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/kanban.ts\              | ✅ PASS | requireAuth | ✅ 'manager', 'admin', 'super_admin' | OK    |
+| \/admin/low-stock.ts\           | ✅ PASS | requireAuth | ✅ 'admin', 'manager'                | OK    |
+| \/admin/manager-stats.ts\       | ✅ PASS | requireAuth | ✅ 'admin', 'super_admin'            | OK    |
+| \/admin/orders.ts\              | ✅ PASS | requireAuth | ✅ 'admin', 'manager'                | OK    |
+| \/admin/orders-grouped.ts\      | ✅ PASS | requireAuth | ✅ 'admin', 'manager'                | OK    |
+| \/admin/orders-kanban.ts\       | ✅ PASS | requireAuth | ✅ 'admin', 'manager'                | OK    |
+| \/admin/pages.ts\               | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/pickup-points.ts\       | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/products.ts\            | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/promotions.ts\          | ✅ PASS | requireAuth | ✅ 'admin', 'super_admin'            | OK    |
+| \/admin/rbac.ts\                | ✅ PASS | requireAuth | ✅ 'super_admin'                     | OK    |
+| \/admin/roles.ts\               | ✅ PASS | requireAuth | ✅ 'super_admin'                     | OK    |
+| \/admin/search-orders.ts\       | ✅ PASS | requireAuth | ✅ 'manager', 'admin', 'super_admin' | OK    |
+| \/admin/settings.ts\            | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/stats.ts\               | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
+| \/admin/users.ts\               | ✅ PASS | requireAuth | ✅ 'admin'                           | OK    |
 
 **Summary:** 28/28 Admin endpoints ✅ PROTECTED
 
 ### 2. Support Endpoints Protection
 
-| File | Status | Auth | Role Check | Notes |
-|------|--------|------|-----------|-------|
-| \/support/customers/[id].ts\ | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin' | OK |
-| \/support/search-customer.ts\ | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin' | OK |
-| \/support/tickets.ts\ | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin' | OK |
-| \/support/tickets/[ticketId].ts\ | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin', 'customer' | OK |
-| \/support/tickets/[ticketId]/messages.ts\ | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin', 'customer' | OK |
+| File                                       | Status  | Auth        | Role Check                                       | Notes |
+| ------------------------------------------ | ------- | ----------- | ------------------------------------------------ | ----- |
+| \/support/customers/[id].ts\               | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin'             | OK    |
+| \/support/search-customer.ts\              | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin'             | OK    |
+| \/support/tickets.ts\                      | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin'             | OK    |
+| \/support/tickets/[ticketId].ts\           | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin', 'customer' | OK    |
+| \/support/tickets/[ticketId]/messages.ts\  | ✅ PASS | requireAuth | ✅ 'support', 'admin', 'super_admin', 'customer' | OK    |
 
 **Summary:** 5/5 Support endpoints ✅ PROTECTED
 
 ### 3. Courier Endpoints Protection
 
-| File | Status | Auth | Role Check | Notes |
-|------|--------|------|-----------|-------|
-| \/courier/deliveries.ts\ | ✅ PASS | requireAuth | ✅ 'courier', 'admin' | OK |
-| \/courier/deliveries/[id]/complete.ts\ | ✅ PASS | requireAuth | ✅ 'courier' | OK |
+| File                                    | Status  | Auth        | Role Check            | Notes |
+| --------------------------------------- | ------- | ----------- | --------------------- | ----- |
+| \/courier/deliveries.ts\                | ✅ PASS | requireAuth | ✅ 'courier', 'admin' | OK    |
+| \/courier/deliveries/[id]/complete.ts\  | ✅ PASS | requireAuth | ✅ 'courier'          | OK    |
 
 **Summary:** 2/2 Courier endpoints ✅ PROTECTED
 
 ### 4. Cron Endpoints Security
 
-| File | Line | Protection | Status |
-|------|------|-----------|--------|
-| \/cron/abandoned-cart.ts\ | 26-28 | CRON_SECRET | ✅ PASS |
-| \/cron/cleanup-old-sessions.ts\ | 15-17 | CRON_SECRET | ✅ PASS |
-| \/cron/db-backup.ts\ | 20-22 | CRON_SECRET | ✅ PASS |
-| \/cron/price-drop-notifications.ts\ | 16-18 | CRON_SECRET | ✅ PASS |
+| File                                 | Line  | Protection  | Status  |
+| ------------------------------------ | ----- | ----------- | ------- |
+| \/cron/abandoned-cart.ts\            | 26-28 | CRON_SECRET | ✅ PASS |
+| \/cron/cleanup-old-sessions.ts\      | 15-17 | CRON_SECRET | ✅ PASS |
+| \/cron/db-backup.ts\                 | 20-22 | CRON_SECRET | ✅ PASS |
+| \/cron/price-drop-notifications.ts\  | 16-18 | CRON_SECRET | ✅ PASS |
 
 **Summary:** 4/4 Cron endpoints ✅ PROTECTED
 
 ### 5. Cart API Security
 
-| File | Check | Status | Details |
-|------|-------|--------|---------|
-| \/cart.ts\ | Auth | ✅ PASS | Uses getTelegramIdFromRequest() |
-| \/cart.ts\ | Ownership | ✅ PASS | Checks telegram_id !== currentTelegramId at lines 21, 53, 94, 130 |
-| \/cart.ts\ | Input Validation | ✅ PASS | Validates quantity and fields |
-| \/cart.ts\ | HMAC | ✅ PASS | Uses verified Telegram initData |
+| File        | Check            | Status  | Details                                                           |
+| ----------- | ---------------- | ------- | ----------------------------------------------------------------- |
+| \/cart.ts\  | Auth             | ✅ PASS | Uses getTelegramIdFromRequest()                                   |
+| \/cart.ts\  | Ownership        | ✅ PASS | Checks telegram_id !== currentTelegramId at lines 21, 53, 94, 130 |
+| \/cart.ts\  | Input Validation | ✅ PASS | Validates quantity and fields                                     |
+| \/cart.ts\  | HMAC             | ✅ PASS | Uses verified Telegram initData                                   |
 
 **Summary:** ✅ CART API SECURE
 
 ### 6. Balance API Security
 
-| File | Check | Status | Details |
-|------|-------|--------|---------|
-| \/user/balance.ts\ | Auth | ✅ PASS | export default requireAuth(handler, ['customer']) at line 55 |
-| \/user/balance.ts\ | Telegram ID | ✅ PASS | Uses getTelegramId(req) after requireAuth |
+| File                | Check       | Status  | Details                                                      |
+| ------------------- | ----------- | ------- | ------------------------------------------------------------ |
+| \/user/balance.ts\  | Auth        | ✅ PASS | export default requireAuth(handler, ['customer']) at line 55 |
+| \/user/balance.ts\  | Telegram ID | ✅ PASS | Uses getTelegramId(req) after requireAuth                    |
 
 **Summary:** ✅ BALANCE API SECURE
 
 ### 7. x-telegram-id Header Usage
 
-| Location | Status | Notes |
-|----------|--------|-------|
-| Production | ✅ BLOCKED | NODE_ENV !== 'production' check |
-| Development | ✅ ALLOWED | Fallback for local testing |
-| Verification | ✅ WARNING | Console warning logged |
+| Location     | Status     | Notes                           |
+| ------------ | ---------- | ------------------------------- |
+| Production   | ✅ BLOCKED | NODE_ENV !== 'production' check |
+| Development  | ✅ ALLOWED | Fallback for local testing      |
+| Verification | ✅ WARNING | Console warning logged          |
 
 **Summary:** ✅ x-telegram-id SAFELY IMPLEMENTED
 
@@ -119,17 +121,20 @@
 
 **Issue Description:**
 The init-super-admin endpoint has a logical dependency issue for fresh installations:
+
 - Requires existing admin or super_admin to create the first super_admin
 - If database starts with no admin users, this endpoint cannot be called
 - This creates a "chicken and egg" problem for new deployments
 
 **Current Protection:**
+
 - ✅ Line 20: requireAuth(['super_admin', 'admin'])
 - ✅ Line 26: SUPER_ADMIN_INIT_PASSWORD required from .env
 - ✅ Line 39-44: Prevents duplicate super_admin creation
 - ✅ Line 68-75: Audit logging
 
 **Recommendation:**
+
 1. Create a bootstrap endpoint that:
    - Checks if ANY admin user exists
    - If not, allows first admin creation with special bootstrap token
@@ -152,24 +157,24 @@ The init-super-admin endpoint has a logical dependency issue for fresh installat
 
 ### Endpoints Summary
 
-| Category | Total | Protected | % Protected |
-|----------|-------|-----------|-------------|
-| Admin | 28 | 28 | 100% ✅ |
-| Support | 5 | 5 | 100% ✅ |
-| Courier | 2 | 2 | 100% ✅ |
-| Cron | 4 | 4 | 100% ✅ |
-| Other API | 6 | 6 | 100% ✅ |
-| **TOTAL** | **45** | **45** | **100% ✅** |
+| Category  | Total  | Protected | % Protected |
+| --------- | ------ | --------- | ----------- |
+| Admin     | 28     | 28        | 100% ✅     |
+| Support   | 5      | 5         | 100% ✅     |
+| Courier   | 2      | 2         | 100% ✅     |
+| Cron      | 4      | 4         | 100% ✅     |
+| Other API | 6      | 6         | 100% ✅     |
+| **TOTAL** | **45** | **45**    | **100% ✅** |
 
 ### Protection Types
 
-| Protection Type | Count | Status |
-|-----------------|-------|--------|
-| requireAuth middleware | 41 | ✅ |
-| CRON_SECRET | 4 | ✅ |
-| HMAC-SHA256 verification | 41 | ✅ |
-| Role-based access control | 45 | ✅ |
-| Ownership verification | 6 | ✅ |
+| Protection Type           | Count | Status |
+| ------------------------- | ----- | ------ |
+| requireAuth middleware    | 41    | ✅     |
+| CRON_SECRET               | 4     | ✅     |
+| HMAC-SHA256 verification  | 41    | ✅     |
+| Role-based access control | 45    | ✅     |
+| Ownership verification    | 6     | ✅     |
 
 ---
 
@@ -232,6 +237,7 @@ The init-super-admin endpoint has a logical dependency issue for fresh installat
 **Risk Level:** LOW 🟢
 
 **Recommended Actions:**
+
 1. Ensure all .env secrets are set on production
 2. Monitor admin_logs regularly
 3. Review RBAC changes quarterly
@@ -239,8 +245,8 @@ The init-super-admin endpoint has a logical dependency issue for fresh installat
 5. Keep audit logs for compliance
 
 **Next Steps:**
+
 - Deploy to production with all .env variables configured
 - Set up monitoring and alerting for failed auth attempts
 - Regular security audits (quarterly recommended)
 - Keep dependencies updated
-

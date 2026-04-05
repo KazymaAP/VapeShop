@@ -3,6 +3,7 @@
 ## Test Environment Setup
 
 ### Prerequisites
+
 ```bash
 # Database must be initialized with migration
 psql $NEON_DATABASE_URL < db/migrations/004_delivery_management.sql
@@ -17,6 +18,7 @@ BUYER_TELEGRAM_ID=987654321    # Your buyer user ID
 ```
 
 ### Test Tools
+
 - cURL or Postman for API testing
 - Database client for verification
 - Browser DevTools for header inspection
@@ -28,6 +30,7 @@ BUYER_TELEGRAM_ID=987654321    # Your buyer user ID
 ### 1. Admin Pickup Point Management
 
 #### Test 1.1: Get All Pickup Points (Paginated)
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/admin/pickup-points?page=1&limit=20' \
@@ -35,11 +38,13 @@ curl -X GET \
 ```
 
 **Expected Response (200):**
+
 - Array of pickup points with id, name, address, is_active
 - Pagination object with total, page, limit, pages
 - All sample pickup points present
 
 **Verification:**
+
 - [ ] Returns 3 sample pickup points
 - [ ] Pagination data correct
 - [ ] is_active field present
@@ -47,6 +52,7 @@ curl -X GET \
 ---
 
 #### Test 1.2: Create Pickup Point
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/admin/pickup-points' \
@@ -59,6 +65,7 @@ curl -X POST \
 ```
 
 **Expected Response (201):**
+
 ```json
 {
   "pickup_point": {
@@ -73,6 +80,7 @@ curl -X POST \
 ```
 
 **Verification:**
+
 - [ ] Returns 201 Created status
 - [ ] ID is UUID
 - [ ] Timestamps are present and valid
@@ -81,6 +89,7 @@ curl -X POST \
 ---
 
 #### Test 1.3: Create Pickup Point - Validation Error
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/admin/pickup-points' \
@@ -93,6 +102,7 @@ curl -X POST \
 ```
 
 **Expected Response (400):**
+
 ```json
 {
   "error": "Название пункта выдачи обязательно"
@@ -100,6 +110,7 @@ curl -X POST \
 ```
 
 **Verification:**
+
 - [ ] Returns 400 Bad Request
 - [ ] Error message in Russian
 - [ ] No pickup point created
@@ -107,6 +118,7 @@ curl -X POST \
 ---
 
 #### Test 1.4: Update Pickup Point
+
 ```bash
 curl -X PUT \
   'http://localhost:3000/api/admin/pickup-points' \
@@ -120,6 +132,7 @@ curl -X PUT \
 ```
 
 **Expected Response (200):**
+
 ```json
 {
   "success": true
@@ -127,6 +140,7 @@ curl -X PUT \
 ```
 
 **Verification:**
+
 - [ ] Returns 200 OK
 - [ ] Data updated in database
 - [ ] Admin log shows change details
@@ -135,6 +149,7 @@ curl -X PUT \
 ---
 
 #### Test 1.5: Delete Pickup Point (Soft Delete)
+
 ```bash
 curl -X DELETE \
   'http://localhost:3000/api/admin/pickup-points?id=<pickup_point_id>' \
@@ -142,6 +157,7 @@ curl -X DELETE \
 ```
 
 **Expected Response (200):**
+
 ```json
 {
   "success": true
@@ -149,12 +165,14 @@ curl -X DELETE \
 ```
 
 **Database Verification:**
+
 ```sql
 SELECT * FROM pickup_points WHERE id = '<pickup_point_id>';
 -- Should show: is_active = false
 ```
 
 **Verification:**
+
 - [ ] Returns 200 OK
 - [ ] is_active set to false
 - [ ] Data not actually deleted
@@ -165,6 +183,7 @@ SELECT * FROM pickup_points WHERE id = '<pickup_point_id>';
 ### 2. Customer Address Management
 
 #### Test 2.1: Get User's Addresses
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/addresses' \
@@ -172,6 +191,7 @@ curl -X GET \
 ```
 
 **Expected Response (200):**
+
 ```json
 {
   "addresses": [
@@ -188,6 +208,7 @@ curl -X GET \
 ```
 
 **Verification:**
+
 - [ ] Returns only authenticated user's addresses
 - [ ] Sorted by is_default DESC, created_at DESC
 - [ ] Default address first
@@ -195,6 +216,7 @@ curl -X GET \
 ---
 
 #### Test 2.2: Create First Address (Auto-Default)
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/addresses' \
@@ -207,6 +229,7 @@ curl -X POST \
 ```
 
 **Expected Response (201):**
+
 ```json
 {
   "address": {
@@ -221,6 +244,7 @@ curl -X POST \
 ```
 
 **Verification:**
+
 - [ ] Returns 201 Created
 - [ ] is_default is true (first address auto-default)
 - [ ] Address stored in database
@@ -228,6 +252,7 @@ curl -X POST \
 ---
 
 #### Test 2.3: Create Second Address (Explicit Default)
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/addresses' \
@@ -240,14 +265,16 @@ curl -X POST \
 ```
 
 **Database Verification:**
+
 ```sql
-SELECT * FROM addresses WHERE user_telegram_id = 987654321 
+SELECT * FROM addresses WHERE user_telegram_id = 987654321
 ORDER BY address;
 -- First address should now have is_default = false
 -- Second address should have is_default = true
 ```
 
 **Verification:**
+
 - [ ] New address created with is_default = true
 - [ ] Previous default switched to false
 - [ ] Only one default per user
@@ -255,6 +282,7 @@ ORDER BY address;
 ---
 
 #### Test 2.4: Duplicate Address Prevention
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/addresses' \
@@ -266,6 +294,7 @@ curl -X POST \
 ```
 
 **Expected Response (400):**
+
 ```json
 {
   "error": "Этот адрес уже добавлен"
@@ -273,12 +302,14 @@ curl -X POST \
 ```
 
 **Verification:**
+
 - [ ] Returns 400 Bad Request
 - [ ] No duplicate created
 
 ---
 
 #### Test 2.5: Address Validation - Too Short
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/addresses' \
@@ -290,6 +321,7 @@ curl -X POST \
 ```
 
 **Expected Response (400):**
+
 ```json
 {
   "error": "Адрес должен быть не менее 5 символов"
@@ -299,6 +331,7 @@ curl -X POST \
 ---
 
 #### Test 2.6: Update Address
+
 ```bash
 curl -X PUT \
   'http://localhost:3000/api/addresses' \
@@ -311,6 +344,7 @@ curl -X PUT \
 ```
 
 **Expected Response (200):**
+
 ```json
 {
   "success": true
@@ -318,12 +352,14 @@ curl -X PUT \
 ```
 
 **Verification:**
+
 - [ ] Address updated in database
 - [ ] updated_at timestamp changed
 
 ---
 
 #### Test 2.7: Ownership Verification
+
 ```bash
 # Create address as user 987654321
 # Try to update as different user
@@ -338,6 +374,7 @@ curl -X PUT \
 ```
 
 **Expected Response (404):**
+
 ```json
 {
   "error": "Адрес не найден"
@@ -345,6 +382,7 @@ curl -X PUT \
 ```
 
 **Verification:**
+
 - [ ] Returns 404 (not 403) for security
 - [ ] Address not modified
 - [ ] Different user cannot access
@@ -352,6 +390,7 @@ curl -X PUT \
 ---
 
 #### Test 2.8: Delete Address (Default Promotion)
+
 ```bash
 # Setup: Create 2 addresses, set first as default, delete it
 # 1. Get address IDs
@@ -371,6 +410,7 @@ curl -X GET \
 ```
 
 **Verification:**
+
 - [ ] Returns 200 OK
 - [ ] Default address deleted
 - [ ] Next most recent address is now default
@@ -381,17 +421,20 @@ curl -X GET \
 ### 3. Public Pickup Points Listing
 
 #### Test 3.1: Get Active Pickup Points (No Auth)
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/pickup-points'
 ```
 
 **Expected Response (200):**
+
 - No authentication required
 - Only active pickup points returned
 - Cache headers present
 
 **Verification:**
+
 - [ ] No X-Telegram-Id required
 - [ ] Returns 200 OK
 - [ ] Cache-Control header shows max-age=3600
@@ -400,18 +443,21 @@ curl -X GET \
 ---
 
 #### Test 3.2: Verify Cache Headers
+
 ```bash
 curl -I \
   'http://localhost:3000/api/pickup-points'
 ```
 
 **Expected Headers:**
+
 ```
 Cache-Control: public, max-age=3600
 Content-Type: application/json
 ```
 
 **Verification:**
+
 - [ ] Cache-Control header present
 - [ ] Max-age is 3600 seconds (1 hour)
 - [ ] Public cache policy
@@ -419,12 +465,14 @@ Content-Type: application/json
 ---
 
 #### Test 3.3: Pagination
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/pickup-points?page=1&limit=2'
 ```
 
 **Expected Response:**
+
 ```json
 {
   "pickup_points": [...],
@@ -438,6 +486,7 @@ curl -X GET \
 ```
 
 **Verification:**
+
 - [ ] Returns maximum 2 items
 - [ ] Pagination info shows pages=2
 - [ ] Next page available
@@ -447,6 +496,7 @@ curl -X GET \
 ### 4. Order Creation with Delivery
 
 #### Test 4.1: Order with Pickup Delivery
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/orders' \
@@ -467,6 +517,7 @@ curl -X POST \
 ```
 
 **Expected Response (201):**
+
 ```json
 {
   "order_id": "uuid",
@@ -476,14 +527,16 @@ curl -X POST \
 ```
 
 **Database Verification:**
+
 ```sql
 SELECT delivery_method, pickup_point_id, address, delivery_date
 FROM orders WHERE id = '<order_id>';
--- Should show: delivery_method='pickup', pickup_point_id=uuid, 
+-- Should show: delivery_method='pickup', pickup_point_id=uuid,
 -- address=NULL, delivery_date=NULL
 ```
 
 **Verification:**
+
 - [ ] Order created with 201 status
 - [ ] delivery_method set to 'pickup'
 - [ ] pickup_point_id linked
@@ -492,6 +545,7 @@ FROM orders WHERE id = '<order_id>';
 ---
 
 #### Test 4.2: Order with Courier Delivery
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/orders' \
@@ -513,6 +567,7 @@ curl -X POST \
 ```
 
 **Expected Response (201):**
+
 ```json
 {
   "order_id": "uuid",
@@ -522,6 +577,7 @@ curl -X POST \
 ```
 
 **Database Verification:**
+
 ```sql
 SELECT delivery_method, pickup_point_id, address, delivery_date
 FROM orders WHERE id = '<order_id>';
@@ -532,6 +588,7 @@ FROM orders WHERE id = '<order_id>';
 ---
 
 #### Test 4.3: Invalid Pickup Point
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/orders' \
@@ -545,6 +602,7 @@ curl -X POST \
 ```
 
 **Expected Response (404):**
+
 ```json
 {
   "error": "Pickup point not found or is inactive"
@@ -554,6 +612,7 @@ curl -X POST \
 ---
 
 #### Test 4.4: Invalid Courier Address
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/orders' \
@@ -568,6 +627,7 @@ curl -X POST \
 ```
 
 **Expected Response (400):**
+
 ```json
 {
   "error": "Address must be at least 10 characters for courier delivery"
@@ -577,6 +637,7 @@ curl -X POST \
 ---
 
 #### Test 4.5: Invalid Delivery Date
+
 ```bash
 curl -X POST \
   'http://localhost:3000/api/orders' \
@@ -591,6 +652,7 @@ curl -X POST \
 ```
 
 **Expected Response (400):**
+
 ```json
 {
   "error": "Delivery date must be at least tomorrow"
@@ -602,12 +664,14 @@ curl -X POST \
 ### 5. Authentication & Authorization Tests
 
 #### Test 5.1: Admin Only Endpoint - No Auth
+
 ```bash
 curl -X GET 'http://localhost:3000/api/admin/pickup-points'
 # No X-Telegram-Id header
 ```
 
 **Expected Response (401):**
+
 ```json
 {
   "error": "Unauthorized",
@@ -618,6 +682,7 @@ curl -X GET 'http://localhost:3000/api/admin/pickup-points'
 ---
 
 #### Test 5.2: Admin Only Endpoint - Buyer Role
+
 ```bash
 curl -X GET \
   'http://localhost:3000/api/admin/pickup-points' \
@@ -626,6 +691,7 @@ curl -X GET \
 ```
 
 **Expected Response (403):**
+
 ```json
 {
   "error": "Forbidden",
@@ -636,12 +702,14 @@ curl -X GET \
 ---
 
 #### Test 5.3: Customer Endpoint - No Auth
+
 ```bash
 curl -X GET 'http://localhost:3000/api/addresses'
 # No X-Telegram-Id header
 ```
 
 **Expected Response (401):**
+
 ```json
 {
   "error": "Unauthorized",
@@ -654,17 +722,19 @@ curl -X GET 'http://localhost:3000/api/addresses'
 ## Database Verification Queries
 
 ### Verify Tables Created
+
 ```sql
-SELECT tablename FROM pg_tables 
-WHERE schemaname='public' 
+SELECT tablename FROM pg_tables
+WHERE schemaname='public'
 AND tablename IN ('pickup_points', 'addresses');
 -- Should return both tables
 ```
 
 ### Verify Indexes
+
 ```sql
-SELECT indexname FROM pg_indexes 
-WHERE schemaname='public' 
+SELECT indexname FROM pg_indexes
+WHERE schemaname='public'
 AND tablename IN ('pickup_points', 'addresses')
 ORDER BY indexname;
 -- Should show: idx_addresses_created_at, idx_addresses_is_default,
@@ -673,15 +743,17 @@ ORDER BY indexname;
 ```
 
 ### Verify Sample Pickup Points
+
 ```sql
 SELECT COUNT(*) FROM pickup_points WHERE is_active = TRUE;
 -- Should return 3
 ```
 
 ### Verify Orders Table Extensions
+
 ```sql
-SELECT column_name FROM information_schema.columns 
-WHERE table_name = 'orders' 
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'orders'
 AND column_name IN ('delivery_method', 'pickup_point_id', 'address', 'delivery_date');
 -- Should return all 4 columns
 ```
@@ -691,6 +763,7 @@ AND column_name IN ('delivery_method', 'pickup_point_id', 'address', 'delivery_d
 ## Regression Testing Checklist
 
 After running all tests, verify:
+
 - [ ] No existing functionality broken
 - [ ] All error messages in Russian
 - [ ] All timestamps are ISO 8601 format

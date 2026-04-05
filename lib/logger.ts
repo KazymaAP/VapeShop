@@ -1,7 +1,7 @@
 /**
  * Структурированное логирование для production
  * Заменяет console.log, console.error и т.д.
- * 
+ *
  * Использование:
  * logger.info('Пользователь вошёл', { userId: 123 });
  * logger.error('Ошибка БД', error);
@@ -22,7 +22,7 @@ interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   error?: {
     name: string;
     message: string;
@@ -81,8 +81,8 @@ function writeLog(entry: LogEntry): void {
     // На development - в консоль с цветами
     const colors: Record<LogLevel, string> = {
       DEBUG: '\x1b[36m', // cyan
-      INFO: '\x1b[32m',  // green
-      WARN: '\x1b[33m',  // yellow
+      INFO: '\x1b[32m', // green
+      WARN: '\x1b[33m', // yellow
       ERROR: '\x1b[31m', // red
       FATAL: '\x1b[35m', // magenta
     };
@@ -95,7 +95,7 @@ function writeLog(entry: LogEntry): void {
  * Основной объект логгера
  */
 export const logger = {
-  debug(message: string, context?: Record<string, any>): void {
+  debug(message: string, context?: Record<string, unknown>): void {
     if (LOG_LEVELS.DEBUG >= LOG_LEVELS[getMinLogLevel()]) {
       writeLog({
         timestamp: new Date().toISOString(),
@@ -106,7 +106,7 @@ export const logger = {
     }
   },
 
-  info(message: string, context?: Record<string, any>): void {
+  info(message: string, context?: Record<string, unknown>): void {
     if (LOG_LEVELS.INFO >= LOG_LEVELS[getMinLogLevel()]) {
       writeLog({
         timestamp: new Date().toISOString(),
@@ -117,7 +117,7 @@ export const logger = {
     }
   },
 
-  warn(message: string, context?: Record<string, any>): void {
+  warn(message: string, context?: Record<string, unknown>): void {
     if (LOG_LEVELS.WARN >= LOG_LEVELS[getMinLogLevel()]) {
       writeLog({
         timestamp: new Date().toISOString(),
@@ -128,7 +128,7 @@ export const logger = {
     }
   },
 
-  error(message: string, err?: Error | unknown, context?: Record<string, any>): void {
+  error(message: string, err?: Error | unknown, context?: Record<string, unknown>): void {
     let error: LogEntry['error'];
     if (err instanceof Error) {
       error = {
@@ -149,7 +149,7 @@ export const logger = {
     }
   },
 
-  fatal(message: string, err?: Error | unknown, context?: Record<string, any>): void {
+  fatal(message: string, err?: Error | unknown, context?: Record<string, unknown>): void {
     let error: LogEntry['error'];
     if (err instanceof Error) {
       error = {

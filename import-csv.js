@@ -3,7 +3,9 @@ const fs = require('fs');
 const path = require('path');
 
 // Строка подключения (возьмите из переменной окружения или укажите явно)
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_uX6MnvH5OCBR@ep-small-mouse-amsy1py5-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const DATABASE_URL =
+  process.env.DATABASE_URL ||
+  'postgresql://neondb_owner:npg_uX6MnvH5OCBR@ep-small-mouse-amsy1py5-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 
 const csvFilePath = path.join(__dirname, 'price_import_ready.csv');
 
@@ -20,7 +22,7 @@ async function importCSV() {
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
-    const values = line.split(',').map(v => v.replace(/^"|"$/g, '').trim());
+    const values = line.split(',').map((v) => v.replace(/^"|"$/g, '').trim());
     if (values.length < 7) continue;
 
     const name = values[0];

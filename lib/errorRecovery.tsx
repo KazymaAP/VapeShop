@@ -2,7 +2,7 @@
  * Error Recovery компоненты и утилиты
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 interface RetryableErrorProps {
   message: string;
@@ -20,7 +20,7 @@ export function RetryableError({
   onRetry,
   isRetrying = false,
   action,
-  className = ''
+  className = '',
 }: RetryableErrorProps) {
   return (
     <div
@@ -36,7 +36,9 @@ export function RetryableError({
         <span className="text-2xl">⚠️</span>
         <div>
           <p className="text-danger font-medium">{message}</p>
-          <p className="text-sm text-textSecondary">Пожалуйста, попробуйте ещё раз или свяжитесь с поддержкой</p>
+          <p className="text-sm text-textSecondary">
+            Пожалуйста, попробуйте ещё раз или свяжитесь с поддержкой
+          </p>
         </div>
       </div>
 
@@ -74,13 +76,8 @@ interface RetryOptions {
   backoffFactor?: number;
 }
 
-export function useRetry(fn: () => Promise<any>, options: RetryOptions = {}) {
-  const {
-    maxAttempts = 3,
-    initialDelay = 100,
-    maxDelay = 5000,
-    backoffFactor = 2
-  } = options;
+export function useRetry(fn: () => Promise<unknown>, options: RetryOptions = {}) {
+  const { maxAttempts = 3, initialDelay = 100, maxDelay = 5000, backoffFactor = 2 } = options;
 
   const [isRetrying, setIsRetrying] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -102,15 +99,12 @@ export function useRetry(fn: () => Promise<any>, options: RetryOptions = {}) {
 
         if (i < maxAttempts - 1) {
           // Calculate delay with exponential backoff
-          const delay = Math.min(
-            initialDelay * Math.pow(backoffFactor, i),
-            maxDelay
-          );
+          const delay = Math.min(initialDelay * Math.pow(backoffFactor, i), maxDelay);
 
           // Визуальный feedback на UI (опционально)
           console.log(`Retry attempt ${i + 1} in ${delay}ms`);
 
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
@@ -155,7 +149,7 @@ export function useFetchWithRetry<T>(
     setLoading(true);
     const success = await retry();
     setLoading(false);
-    if (!success) {
+    if (!success && retryError instanceof Error) {
       setError(retryError);
     }
     return success;
@@ -171,7 +165,7 @@ export function useFetchWithRetry<T>(
     loading,
     error: error || retryError,
     retry: executeRetry,
-    isRetrying
+    isRetrying,
   };
 }
 

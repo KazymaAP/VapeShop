@@ -37,10 +37,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       await query(
         `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [req.body.sender_id || null, 'broadcast', JSON.stringify({ sent, failed, total: recipients.length })]
+        [
+          req.body.sender_id || null,
+          'broadcast',
+          JSON.stringify({ sent, failed, total: recipients.length }),
+        ]
       );
 
-      res.status(200).json({ message: `Рассылка завершена: ${sent} отправлено, ${failed} ошибок`, sent, failed });
+      res
+        .status(200)
+        .json({
+          message: `Рассылка завершена: ${sent} отправлено, ${failed} ошибок`,
+          sent,
+          failed,
+        });
     } catch (err) {
       console.error('Broadcast error:', err);
       res.status(500).json({ error: 'Ошибка рассылки' });
@@ -51,4 +61,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin']);
-

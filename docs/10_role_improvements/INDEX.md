@@ -9,6 +9,7 @@
 ## 🗺️ НАВИГАЦИЯ ПО ДОКУМЕНТАМ
 
 ### 🔴 НАЧНИ ОТСЮДА (5 мин)
+
 **Для новичков:** Начни с этого списка, если в первый раз работаешь с проектом
 
 1. **[README.md](./README.md)** — 📊 Обзор проекта и структура
@@ -34,6 +35,7 @@
 ### 📚 ДОКУМЕНТАЦИЯ ДЛЯ РАЗРАБОТКИ
 
 #### 🔧 Архитектура и планирование
+
 - **[analysis.md](./analysis.md)** — 📊 Анализ текущего кода
   - Что уже есть в проекте
   - Какие компоненты переиспользуются
@@ -49,6 +51,7 @@
   - Control checkpoints
 
 #### 🔌 API эндпоинты
+
 - **[sprint1_api_endpoints.md](./sprint1_api_endpoints.md)** — Sprint 1 APIs
   - Полная документация 6 эндпоинтов
   - Request/Response примеры (JSON)
@@ -69,6 +72,7 @@
   - Аналитика и геймификация
 
 #### 🎨 UI компоненты
+
 - **[sprint1_ui_components.md](./sprint1_ui_components.md)** — Sprint 1 UI
   - 6 новых страниц с макетами
   - Примеры React компонентов
@@ -81,6 +85,7 @@
 - **sprint4_ui_components.md** — Sprint 4 UI (TODO)
 
 #### 🧪 Тестирование
+
 - **[testing_guide.md](./testing_guide.md)** — Как тестировать
   - Подготовка окружения (8 тестовых пользователей)
   - 19 пошаговых тестовых сценариев
@@ -90,6 +95,7 @@
   - Чеклист тестирования по спринтам
 
 #### 📐 База данных
+
 - **db_schema.md** — Описание схемы БД (TODO)
   - 32 таблицы с полями и типами
   - Связи между таблицами
@@ -101,6 +107,7 @@
 ### 🗂️ ФАЙЛЫ В РЕПОЗИТОРИИ
 
 #### Миграции
+
 ```
 db/migrations/
 ├── 010_role_improvements_part1.sql    # 16 KB | Роли, RBAC, логирование
@@ -110,6 +117,7 @@ db/migrations/
 ```
 
 #### Документация (этот список)
+
 ```
 docs/10_role_improvements/
 ├── INDEX.md                           # 📑 Этот файл (навигация)
@@ -125,6 +133,7 @@ docs/10_role_improvements/
 ```
 
 #### Код
+
 ```
 lib/
 └── auth.ts                            # ✓ Обновлена (новые роли + функции)
@@ -153,29 +162,34 @@ pages/admin/
 ## 🎯 ПО ТИПУ ЧИТАТЕЛЯ
 
 ### Если ты **Project Manager**
+
 1. Прочитай: **README.md** (обзор)
 2. Прочитай: **implementation_plan.md** (план и schedule)
 3. Используй: **SUMMARY.md** (статистика и метрики)
 
 ### Если ты **Backend разработчик**
+
 1. Прочитай: **GETTING_STARTED.md** (подготовка)
 2. Прочитай: **analysis.md** (что можно переиспользовать)
 3. Работай: **sprint1_api_endpoints.md** (API документация)
 4. Тестируй: **testing_guide.md** (тестовые сценарии)
 
 ### Если ты **Frontend разработчик**
+
 1. Прочитай: **GETTING_STARTED.md** (подготовка)
 2. Работай: **sprint1_ui_components.md** (макеты и компоненты)
 3. Интегрируй: **sprint1_api_endpoints.md** (какие API есть)
 4. Тестируй: **testing_guide.md** (UI тесты)
 
 ### Если ты **QA / Тестировщик**
+
 1. Прочитай: **testing_guide.md** (все тестовые сценарии)
 2. Подготовь: **seed_test_data.sql** (тестовые данные)
 3. Выполняй: 19 тестовых сценариев из testing_guide.md
 4. Документируй: Результаты в баг-трекер
 
 ### Если ты **DevOps / Infra**
+
 1. Прочитай: **analysis.md** (зависимости и пакеты)
 2. Подготовь: **db/migrations/** (применить на production)
 3. Настрой: Переменные окружения из README.md
@@ -217,27 +231,30 @@ pages/admin/
 ## 🚀 БЫСТРЫЕ ССЫЛКИ
 
 ### Для быстрого старта
-| Что нужно | Куда смотреть |
-|-----------|--------------|
-| Установить npm пакеты | [GETTING_STARTED.md](./GETTING_STARTED.md#шаг-1-клонировать-и-установить-5-мин) |
-| Применить миграции | [GETTING_STARTED.md](./GETTING_STARTED.md#шаг-2-применить-миграции-10-мин) |
-| Запустить сервер | [GETTING_STARTED.md](./GETTING_STARTED.md#шаг-4-запустить-сервер-10-мин) |
-| Создать первый API | [GETTING_STARTED.md](./GETTING_STARTED.md#-первый-api-эндпоинт-get-apiadminaudit-logs) |
+
+| Что нужно             | Куда смотреть                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| Установить npm пакеты | [GETTING_STARTED.md](./GETTING_STARTED.md#шаг-1-клонировать-и-установить-5-мин)        |
+| Применить миграции    | [GETTING_STARTED.md](./GETTING_STARTED.md#шаг-2-применить-миграции-10-мин)             |
+| Запустить сервер      | [GETTING_STARTED.md](./GETTING_STARTED.md#шаг-4-запустить-сервер-10-мин)               |
+| Создать первый API    | [GETTING_STARTED.md](./GETTING_STARTED.md#-первый-api-эндпоинт-get-apiadminaudit-logs) |
 
 ### Для разработки
-| Что нужно | Куда смотреть |
-|-----------|--------------|
-| API документация | [sprint1_api_endpoints.md](./sprint1_api_endpoints.md) |
-| UI макеты | [sprint1_ui_components.md](./sprint1_ui_components.md) |
+
+| Что нужно         | Куда смотреть                                                      |
+| ----------------- | ------------------------------------------------------------------ |
+| API документация  | [sprint1_api_endpoints.md](./sprint1_api_endpoints.md)             |
+| UI макеты         | [sprint1_ui_components.md](./sprint1_ui_components.md)             |
 | Тестовые сценарии | [testing_guide.md](./testing_guide.md#sprint-1-super-admin--admin) |
-| Curl примеры | [testing_guide.md](./testing_guide.md#проверка-api) |
+| Curl примеры      | [testing_guide.md](./testing_guide.md#проверка-api)                |
 
 ### Для администрирования
-| Что нужно | Куда смотреть |
-|-----------|--------------|
+
+| Что нужно            | Куда смотреть                                 |
+| -------------------- | --------------------------------------------- |
 | Переменные окружения | [README.md](./README.md#шаг-3-обновить-файлы) |
-| Структура БД | [analysis.md](./analysis.md) |
-| NPM пакеты | [analysis.md](./analysis.md#npm-пакеты) |
+| Структура БД         | [analysis.md](./analysis.md)                  |
+| NPM пакеты           | [analysis.md](./analysis.md#npm-пакеты)       |
 
 ---
 
@@ -278,23 +295,24 @@ pages/admin/
 
 ## 📞 ИНФОРМАЦИЯ О ПРОЕКТЕ
 
-| Параметр | Значение |
-|----------|----------|
-| **Проект** | VapeShop Mini App (Telegram) |
-| **Версия улучшений** | 1.0 (Role Improvements) |
-| **Дата начала** | 2026-04-03 |
-| **Статус** | Planning Complete → Implementation Ready |
-| **Объём** | 40+ фич, 6 ролей, 4 спринта |
-| **Время разработки** | 60-70 часов (7 дней на спринт) |
-| **Технологии** | Next.js, TypeScript, Tailwind, PostgreSQL |
+| Параметр             | Значение                                          |
+| -------------------- | ------------------------------------------------- |
+| **Проект**           | VapeShop Mini App (Telegram)                      |
+| **Версия улучшений** | 1.0 (Role Improvements)                           |
+| **Дата начала**      | 2026-04-03                                        |
+| **Статус**           | Planning Complete → Implementation Ready          |
+| **Объём**            | 40+ фич, 6 ролей, 4 спринта                       |
+| **Время разработки** | 60-70 часов (7 дней на спринт)                    |
+| **Технологии**       | Next.js, TypeScript, Tailwind, PostgreSQL         |
 | **Новые NPM пакеты** | socket.io, exceljs, recharts, date-fns, zod и др. |
-| **Новые таблицы БД** | 32 таблицы (68,000 строк SQL) |
+| **Новые таблицы БД** | 32 таблицы (68,000 строк SQL)                     |
 
 ---
 
 ## 🎓 РЕКОМЕНДУЕМЫЙ ПОРЯДОК ЧТЕНИЯ
 
 ### День 1 (Подготовка — 2 часа)
+
 1. README.md (5 мин)
 2. GETTING_STARTED.md (15 мин)
 3. Выполнить шаги 1-4 (30 мин)
@@ -303,6 +321,7 @@ pages/admin/
 6. Commit в git
 
 ### День 2-7 (Разработка Sprint 1)
+
 1. Выбрать API эндпоинт из sprint1_api_endpoints.md
 2. Реализовать согласно документации
 3. Создать UI страницу из sprint1_ui_components.md
@@ -310,6 +329,7 @@ pages/admin/
 5. Commit и push
 
 ### День 8+ (Sprint 2-4)
+
 1. Повторить процесс для следующего спринта
 2. Использовать documentation_sprint2.md и т.д.
 

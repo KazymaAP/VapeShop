@@ -137,7 +137,7 @@ export default function EditPagePage() {
             <input
               type="text"
               value={title}
-              onChange={e => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e.target.value)}
               className="w-full bg-bgDark border border-border rounded px-4 py-2 text-white text-lg"
               placeholder="Введите заголовок"
             />
@@ -148,7 +148,7 @@ export default function EditPagePage() {
             <label className="block text-sm text-gray-400 mb-2">SEO описание:</label>
             <textarea
               value={seoDescription}
-              onChange={e => setSeoDescription(e.target.value)}
+              onChange={(e) => setSeoDescription(e.target.value)}
               rows={2}
               className="w-full bg-bgDark border border-border rounded px-4 py-2 text-white text-sm"
               placeholder="Описание для поисковых систем"
@@ -184,7 +184,7 @@ export default function EditPagePage() {
               type="checkbox"
               id="published"
               checked={isPublished}
-              onChange={e => setIsPublished(e.target.checked)}
+              onChange={(e) => setIsPublished(e.target.checked)}
               className="w-5 h-5 rounded border border-border bg-bgDark cursor-pointer"
             />
             <label htmlFor="published" className="cursor-pointer">

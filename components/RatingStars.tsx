@@ -50,20 +50,32 @@ export function RatingStars({
       >
         <div className="relative inline-block">
           {/* Пустая звезда */}
-          <Star className={clsx(sizeMap[size], 'text-gray-300 dark:text-gray-600')} filled={false} />
+          <Star
+            className={clsx(sizeMap[size], 'text-gray-300 dark:text-gray-600')}
+            filled={false}
+          />
 
           {/* Заполненная звезда */}
           {isFilled && (
             <Star
-              className={clsx(sizeMap[size], 'text-yellow-400 dark:text-yellow-500 absolute top-0 left-0')}
+              className={clsx(
+                sizeMap[size],
+                'text-yellow-400 dark:text-yellow-500 absolute top-0 left-0'
+              )}
               filled={true}
             />
           )}
 
           {/* Частично заполненная звезда */}
           {isPartial && (
-            <div className="absolute top-0 left-0 overflow-hidden" style={{ width: `${(1 - (starValue - rating)) * 100}%` }}>
-              <Star className={clsx(sizeMap[size], 'text-yellow-400 dark:text-yellow-500')} filled={true} />
+            <div
+              className="absolute top-0 left-0 overflow-hidden"
+              style={{ width: `${(1 - (starValue - rating)) * 100}%` }}
+            >
+              <Star
+                className={clsx(sizeMap[size], 'text-yellow-400 dark:text-yellow-500')}
+                filled={true}
+              />
             </div>
           )}
         </div>
@@ -72,7 +84,11 @@ export function RatingStars({
   });
 
   return (
-    <div className={clsx('flex items-center gap-2', className)} role="img" aria-label={`Рейтинг: ${rating.toFixed(1)} из 5 звёзд`}>
+    <div
+      className={clsx('flex items-center gap-2', className)}
+      role="img"
+      aria-label={`Рейтинг: ${rating.toFixed(1)} из 5 звёзд`}
+    >
       <div className="flex items-center gap-1">{stars}</div>
 
       {/* Рейтинг и кол-во отзывов */}
@@ -126,13 +142,7 @@ export function RatingStarsBig({ rating, count }: { rating: number; count?: numb
 /**
  * Компонент звезды (SVG)
  */
-function Star({
-  filled,
-  className,
-}: {
-  filled: boolean;
-  className: string;
-}) {
+function Star({ filled, className }: { filled: boolean; className: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -160,7 +170,9 @@ export function RatingSelector({
 }) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-900 dark:text-white">Ваша оценка:</label>
+      <label className="block text-sm font-medium text-gray-900 dark:text-white">
+        Ваша оценка:
+      </label>
       <RatingStars
         rating={value}
         size={size}

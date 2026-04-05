@@ -9,16 +9,19 @@
 ## 📦 ЧТО СОЗДАЁТСЯ
 
 ### Backend (3 файла)
+
 - ✓ pages/api/admin/import.ts (UPDATED) - проверка дубликатов
 - ✓ pages/api/admin/activate.ts (NEW) - активация товаров
 - ✓ pages/api/admin/price-import.ts (NEW) - просмотр и удаление
 
 ### Frontend (3 файла)
+
 - 🔄 pages/admin/activate.tsx - страница активации
 - 🔄 pages/admin/price-import.tsx - просмотр импортированных
 - 🔄 components/ActivationModal.tsx - модальное окно
 
 ### Документация (3 файла)
+
 - 🔄 docs/05_import/README.md - полное руководство
 - 🔄 docs/05_import/IMPLEMENTATION_CHECKLIST.md - чеклист
 - 🔄 docs/05_import/EXAMPLES.md - примеры
@@ -34,7 +37,7 @@
 ✅ Загрузка изображений (новое)  
 ✅ Флаги (акция, хит, новинка) (новое)  
 ✅ Удаление неактивированных (новое)  
-✅ Полная документация на русском (новое)  
+✅ Полная документация на русском (новое)
 
 ---
 

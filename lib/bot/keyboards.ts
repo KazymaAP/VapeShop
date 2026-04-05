@@ -3,7 +3,12 @@ import { InlineKeyboard } from 'grammy';
 export function getMainKeyboard() {
   return {
     keyboard: [
-      [{ text: '🛍️ Открыть магазин', web_app: { url: process.env.WEBAPP_URL || 'https://your-app.vercel.app' } }],
+      [
+        {
+          text: '🛍️ Открыть магазин',
+          web_app: { url: process.env.WEBAPP_URL || 'https://your-app.vercel.app' },
+        },
+      ],
       [{ text: '📋 Мои заказы' }, { text: '🎁 Реферальная ссылка' }],
       [{ text: '❓ Помощь' }, { text: '📖 FAQ' }],
     ],
@@ -27,7 +32,10 @@ export function getAdminKeyboard() {
         { text: '📢 Рассылка', callback_data: 'admin:broadcast' },
       ],
       [
-        { text: '🌐 Открыть админку', web_app: { url: `${process.env.WEBAPP_URL || 'https://your-app.vercel.app'}/admin` } },
+        {
+          text: '🌐 Открыть админку',
+          web_app: { url: `${process.env.WEBAPP_URL || 'https://your-app.vercel.app'}/admin` },
+        },
       ],
     ],
   };

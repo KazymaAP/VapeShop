@@ -52,14 +52,14 @@ export function RevenueChart({ period = 'month' }: RevenueChartProps) {
   }
 
   // Простой текстовой вывод графика (альтернатива recharts)
-  const maxRevenue = Math.max(...data.map(d => d.revenue || 0), 1);
+  const maxRevenue = Math.max(...data.map((d) => d.revenue || 0), 1);
 
   return (
     <div className="p-4 bg-cardBg border border-border rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold text-textPrimary">📊 Выручка</h3>
         <div className="flex gap-2">
-          {(['day', 'week', 'month'] as const).map(p => (
+          {(['day', 'week', 'month'] as const).map((p) => (
             <button
               key={p}
               onClick={() => setSelectedPeriod(p)}
@@ -154,7 +154,7 @@ export function TopProductsChart({ limit = 10 }: TopProductsChartProps) {
     return <div className="p-4 text-center text-textSecondary">Нет данных</div>;
   }
 
-  const maxRevenue = Math.max(...products.map(p => p.revenue || 0), 1);
+  const maxRevenue = Math.max(...products.map((p) => p.revenue || 0), 1);
 
   return (
     <div className="p-4 bg-cardBg border border-border rounded-lg">
@@ -198,11 +198,12 @@ interface MetricsCardProps {
 }
 
 export function MetricsCard({ data }: MetricsCardProps) {
-  const periodLabel = {
-    day: 'За 24 часа',
-    week: 'За неделю',
-    month: 'За месяц',
-  }[data.period] || data.period;
+  const periodLabel =
+    {
+      day: 'За 24 часа',
+      week: 'За неделю',
+      month: 'За месяц',
+    }[data.period] || data.period;
 
   return (
     <div className="grid grid-cols-3 gap-3">

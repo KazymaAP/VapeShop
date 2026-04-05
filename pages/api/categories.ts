@@ -27,11 +27,10 @@ export default async function handler(
     const result = await query(
       'SELECT id, name, sort_order FROM categories ORDER BY sort_order ASC, name ASC'
     );
-    
+
     res.status(200).json({ categories: result.rows });
   } catch (err) {
     console.error('Categories GET error:', err);
     res.status(500).json({ error: 'Ошибка при загрузке категорий' });
   }
 }
-

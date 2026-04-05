@@ -90,7 +90,11 @@ export default function AdminDashboard() {
               <option value="seller">Курьер</option>
             </select>
             <div className="bg-neon/20 border border-neon/40 rounded-full px-4 py-1.5 text-xs text-neon">
-              {profile?.role === 'admin' ? 'Администратор' : profile?.role === 'manager' ? 'Менеджер' : 'Курьер'}
+              {profile?.role === 'admin'
+                ? 'Администратор'
+                : profile?.role === 'manager'
+                  ? 'Менеджер'
+                  : 'Курьер'}
             </div>
           </div>
         </div>
@@ -98,16 +102,26 @@ export default function AdminDashboard() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-5 skeleton h-28" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-5 skeleton h-28"
+              />
             ))}
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard title="Выручка (мес)" value={`${stats.revenue.toLocaleString('ru-RU')} ₽`} />
+              <StatCard
+                title="Выручка (мес)"
+                value={`${stats.revenue.toLocaleString('ru-RU')} ₽`}
+              />
               <StatCard title="Заказы" value={stats.orders.toString()} />
               <StatCard title="Пользователи" value={stats.users.toString()} />
-              <StatCard title="Низкий остаток" value={stats.lowStock.toString()} color="text-warning" />
+              <StatCard
+                title="Низкий остаток"
+                value={stats.lowStock.toString()}
+                color="text-warning"
+              />
             </div>
 
             <div className="mt-6 bg-cardBg border border-border rounded-2xl p-4">
@@ -146,7 +160,15 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ title, value, color = 'text-neon' }: { title: string; value: string; color?: string }) {
+function StatCard({
+  title,
+  value,
+  color = 'text-neon',
+}: {
+  title: string;
+  value: string;
+  color?: string;
+}) {
   return (
     <div className="bg-cardBg border border-border rounded-2xl p-5 hover:border-neon hover:shadow-neon transition-all hover:-translate-y-0.5">
       <p className="text-xs uppercase tracking-wider text-textSecondary mb-2">{title}</p>

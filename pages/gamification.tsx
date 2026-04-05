@@ -19,7 +19,7 @@ export default function GamificationPage() {
   const loadLevel = async () => {
     try {
       const response = await fetch('/api/gamification/level', {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -55,7 +55,9 @@ export default function GamificationPage() {
       <div className="bg-cardBg rounded-lg border border-border p-4 mb-6">
         <div className="flex justify-between mb-2">
           <p className="text-textSecondary text-sm">Опыт до следующего уровня</p>
-          <p className="text-neon font-bold">{level.experience}/{nextLevelExp}</p>
+          <p className="text-neon font-bold">
+            {level.experience}/{nextLevelExp}
+          </p>
         </div>
         <div className="w-full bg-bgDark rounded-full h-3">
           <div

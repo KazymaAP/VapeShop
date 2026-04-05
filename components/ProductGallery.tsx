@@ -15,35 +15,38 @@ interface ProductGalleryProps {
 export function ProductGallery({
   images,
   productName,
-  defaultImageUrl = '/images/product-placeholder.png'
+  defaultImageUrl = '/images/product-placeholder.png',
 }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
 
   // Фильтруем пустые изображения
-  const validImages = images.filter(img => img && img.length > 0);
+  const validImages = images.filter((img) => img && img.length > 0);
   const displayImages = validImages.length > 0 ? validImages : [defaultImageUrl];
   const currentImage = displayImages[selectedIndex];
 
   // Обработка зума на движение мыши
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isZoomed) return;
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isZoomed) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-    setZoomPosition({ x, y });
-  }, [isZoomed]);
+      setZoomPosition({ x, y });
+    },
+    [isZoomed]
+  );
 
   // Навигация стрелками
   const goToPrevious = () => {
-    setSelectedIndex(prev => (prev === 0 ? displayImages.length - 1 : prev - 1));
+    setSelectedIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
   };
 
   const goToNext = () => {
-    setSelectedIndex(prev => (prev === displayImages.length - 1 ? 0 : prev + 1));
+    setSelectedIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
   };
 
   // Клавиатурная навигация
@@ -127,9 +130,7 @@ export function ProductGallery({
               key={idx}
               onClick={() => setSelectedIndex(idx)}
               className={`flex-shrink-0 w-20 h-20 rounded border-2 transition overflow-hidden ${
-                selectedIndex === idx
-                  ? 'border-neon'
-                  : 'border-border hover:border-neon/50'
+                selectedIndex === idx ? 'border-neon' : 'border-border hover:border-neon/50'
               }`}
               aria-label={`Выбрать изображение ${idx + 1}`}
             >

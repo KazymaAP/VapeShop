@@ -11,10 +11,7 @@ import { requireAuth, getTelegramId } from '@/lib/auth';
 import { ApiResponse } from '@/types/api';
 import crypto from 'crypto';
 
-export default requireAuth(async (
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) => {
+export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResponse>) => {
   const telegramId = getTelegramId(req);
 
   if (req.method === 'POST' && req.url?.includes('/generate')) {

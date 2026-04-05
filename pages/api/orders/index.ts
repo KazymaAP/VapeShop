@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { getTelegramIdFromRequest } from '@/lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -7,10 +8,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { telegram_id } = req.query;
+    // ⚠️ SECURITY: Получаем и верифицируем telegram_id из подписанных данных Telegram
+    // Никогда не доверяем query параметрам без верификации!
+    const telegramId = await getTelegramIdFromRequest(req);
 
-    if (!telegram_id) {
-      return res.status(400).json({ error: 'telegram_id required' });
+    if (!telegramId) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const ordersRes = await query(
@@ -26,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
        WHERE o.user_telegram_id = $1
        GROUP BY o.id
        ORDER BY o.created_at DESC`,
-      [telegram_id]
+      [telegramId]
     );
 
     const orders = ordersRes.rows.map((order) => ({
@@ -40,5 +43,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'Ошибка загрузки заказов' });
   }
 }
-
-

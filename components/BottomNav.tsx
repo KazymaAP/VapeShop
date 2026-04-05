@@ -35,7 +35,10 @@ export function BottomNav() {
 
   useEffect(() => {
     if (cartData?.data?.items) {
-      const count = cartData.data.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+      const count = cartData.data.items.reduce(
+        (sum: number, item: { quantity?: number }) => sum + (item.quantity || 0),
+        0
+      );
       setCartCount(count);
     }
   }, [cartData]);
@@ -49,7 +52,11 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 md:hidden z-40 safe-area-inset-bottom" role="navigation" aria-label="Основная навигация">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 md:hidden z-40 safe-area-inset-bottom"
+      role="navigation"
+      aria-label="Основная навигация"
+    >
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive =

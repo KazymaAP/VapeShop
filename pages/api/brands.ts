@@ -23,14 +23,11 @@ export default async function handler(
   }
 
   try {
-    const result = await query(
-      'SELECT id, name FROM brands ORDER BY name ASC'
-    );
-    
+    const result = await query('SELECT id, name FROM brands ORDER BY name ASC');
+
     res.status(200).json({ brands: result.rows });
   } catch (err) {
     console.error('Brands GET error:', err);
     res.status(500).json({ error: 'Ошибка при загрузке брендов' });
   }
 }
-

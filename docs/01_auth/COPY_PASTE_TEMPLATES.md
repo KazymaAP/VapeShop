@@ -9,6 +9,7 @@
 ### Шаг 1: Замените начало файла
 
 ❌ **Было:**
+
 ```typescript
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../lib/db';
@@ -17,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 ```
 
 ✅ **Стало:**
+
 ```typescript
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../lib/db';
@@ -28,6 +30,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 ### Шаг 2: Замените конец файла
 
 ❌ **Было:**
+
 ```typescript
   } else {
     res.status(405).json({ error: 'Method not allowed' });
@@ -36,6 +39,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 ```
 
 ✅ **Стало:**
+
 ```typescript
   } else {
     res.status(405).json({ error: 'Method not allowed' });
@@ -59,45 +63,48 @@ export default requireAuth(handler, ['admin']); // ← ИЗМЕНИТЕ РОЛЬ
 const telegramId = getTelegramId(req);
 
 // Логируем в БД (опционально - может быть async)
-await query(
-  `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-  [
-    telegramId,
-    'action_name_here', // Например: create_product, update_order, delete_user
-    JSON.stringify({
-      product_id: id,
-      old_name: oldName,
-      new_name: newName,
-      // Добавьте нужные детали
-    })
-  ]
-).catch(err => console.error('Logging error:', err));
+await query(`INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+  telegramId,
+  'action_name_here', // Например: create_product, update_order, delete_user
+  JSON.stringify({
+    product_id: id,
+    old_name: oldName,
+    new_name: newName,
+    // Добавьте нужные детали
+  }),
+]).catch((err) => console.error('Logging error:', err));
 ```
 
 ### Примеры для разных действий
 
 **Создание товара:**
+
 ```typescript
-await query(
-  `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-  [telegramId, 'create_product', JSON.stringify({ name: req.body.name, price: req.body.price })]
-).catch(err => console.error('Logging error:', err));
+await query(`INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+  telegramId,
+  'create_product',
+  JSON.stringify({ name: req.body.name, price: req.body.price }),
+]).catch((err) => console.error('Logging error:', err));
 ```
 
 **Обновление заказа:**
+
 ```typescript
-await query(
-  `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-  [telegramId, 'update_order_status', JSON.stringify({ order_id: id, old_status: oldStatus, new_status: newStatus })]
-).catch(err => console.error('Logging error:', err));
+await query(`INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+  telegramId,
+  'update_order_status',
+  JSON.stringify({ order_id: id, old_status: oldStatus, new_status: newStatus }),
+]).catch((err) => console.error('Logging error:', err));
 ```
 
 **Удаление пользователя:**
+
 ```typescript
-await query(
-  `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-  [telegramId, 'delete_user', JSON.stringify({ user_id: id, username: username })]
-).catch(err => console.error('Logging error:', err));
+await query(`INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+  telegramId,
+  'delete_user',
+  JSON.stringify({ user_id: id, username: username }),
+]).catch((err) => console.error('Logging error:', err));
 ```
 
 ## 3️⃣ Обновление фронтенд компонента
@@ -111,6 +118,7 @@ import { fetchWithAuth } from '../../../lib/frontend/auth';
 ### Шаг 2: Замените все fetch на fetchWithAuth
 
 ❌ **Было:**
+
 ```typescript
 const response = await fetch('/api/admin/products', {
   method: 'POST',
@@ -119,6 +127,7 @@ const response = await fetch('/api/admin/products', {
 ```
 
 ✅ **Стало:**
+
 ```typescript
 const response = await fetchWithAuth('/api/admin/products', {
   method: 'POST',
@@ -185,41 +194,49 @@ async function handleFileUpload(file) {
 Скопируйте и выполните в базе данных:
 
 ### Сделать админом
+
 ```sql
 UPDATE users SET role = 'admin' WHERE telegram_id = YOUR_TELEGRAM_ID;
 ```
 
 ### Сделать менеджером
+
 ```sql
 UPDATE users SET role = 'manager' WHERE telegram_id = YOUR_TELEGRAM_ID;
 ```
 
 ### Сделать курьером (продавцом)
+
 ```sql
 UPDATE users SET role = 'seller' WHERE telegram_id = YOUR_TELEGRAM_ID;
 ```
 
 ### Сделать обычным покупателем
+
 ```sql
 UPDATE users SET role = 'buyer' WHERE telegram_id = YOUR_TELEGRAM_ID;
 ```
 
 ### Заблокировать пользователя
+
 ```sql
 UPDATE users SET is_blocked = TRUE WHERE telegram_id = YOUR_TELEGRAM_ID;
 ```
 
 ### Разблокировать пользователя
+
 ```sql
 UPDATE users SET is_blocked = FALSE WHERE telegram_id = YOUR_TELEGRAM_ID;
 ```
 
 ### Получить список всех админов
+
 ```sql
 SELECT telegram_id, username, role FROM users WHERE role = 'admin';
 ```
 
 ### Получить логи действий администратора
+
 ```sql
 SELECT * FROM admin_logs
 WHERE user_telegram_id = YOUR_TELEGRAM_ID
@@ -232,23 +249,27 @@ LIMIT 20;
 Скопируйте и выполните в терминале:
 
 ### Тест 1: Без заголовка (должно быть 401)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products
 ```
 
 ### Тест 2: С заголовком, админ (должно быть 200)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 123456789"
 ```
 
 ### Тест 3: С заголовком, не-админ (должно быть 403)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 987654321"
 ```
 
 ### Тест 4: POST запрос
+
 ```bash
 curl -X POST http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 123456789" \
@@ -261,6 +282,7 @@ curl -X POST http://localhost:3000/api/admin/products \
 ```
 
 ### Тест 5: PUT запрос
+
 ```bash
 curl -X PUT http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 123456789" \
@@ -311,16 +333,20 @@ CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at ON admin_logs(created_at DE
 Выполните эту последовательность:
 
 1. **Тест 1: Без заголовка**
+
    ```bash
    curl -X GET http://localhost:3000/api/admin/products
    ```
+
    Должно вернуться: `{"error":"Unauthorized"}` статус 401
 
 2. **Тест 2: С заголовком**
+
    ```bash
    curl -X GET http://localhost:3000/api/admin/products \
      -H "X-Telegram-Id: 123456789"
    ```
+
    Должно вернуться: `{"products":[...]}` статус 200
 
 3. **Если оба теста прошли → ✅ Всё работает!**
@@ -336,20 +362,20 @@ CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at ON admin_logs(created_at DE
 ```typescript
 /**
  * API эндпоинт для управления товарами
- * 
+ *
  * @method GET - Получить список товаров
  * @method POST - Создать новый товар
  * @method PUT - Обновить товар
  * @method DELETE - Удалить товар
- * 
+ *
  * @requires X-Telegram-Id заголовок
  * @requires роль 'admin'
- * 
+ *
  * @returns 200 - Успешно
  * @returns 401 - Требуется аутентификация (нет X-Telegram-Id)
  * @returns 403 - Доступ запрещён (недостаточно прав или заблокирован)
  * @returns 500 - Ошибка сервера
- * 
+ *
  * @example
  * // GET /api/admin/products
  * curl -X GET http://localhost:3000/api/admin/products \
@@ -365,25 +391,25 @@ CREATE INDEX IF NOT EXISTS idx_admin_logs_created_at ON admin_logs(created_at DE
 async function safeApiCall(url, options) {
   try {
     const response = await fetchWithAuth(url, options);
-    
+
     if (response.status === 401) {
       alert('Требуется аутентификация. Пожалуйста, откройте админку через Telegram Mini App.');
       // window.location.href = '/'; // Можно перенаправить
       return null;
     }
-    
+
     if (response.status === 403) {
       alert('У вас недостаточно прав для этого действия.');
       console.log('Required role not found');
       return null;
     }
-    
+
     if (!response.ok) {
       const error = await response.json();
       alert(`Ошибка: ${error.message || error.error}`);
       return null;
     }
-    
+
     return await response.json();
   } catch (err) {
     console.error('API call failed:', err);
@@ -408,6 +434,7 @@ if (result) {
 **Совет:** Сохраните эту страницу! Это ваш персональный "шпаргалка" для быстрого копирования.
 
 **Последовательность действий:**
+
 1. Скопируйте нужный код
 2. Подставьте в свой файл
 3. Измените значения под себя

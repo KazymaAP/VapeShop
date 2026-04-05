@@ -36,11 +36,11 @@
 
 ### Для кого?
 
-| Роль | Возможности |
-|------|------------|
-| **Администратор** | Полный доступ к импорту, активации, удалению |
-| **Менеджер товаров** | Импорт, просмотр и активация товаров |
-| **Система** | Валидация, логирование, аудит всех операций |
+| Роль                 | Возможности                                  |
+| -------------------- | -------------------------------------------- |
+| **Администратор**    | Полный доступ к импорту, активации, удалению |
+| **Менеджер товаров** | Импорт, просмотр и активация товаров         |
+| **Система**          | Валидация, логирование, аудит всех операций  |
 
 ---
 
@@ -104,11 +104,11 @@
 
 ### Три этапа процесса
 
-| Этап | Название | Компонент | Описание |
-|------|----------|-----------|---------|
-| 1️⃣ | **Загрузка CSV** | POST `/api/admin/import` | Получение и валидация CSV, временное сохранение |
-| 2️⃣ | **Проверка** | GET `/api/admin/price-import` | Просмотр импортированных товаров, фильтрация |
-| 3️⃣ | **Активация** | POST `/api/admin/activate` | Выбор параметров и перемещение в основной каталог |
+| Этап | Название         | Компонент                     | Описание                                          |
+| ---- | ---------------- | ----------------------------- | ------------------------------------------------- |
+| 1️⃣   | **Загрузка CSV** | POST `/api/admin/import`      | Получение и валидация CSV, временное сохранение   |
+| 2️⃣   | **Проверка**     | GET `/api/admin/price-import` | Просмотр импортированных товаров, фильтрация      |
+| 3️⃣   | **Активация**    | POST `/api/admin/activate`    | Выбор параметров и перемещение в основной каталог |
 
 ---
 
@@ -154,11 +154,11 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS:
 
 ### Компоненты UI
 
-| Путь | Компонент | Функция |
-|------|-----------|---------|
-| `/admin/import` | Upload форма | Загрузка CSV файла |
+| Путь                  | Компонент       | Функция               |
+| --------------------- | --------------- | --------------------- |
+| `/admin/import`       | Upload форма    | Загрузка CSV файла    |
 | `/admin/price-import` | Таблица товаров | Просмотр и управление |
-| `/admin/activate` | Модальное окно | Активация товаров |
+| `/admin/activate`     | Модальное окно  | Активация товаров     |
 
 ### API маршруты
 
@@ -241,15 +241,15 @@ GET /api/products/[id] — товар доступен покупателям
 
 ### Обязательные колонки
 
-| Колонка | Тип | Пример | Описание |
-|---------|-----|--------|---------|
-| `name` | TEXT | Vape Pod Pro | Название товара (макс. 255 символов) |
-| `specification` | TEXT | Никотин 20мг | Спецификация (опубликуется как описание) |
-| `stock` | INT | 100 | Количество на складе (положительное число) |
-| `price_tier_1` | DECIMAL | 250.00 | Цена уровня 1 (рознич на кол-во) |
-| `price_tier_2` | DECIMAL | 230.00 | Цена уровня 2 (от 10 шт) |
-| `price_tier_3` | DECIMAL | 200.00 | Цена уровня 3 (от 50 шт) |
-| `distributor_price` | DECIMAL | 150.00 | Цена для дистрибьюторов (от 100 шт) |
+| Колонка             | Тип     | Пример       | Описание                                   |
+| ------------------- | ------- | ------------ | ------------------------------------------ |
+| `name`              | TEXT    | Vape Pod Pro | Название товара (макс. 255 символов)       |
+| `specification`     | TEXT    | Никотин 20мг | Спецификация (опубликуется как описание)   |
+| `stock`             | INT     | 100          | Количество на складе (положительное число) |
+| `price_tier_1`      | DECIMAL | 250.00       | Цена уровня 1 (рознич на кол-во)           |
+| `price_tier_2`      | DECIMAL | 230.00       | Цена уровня 2 (от 10 шт)                   |
+| `price_tier_3`      | DECIMAL | 200.00       | Цена уровня 3 (от 50 шт)                   |
+| `distributor_price` | DECIMAL | 150.00       | Цена для дистрибьюторов (от 100 шт)        |
 
 ### Формат CSV
 
@@ -314,12 +314,12 @@ Coil Kanthal A1,0.4 Ohm 10 штук в упаковке,200,120.00,110.00,100.00
 
 При активации администратор выбирает одну из четырех загруженных цен:
 
-| Цена | Поле | Применение | Пример |
-|------|------|-----------|--------|
-| 💰 **Tier 1** | `price_tier_1` | Розница 1 шт | 250.00 |
-| 💵 **Tier 2** | `price_tier_2` | От 10 шт | 230.00 |
-| 💴 **Tier 3** | `price_tier_3` | От 50 шт | 200.00 |
-| 📦 **Дистрибьютор** | `distributor_price` | От 100 шт | 150.00 |
+| Цена                | Поле                | Применение   | Пример |
+| ------------------- | ------------------- | ------------ | ------ |
+| 💰 **Tier 1**       | `price_tier_1`      | Розница 1 шт | 250.00 |
+| 💵 **Tier 2**       | `price_tier_2`      | От 10 шт     | 230.00 |
+| 💴 **Tier 3**       | `price_tier_3`      | От 50 шт     | 200.00 |
+| 📦 **Дистрибьютор** | `distributor_price` | От 100 шт    | 150.00 |
 
 **По умолчанию:** выбирается `price_tier_1` (розница)
 
@@ -433,12 +433,12 @@ curl -X GET "http://localhost:3000/api/admin/price-import?status=inactive&page=1
 
 **Query параметры:**
 
-| Параметр | Тип | Описание |
-|----------|-----|---------|
-| `status` | string | `inactive` или `active` |
-| `search` | string | Поиск по названию |
-| `page` | int | Номер страницы (по умолчанию 1) |
-| `limit` | int | Товаров на странице (по умолчанию 20) |
+| Параметр | Тип    | Описание                              |
+| -------- | ------ | ------------------------------------- |
+| `status` | string | `inactive` или `active`               |
+| `search` | string | Поиск по названию                     |
+| `page`   | int    | Номер страницы (по умолчанию 1)       |
+| `limit`  | int    | Товаров на странице (по умолчанию 20) |
 
 **Ответ (200 OK):**
 
@@ -451,10 +451,10 @@ curl -X GET "http://localhost:3000/api/admin/price-import?status=inactive&page=1
       "name": "Vape Pod Pro",
       "specification": "Никотин 20мг 50 мл",
       "stock": 100,
-      "price_tier_1": 250.00,
-      "price_tier_2": 230.00,
-      "price_tier_3": 200.00,
-      "distributor_price": 150.00,
+      "price_tier_1": 250.0,
+      "price_tier_2": 230.0,
+      "price_tier_3": 200.0,
+      "distributor_price": 150.0,
       "is_activated": false,
       "created_at": "2025-04-02T10:00:00Z"
     }
@@ -492,16 +492,16 @@ curl -X POST http://localhost:3000/api/admin/activate \
 
 **Body параметры:**
 
-| Параметр | Тип | Обязательно | Описание |
-|----------|-----|-------------|---------|
-| `id_imported` | int | ✓ | ID товара в price_import |
-| `price_tier` | string | ✓ | Выбранная цена (tier_1, tier_2, tier_3, distributor) |
-| `category_id` | int | ✓ | ID категории товара |
-| `brand_name` | string | ✗ | Название бренда |
-| `image_url` | string | ✗ | URL основного изображения |
-| `is_promotion` | bool | ✗ | Флаг акции (по умолчанию false) |
-| `is_bestseller` | bool | ✗ | Флаг хита (по умолчанию false) |
-| `is_new` | bool | ✗ | Флаг новинки (по умолчанию false) |
+| Параметр        | Тип    | Обязательно | Описание                                             |
+| --------------- | ------ | ----------- | ---------------------------------------------------- |
+| `id_imported`   | int    | ✓           | ID товара в price_import                             |
+| `price_tier`    | string | ✓           | Выбранная цена (tier_1, tier_2, tier_3, distributor) |
+| `category_id`   | int    | ✓           | ID категории товара                                  |
+| `brand_name`    | string | ✗           | Название бренда                                      |
+| `image_url`     | string | ✗           | URL основного изображения                            |
+| `is_promotion`  | bool   | ✗           | Флаг акции (по умолчанию false)                      |
+| `is_bestseller` | bool   | ✗           | Флаг хита (по умолчанию false)                       |
+| `is_new`        | bool   | ✗           | Флаг новинки (по умолчанию false)                    |
 
 **Ответ (201 Created):**
 
@@ -516,7 +516,7 @@ curl -X POST http://localhost:3000/api/admin/activate \
     "slug": "vape-pod-pro",
     "category_id": 5,
     "brand": "GeekVape",
-    "price": 250.00,
+    "price": 250.0,
     "stock": 100,
     "is_active": true,
     "created_at": "2025-04-02T10:05:00Z"
@@ -614,13 +614,13 @@ CREATE TABLE import_logs (
 
 ### Защита от атак
 
-| Угроза | Защита |
-|--------|--------|
-| **SQL Injection** | Prepared statements, ORM |
-| **CSV Injection** | Проверка на формулы в первый символ |
-| **Загрузка файлов** | Проверка MIME-type, размера, расширения |
-| **DoS** | Rate limiting на API endpoints |
-| **Несанкционированный доступ** | Role-based access control (RBAC) |
+| Угроза                         | Защита                                  |
+| ------------------------------ | --------------------------------------- |
+| **SQL Injection**              | Prepared statements, ORM                |
+| **CSV Injection**              | Проверка на формулы в первый символ     |
+| **Загрузка файлов**            | Проверка MIME-type, размера, расширения |
+| **DoS**                        | Rate limiting на API endpoints          |
+| **Несанкционированный доступ** | Role-based access control (RBAC)        |
 
 ---
 
@@ -629,6 +629,7 @@ CREATE TABLE import_logs (
 ### Проблема: Дубликаты товаров
 
 **Симптом:**
+
 ```
 При загрузке CSV система говорит: "Найдены дубликаты"
 ```
@@ -642,7 +643,7 @@ CREATE TABLE import_logs (
 
 ```sql
 -- Проверить дубликаты в БД
-SELECT name, COUNT(*) as count FROM products 
+SELECT name, COUNT(*) as count FROM products
 WHERE name LIKE '%Vape Pod Pro%'
 GROUP BY name HAVING count > 1;
 
@@ -662,6 +663,7 @@ DELETE FROM products WHERE id = 5 AND is_active = FALSE;
 ### Проблема: Ошибка при импорте CSV
 
 **Симптом:**
+
 ```
 "INVALID_CSV_FORMAT" — Отсутствует колонка: price_tier_1
 ```
@@ -682,6 +684,7 @@ name,specification,stock,price_tier_1,price_tier_2,price_tier_3,distributor_pric
 ### Проблема: Товар не активируется
 
 **Симптом:**
+
 ```
 POST /api/admin/activate → ошибка 500
 ```
@@ -739,6 +742,7 @@ SELECT * FROM price_import WHERE id = 42;
 ### Проблема: Большой файл не загружается
 
 **Симптом:**
+
 ```
 413 Payload Too Large
 ```
@@ -791,15 +795,17 @@ identify products_image.jpg  # должно быть >= 400x400
 ### В: Можно ли обновить товар после активации?
 
 **О:** Не через систему импорта. Используйте интерфейс редактирования товара:
+
 ```
 /admin/products/[id]/edit
 ```
 
 Или обновите прямо в БД (для админов):
+
 ```sql
-UPDATE products SET 
-  price = 300.00, 
-  stock = 50 
+UPDATE products SET
+  price = 300.00,
+  stock = 50
 WHERE id = 128;
 ```
 
@@ -814,22 +820,18 @@ const axios = require('axios');
 
 async function uploadMultipleCSV(directory) {
   const files = fs.readdirSync(directory);
-  
+
   for (const file of files) {
     const form = new FormData();
     form.append('file', fs.createReadStream(`${directory}/${file}`));
-    
+
     try {
-      const response = await axios.post(
-        'http://localhost:3000/api/admin/import',
-        form,
-        {
-          headers: {
-            ...form.getHeaders(),
-            'Authorization': 'Bearer YOUR_TOKEN'
-          }
-        }
-      );
+      const response = await axios.post('http://localhost:3000/api/admin/import', form, {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: 'Bearer YOUR_TOKEN',
+        },
+      });
       console.log(`✓ ${file}: ${response.data.stats.total} товаров`);
     } catch (error) {
       console.error(`✗ ${file}: ${error.message}`);
@@ -855,17 +857,17 @@ const csv = require('csv-parse/sync');
 const fs = require('fs');
 
 const oldData = csv.parse(fs.readFileSync('old_products.csv'), {
-  columns: true
+  columns: true,
 });
 
-const newData = oldData.map(row => ({
+const newData = oldData.map((row) => ({
   name: row.title,
   specification: row.description,
   stock: parseInt(row.qty),
   price_tier_1: parseFloat(row.price),
   price_tier_2: parseFloat(row.price) * 0.92,
   price_tier_3: parseFloat(row.price) * 0.84,
-  distributor_price: parseFloat(row.price) * 0.60
+  distributor_price: parseFloat(row.price) * 0.6,
 }));
 
 // Сохранить новый CSV
@@ -888,14 +890,15 @@ const newData = oldData.map(row => ({
 
 ```sql
 -- Удалить неактивированные товары старше 30 дней
-DELETE FROM price_import 
-WHERE is_activated = FALSE 
+DELETE FROM price_import
+WHERE is_activated = FALSE
 AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
 ```
 
 ### В: Какой максимальный размер изображения?
 
-**О:** 
+**О:**
+
 - **Макс. размер файла:** 5 МБ
 - **Рекомендуемое разрешение:** 800x800 пиксель
 - **Минимальное разрешение:** 400x400 пиксель
@@ -909,7 +912,7 @@ AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
 **Версия API:** 1.0  
 **Последнее изменение:** Добавлена обработка дубликатов и логирование
 
-**Вопросы и предложения:** 
+**Вопросы и предложения:**
 
 - 💬 Slack: #vapeshop-support
 - 📧 Email: support@vapeshop.ru

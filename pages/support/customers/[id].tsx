@@ -23,7 +23,7 @@ export default function CustomerProfilePage() {
   const loadCustomerData = async () => {
     try {
       const response = await fetch(`/api/support/customers/${customerId}`, {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -46,18 +46,37 @@ export default function CustomerProfilePage() {
 
       {/* Customer info */}
       <div className="bg-cardBg rounded-lg border border-border p-6 mb-6">
-        <h2 className="font-bold text-textPrimary mb-4">{customer.first_name} {customer.last_name || ''}</h2>
+        <h2 className="font-bold text-textPrimary mb-4">
+          {customer.first_name} {customer.last_name || ''}
+        </h2>
         <div className="space-y-2 text-sm">
-          <p className="text-textSecondary">Telegram ID: <span className="text-textPrimary">{customer.telegram_id}</span></p>
-          {customer.phone && <p className="text-textSecondary">Телефон: <span className="text-textPrimary">{customer.phone}</span></p>}
-          {customer.username && <p className="text-textSecondary">Username: <span className="text-textPrimary">@{customer.username}</span></p>}
-          <p className="text-textSecondary">Зарегистрирован: <span className="text-textPrimary">{new Date(customer.created_at).toLocaleDateString('ru-RU')}</span></p>
+          <p className="text-textSecondary">
+            Telegram ID: <span className="text-textPrimary">{customer.telegram_id}</span>
+          </p>
+          {customer.phone && (
+            <p className="text-textSecondary">
+              Телефон: <span className="text-textPrimary">{customer.phone}</span>
+            </p>
+          )}
+          {customer.username && (
+            <p className="text-textSecondary">
+              Username: <span className="text-textPrimary">@{customer.username}</span>
+            </p>
+          )}
+          <p className="text-textSecondary">
+            Зарегистрирован:{' '}
+            <span className="text-textPrimary">
+              {new Date(customer.created_at).toLocaleDateString('ru-RU')}
+            </span>
+          </p>
         </div>
       </div>
 
       {/* Orders */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-textPrimary mb-4">История заказов ({orders.length})</h3>
+        <h3 className="text-lg font-bold text-textPrimary mb-4">
+          История заказов ({orders.length})
+        </h3>
         {orders.length === 0 ? (
           <p className="text-textSecondary">Нет заказов</p>
         ) : (
@@ -67,13 +86,17 @@ export default function CustomerProfilePage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-semibold text-textPrimary">№{order.orderNumber}</p>
-                    <p className="text-textSecondary text-sm">{new Date(order.createdAt).toLocaleDateString('ru-RU')}</p>
+                    <p className="text-textSecondary text-sm">
+                      {new Date(order.createdAt).toLocaleDateString('ru-RU')}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-neon">{order.total} ₽</p>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      order.status === 'completed' ? 'bg-success' : 'bg-warning'
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        order.status === 'completed' ? 'bg-success' : 'bg-warning'
+                      }`}
+                    >
                       {order.status}
                     </span>
                   </div>

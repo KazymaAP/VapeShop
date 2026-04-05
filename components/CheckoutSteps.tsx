@@ -40,8 +40,8 @@ export function CheckoutSteps({
                     index < currentStep
                       ? 'bg-success text-white'
                       : index === currentStep
-                      ? 'bg-neon text-bgDark'
-                      : 'bg-border text-textSecondary'
+                        ? 'bg-neon text-bgDark'
+                        : 'bg-border text-textSecondary'
                   }
                   ${onStepClick && index <= currentStep ? 'cursor-pointer hover:shadow-lg' : ''}
                 `}
@@ -54,11 +54,7 @@ export function CheckoutSteps({
                 <p
                   className={`
                     text-sm font-medium transition
-                    ${
-                      index <= currentStep
-                        ? 'text-textPrimary'
-                        : 'text-textSecondary'
-                    }
+                    ${index <= currentStep ? 'text-textPrimary' : 'text-textSecondary'}
                   `}
                 >
                   {step.label}
@@ -68,9 +64,7 @@ export function CheckoutSteps({
               {/* Connector line */}
               {index < steps.length - 1 && (
                 <div className="flex-1 h-1 mx-2 bg-border">
-                  {index < currentStep && (
-                    <div className="h-full bg-success" />
-                  )}
+                  {index < currentStep && <div className="h-full bg-success" />}
                 </div>
               )}
             </div>
@@ -95,8 +89,8 @@ export function CheckoutSteps({
                     index < currentStep
                       ? 'bg-success text-white'
                       : index === currentStep
-                      ? 'bg-neon text-bgDark'
-                      : 'bg-border text-textSecondary'
+                        ? 'bg-neon text-bgDark'
+                        : 'bg-border text-textSecondary'
                   }
                   ${onStepClick && index <= currentStep ? 'cursor-pointer' : ''}
                 `}
@@ -108,11 +102,7 @@ export function CheckoutSteps({
               <p
                 className={`
                   text-xs font-medium mt-1 whitespace-nowrap transition
-                  ${
-                    index <= currentStep
-                      ? 'text-textPrimary'
-                      : 'text-textSecondary'
-                  }
+                  ${index <= currentStep ? 'text-textPrimary' : 'text-textSecondary'}
                 `}
               >
                 {step.label}

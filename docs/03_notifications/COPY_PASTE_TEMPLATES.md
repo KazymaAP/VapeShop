@@ -20,10 +20,7 @@ const orderResult = await query(
 );
 const order = orderResult.rows[0];
 
-const userResult = await query(
-  `SELECT username FROM users WHERE telegram_id = $1`,
-  [telegramId]
-);
+const userResult = await query(`SELECT username FROM users WHERE telegram_id = $1`, [telegramId]);
 const user = userResult.rows[0];
 
 // Отправляем уведомление администраторам
@@ -40,11 +37,7 @@ try {
 
 // Отправляем уведомление покупателю
 try {
-  await notifyBuyerOrderCreated(
-    telegramId,
-    order.id,
-    order.total_price
-  );
+  await notifyBuyerOrderCreated(telegramId, order.id, order.total_price);
 } catch (err) {
   console.error('Notify buyer error:', err);
 }
@@ -99,7 +92,7 @@ VALUES
   ('abandoned_cart', true, 'buyer')
 ON CONFLICT (event_type) DO NOTHING;
 
-CREATE INDEX IF NOT EXISTS idx_notification_settings_event_type 
+CREATE INDEX IF NOT EXISTS idx_notification_settings_event_type
   ON notification_settings(event_type);
 
 -- Таблица истории
@@ -114,7 +107,7 @@ CREATE TABLE IF NOT EXISTS notification_history (
   FOREIGN KEY (user_telegram_id) REFERENCES users(telegram_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_notification_history_user 
+CREATE INDEX IF NOT EXISTS idx_notification_history_user
   ON notification_history(user_telegram_id);
 
 -- Таблица брошенных корзин
@@ -131,7 +124,7 @@ CREATE TABLE IF NOT EXISTS abandoned_carts (
   FOREIGN KEY (user_telegram_id) REFERENCES users(telegram_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_abandoned_carts_user 
+CREATE INDEX IF NOT EXISTS idx_abandoned_carts_user
   ON abandoned_carts(user_telegram_id);
 ```
 
@@ -236,7 +229,7 @@ async function test() {
     undefined,
     'test'
   );
-  
+
   console.log(success ? '✅ Отправлено!' : '❌ Ошибка');
 }
 
@@ -274,12 +267,14 @@ GROUP BY event_type;
 ### Уведомления не отправляются
 
 1. Проверьте bot инициализирован:
+
    ```typescript
    // В pages/api/bot.ts
-   setBotInstance(bot);  // Это ДОЛЖНО быть
+   setBotInstance(bot); // Это ДОЛЖНО быть
    ```
 
 2. Проверьте логи:
+
    ```sql
    SELECT * FROM notification_history WHERE status='failed';
    ```

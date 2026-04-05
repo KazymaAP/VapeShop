@@ -55,12 +55,14 @@
 **Файлы**: `pages/*.tsx`, `components/`
 
 Отвечает за:
+
 - Отображение UI (каталог, корзина, заказы, админка)
 - Сбор пользовательского ввода (форма заказа, фильтры)
 - Локальное состояние (корзина в localStorage, избранное)
 - Отправка запросов на backend
 
 **Ключевые компоненты**:
+
 - `ProductCard` - карточка товара (изображение, цена, рейтинг)
 - `CartItem` - элемент корзины (с удалением, сохранением)
 - `OrderCard` - карточка заказа в истории
@@ -72,6 +74,7 @@
 **Файлы**: `pages/api/`
 
 Отвечает за:
+
 - Обработку HTTP запросов (GET/POST/PUT/DELETE)
 - Валидацию входных данных
 - Авторизацию и проверку ролей
@@ -79,6 +82,7 @@
 - Возврат JSON ответов
 
 **Структура**:
+
 ```
 pages/api/
 ├── products.ts           (GET список, POST новый)
@@ -106,6 +110,7 @@ pages/api/
 **Файлы**: `lib/`
 
 Отвечает за:
+
 - Бизнес-правила (расчет скидок, бонусов)
 - Валидация данных
 - Интеграция с Telegram API
@@ -113,6 +118,7 @@ pages/api/
 - Логирование действий
 
 **Ключевые модули**:
+
 - `lib/auth.ts` - HMAC верификация, проверка ролей
 - `lib/db.ts` - подключение к БД, retry logic
 - `lib/notifications.ts` - отправка сообщений в Telegram
@@ -125,12 +131,14 @@ pages/api/
 **Файлы**: `db/migrations/`, `lib/db.ts`
 
 Отвечает за:
+
 - Хранение данных (PostgreSQL/Neon)
 - Выполнение запросов (SQL)
 - Обеспечение целостности данных (constraints, triggers)
 - Резервные копии
 
 **Таблицы**:
+
 - `users` - профили пользователей
 - `products` - каталог товаров
 - `categories` - категории
@@ -248,13 +256,13 @@ Send notification to admin: "Новый заказ на сумму 500 ₽"
 
 Четыре уровня доступа:
 
-| Роль | Возможности | WHERE условие |
-|------|------------|----------------|
-| **customer** (по умолчанию) | Просмотр каталога, создание заказов, отзывы | `role = 'customer'` |
-| **seller** | Добавление/редактирование своих товаров | `role = 'seller'` |
-| **manager** | Просмотр всех заказов, аналитика | `role = 'manager'` |
-| **admin** | Полный доступ, управление пользователями, импорт | `role = 'admin'` |
-| **super_admin** | Системные права, конфигурация бота | `role = 'super_admin'` |
+| Роль                        | Возможности                                      | WHERE условие          |
+| --------------------------- | ------------------------------------------------ | ---------------------- |
+| **customer** (по умолчанию) | Просмотр каталога, создание заказов, отзывы      | `role = 'customer'`    |
+| **seller**                  | Добавление/редактирование своих товаров          | `role = 'seller'`      |
+| **manager**                 | Просмотр всех заказов, аналитика                 | `role = 'manager'`     |
+| **admin**                   | Полный доступ, управление пользователями, импорт | `role = 'admin'`       |
+| **super_admin**             | Системные права, конфигурация бота               | `role = 'super_admin'` |
 
 **Проверка ролей** (backend):
 
@@ -263,15 +271,12 @@ Send notification to admin: "Новый заказ на сумму 500 ₽"
 function requireRole(role: 'admin' | 'manager' | 'seller') {
   return (handler) => async (req, res) => {
     const telegramId = getTelegramIdFromRequest(req);
-    const user = await query(
-      'SELECT role FROM users WHERE telegram_id = $1',
-      [telegramId]
-    );
-    
+    const user = await query('SELECT role FROM users WHERE telegram_id = $1', [telegramId]);
+
     if (user.rows[0]?.role !== role) {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
+
     return handler(req, res);
   };
 }
@@ -300,26 +305,20 @@ export default function App() {
 function validateTelegramInitData(initData: string): boolean {
   // Telegram отправляет: query_id, user, auth_date, hash
   // hash = HMAC_SHA256(bot_token, query_string)
-  
+
   const data = new URLSearchParams(initData);
   const hash = data.get('hash');
   data.delete('hash');
-  
+
   const dataCheckString = [...data.entries()]
     .sort()
     .map(([k, v]) => `${k}=${v}`)
     .join('\n');
-  
-  const secretKey = crypto
-    .createHmac('sha256', 'WebAppData')
-    .update(BOT_TOKEN)
-    .digest();
-  
-  const computed = crypto
-    .createHmac('sha256', secretKey)
-    .update(dataCheckString)
-    .digest('hex');
-  
+
+  const secretKey = crypto.createHmac('sha256', 'WebAppData').update(BOT_TOKEN).digest();
+
+  const computed = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+
   return timingSafeEqual(computed, hash);
 }
 ```
@@ -330,7 +329,8 @@ function validateTelegramInitData(initData: string): boolean {
 const authDate = parseInt(data.get('auth_date')!);
 const now = Math.floor(Date.now() / 1000);
 
-if (now - authDate > 3600) { // 1 час
+if (now - authDate > 3600) {
+  // 1 час
   throw new Error('initData expired');
 }
 ```
@@ -412,7 +412,7 @@ bot.command('help', handleHelp);
 // Callbacks (кнопки)
 bot.on('callback_query:data', async (ctx) => {
   const action = ctx.callbackQuery.data;
-  
+
   if (action.startsWith('order_')) {
     handleOrderCallback(ctx);
   } else if (action.startsWith('pay_')) {
@@ -466,6 +466,7 @@ handleSuccessfulPayment:
 ### Основные таблицы
 
 #### `users`
+
 ```sql
 id SERIAL PRIMARY KEY
 telegram_id BIGINT UNIQUE
@@ -479,6 +480,7 @@ updated_at TIMESTAMP
 ```
 
 #### `products`
+
 ```sql
 id SERIAL PRIMARY KEY
 name VARCHAR(255) NOT NULL
@@ -494,6 +496,7 @@ updated_at TIMESTAMP
 ```
 
 #### `orders`
+
 ```sql
 id SERIAL PRIMARY KEY
 user_telegram_id BIGINT REFERENCES users(telegram_id)
@@ -508,6 +511,7 @@ delivered_at TIMESTAMP NULL
 ```
 
 #### `order_items`
+
 ```sql
 id SERIAL PRIMARY KEY
 order_id INTEGER REFERENCES orders(id)
@@ -517,6 +521,7 @@ price DECIMAL(10,2)  -- цена в момент заказа
 ```
 
 #### `audit_log`
+
 ```sql
 id SERIAL PRIMARY KEY
 user_telegram_id BIGINT
@@ -550,13 +555,13 @@ CREATE INDEX idx_reviews_product_id ON reviews(product_id);
 const SWR_CONFIG = {
   products: {
     revalidateOnFocus: false,
-    dedupInterval: 60000,      // 1 min
-    focusThrottleInterval: 300000
+    dedupInterval: 60000, // 1 min
+    focusThrottleInterval: 300000,
   },
   orders: {
     revalidateOnFocus: false,
-    dedupInterval: 30000       // 30 sec
-  }
+    dedupInterval: 30000, // 30 sec
+  },
 };
 
 export function useProducts() {
@@ -567,6 +572,7 @@ export function useProducts() {
 **Кэширование на уровне БД**:
 
 Пока не реализовано, но можно добавить Redis для:
+
 - Список товаров (кэш на 5 минут)
 - Профиль пользователя (кэш на 10 минут)
 - Аналитика (кэш на 1 час)
@@ -591,10 +597,10 @@ if (!validateTelegramInitData(req.headers['x-init-data'])) {
 ```typescript
 // Пользователь может видеть только свои заказы
 const { telegramId } = getTelegramIdFromRequest(req);
-const order = await query(
-  'SELECT * FROM orders WHERE id = $1 AND user_telegram_id = $2',
-  [orderId, telegramId]
-);
+const order = await query('SELECT * FROM orders WHERE id = $1 AND user_telegram_id = $2', [
+  orderId,
+  telegramId,
+]);
 
 if (!order.rows.length) {
   return res.status(404).json({ error: 'Not found' });

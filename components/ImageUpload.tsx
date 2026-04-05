@@ -30,62 +30,68 @@ export function ImageUpload({
   const [isDragging, setIsDragging] = useState(false);
 
   // Валидация файлов
-  const validateFiles = useCallback((files: File[]): boolean => {
-    // Проверка количества
-    if (previews.length + files.length > maxFiles) {
-      setError(`Максимум ${maxFiles} файлов`);
-      return false;
-    }
-
-    // Проверка размера каждого файла
-    for (const file of files) {
-      if (file.size > maxFileSize * 1024 * 1024) {
-        setError(`Файл "${file.name}" больше ${maxFileSize}MB`);
+  const validateFiles = useCallback(
+    (files: File[]): boolean => {
+      // Проверка количества
+      if (previews.length + files.length > maxFiles) {
+        setError(`Максимум ${maxFiles} файлов`);
         return false;
       }
 
-      // Проверка типа
-      if (!file.type.startsWith('image/')) {
-        setError(`"${file.name}" не является изображением`);
-        return false;
-      }
-    }
+      // Проверка размера каждого файла
+      for (const file of files) {
+        if (file.size > maxFileSize * 1024 * 1024) {
+          setError(`Файл "${file.name}" больше ${maxFileSize}MB`);
+          return false;
+        }
 
-    return true;
-  }, [maxFiles, maxFileSize, previews.length]);
+        // Проверка типа
+        if (!file.type.startsWith('image/')) {
+          setError(`"${file.name}" не является изображением`);
+          return false;
+        }
+      }
+
+      return true;
+    },
+    [maxFiles, maxFileSize, previews.length]
+  );
 
   // Обработка файлов
-  const handleFiles = useCallback(async (files: File[]) => {
-    if (!validateFiles(files)) return;
+  const handleFiles = useCallback(
+    async (files: File[]) => {
+      if (!validateFiles(files)) return;
 
-    setError(null);
-    setUploading(true);
+      setError(null);
+      setUploading(true);
 
-    try {
-      // Создаём preview'ы
-      const newPreviews: string[] = [];
-      for (const file of files) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          newPreviews.push(reader.result as string);
-          if (newPreviews.length === files.length) {
-            setPreviews(prev => [...prev, ...newPreviews]);
-          }
-        };
-        reader.readAsDataURL(file);
+      try {
+        // Создаём preview'ы
+        const newPreviews: string[] = [];
+        for (const file of files) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            newPreviews.push(reader.result as string);
+            if (newPreviews.length === files.length) {
+              setPreviews((prev) => [...prev, ...newPreviews]);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+
+        // Загружаем на сервер
+        const urls = await onUpload(files);
+        console.log('Uploaded:', urls);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки');
+        // Удаляем preview'ы при ошибке
+        setPreviews((prev) => prev.slice(0, -files.length));
+      } finally {
+        setUploading(false);
       }
-
-      // Загружаем на сервер
-      const urls = await onUpload(files);
-      console.log('Uploaded:', urls);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка загрузки');
-      // Удаляем preview'ы при ошибке
-      setPreviews(prev => prev.slice(0, -files.length));
-    } finally {
-      setUploading(false);
-    }
-  }, [validateFiles, onUpload]);
+    },
+    [validateFiles, onUpload]
+  );
 
   // Drag & drop обработчики
   const handleDragOver = (e: React.DragEvent) => {
@@ -115,7 +121,7 @@ export function ImageUpload({
 
   // Удаление preview
   const removePreview = (index: number) => {
-    setPreviews(prev => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -127,20 +133,15 @@ export function ImageUpload({
         onDrop={handleDrop}
         className={`
           border-2 border-dashed rounded-lg p-8 text-center transition
-          ${isDragging
-            ? 'border-neon bg-neon/10'
-            : 'border-border hover:border-neon/50'
-          }
+          ${isDragging ? 'border-neon bg-neon/10' : 'border-border hover:border-neon/50'}
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
       >
         <label className="cursor-pointer block">
           <div className="text-4xl mb-2">📁</div>
-          <p className="text-textPrimary font-semibold mb-1">
-            Перетащите файлы сюда
-          </p>
+          <p className="text-textPrimary font-semibold mb-1">Перетащите файлы сюда</p>
           <p className="text-textSecondary text-sm mb-3">или нажмите для выбора</p>
-          
+
           <p className="text-xs text-textSecondary">
             {maxFiles > 1
               ? `Максимум ${maxFiles} файлов, ${maxFileSize}MB каждый`
@@ -181,12 +182,7 @@ export function ImageUpload({
               >
                 {/* Изображение */}
                 <div className="relative w-full aspect-square">
-                  <Image
-                    src={preview}
-                    alt={`Preview ${idx + 1}`}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={preview} alt={`Preview ${idx + 1}`} fill className="object-cover" />
                 </div>
 
                 {/* Кнопка удаления */}

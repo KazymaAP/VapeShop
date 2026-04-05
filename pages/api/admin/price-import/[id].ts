@@ -23,10 +23,7 @@ async function handleDelete(
 
   try {
     // Проверяем, существует ли товар и не активирован ли он
-    const checkRes = await query(
-      'SELECT id, is_activated FROM price_import WHERE id = $1',
-      [id]
-    );
+    const checkRes = await query('SELECT id, is_activated FROM price_import WHERE id = $1', [id]);
 
     if (checkRes.rows.length === 0) {
       return res.status(404).json({ error: 'Товар не найден' });
@@ -43,11 +40,7 @@ async function handleDelete(
     await query(
       `INSERT INTO admin_logs (user_telegram_id, action, details)
        VALUES ($1, $2, $3)`,
-      [
-        telegramId,
-        'delete_price_import',
-        JSON.stringify({ price_import_id: id }),
-      ]
+      [telegramId, 'delete_price_import', JSON.stringify({ price_import_id: id })]
     ).catch((err) => {
       console.error('Logging error:', err);
     });

@@ -31,8 +31,7 @@ const DEFAULT_TEMPLATES: Template[] = [
 ];
 
 export default function TemplatesPage() {
-  const { _user } = useTelegramWebApp();
-  const [_templates, _setTemplates] = useState<Template[]>(DEFAULT_TEMPLATES);
+  useTelegramWebApp();
   const [selectedText, setSelectedText] = useState('');
 
   const copyToClipboard = (text: string): void => {
@@ -72,4 +71,3 @@ export default function TemplatesPage() {
     </div>
   );
 }
-

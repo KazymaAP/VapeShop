@@ -57,7 +57,7 @@ export default function BulkEditProducts() {
 
     try {
       const updates: BulkUpdates = {};
-      
+
       if (bulkAction === 'price') {
         updates.price_action = priceAction;
         updates.price_value = parseFloat(bulkValue);
@@ -73,8 +73,8 @@ export default function BulkEditProducts() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           product_ids: Array.from(selected),
-          updates
-        })
+          updates,
+        }),
       });
 
       if (res.ok) {
@@ -165,7 +165,7 @@ export default function BulkEditProducts() {
                     if (selected.size === products.length) {
                       setSelected(new Set());
                     } else {
-                      setSelected(new Set(products.map(p => p.id)));
+                      setSelected(new Set(products.map((p) => p.id)));
                     }
                   }}
                 />
@@ -190,8 +190,12 @@ export default function BulkEditProducts() {
                 <td className="p-2 text-right">₽{product.price}</td>
                 <td className="p-2 text-right">{product.discount_percent || 0}%</td>
                 <td className="p-2 text-center">
-                  {product.is_hit && <span className="bg-danger px-2 py-1 rounded text-xs">Hit</span>}
-                  {product.is_new && <span className="bg-success px-2 py-1 rounded text-xs ml-1">New</span>}
+                  {product.is_hit && (
+                    <span className="bg-danger px-2 py-1 rounded text-xs">Hit</span>
+                  )}
+                  {product.is_new && (
+                    <span className="bg-success px-2 py-1 rounded text-xs ml-1">New</span>
+                  )}
                 </td>
               </tr>
             ))}

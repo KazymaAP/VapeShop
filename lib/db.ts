@@ -8,20 +8,21 @@ if (!connectionString) {
 
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: true }
-    : { rejectUnauthorized: false },
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: true }
+      : { rejectUnauthorized: false },
 });
 
 // Основная функция query
-export function query(text: string, params?: any[]) {
+export async function query(text: string, params?: (string | number | boolean | null)[]): Promise<QueryResult> {
   return pool.query(text, params);
 }
 
 /**
  * Выполнить запрос с автоматическим повтором при ошибке
  * Полезно для обработки временных ошибок сети
- * 
+ *
  * @param text SQL запрос
  * @param params параметры запроса
  * @param maxRetries максимум попыток (по умолчанию 3)
@@ -30,7 +31,7 @@ export function query(text: string, params?: any[]) {
  */
 export async function queryWithRetry(
   text: string,
-  params?: any[],
+  params?: (string | number | boolean | null)[],
   maxRetries: number = 3,
   delayMs: number = 500
 ): Promise<QueryResult> {
@@ -41,9 +42,9 @@ export async function queryWithRetry(
       return await pool.query(text, params);
     } catch (err) {
       lastError = err as Error;
-      
+
       // Не повторяем для ошибок синтаксиса и других non-retriable ошибок
-      const errorMessage = (err as any).message || '';
+      const errorMessage = (err as Error).message || '';
       if (
         errorMessage.includes('syntax error') ||
         errorMessage.includes('permission denied') ||
@@ -60,9 +61,12 @@ export async function queryWithRetry(
 
       // Экспоненциальная задержка перед повтором
       const delay = delayMs * Math.pow(2, attempt - 1);
-      console.warn(`DB query retry attempt ${attempt}/${maxRetries} after ${delay}ms:`, errorMessage);
-      
-      await new Promise(resolve => setTimeout(resolve, delay));
+      console.warn(
+        `DB query retry attempt ${attempt}/${maxRetries} after ${delay}ms:`,
+        errorMessage
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
@@ -72,7 +76,7 @@ export async function queryWithRetry(
 /**
  * Получить клиент БД для выполнения транзакций
  * Используйте для BEGIN/COMMIT/ROLLBACK
- * 
+ *
  * @returns Promise<PoolClient>
  */
 export async function getClient(): Promise<PoolClient> {
@@ -81,13 +85,11 @@ export async function getClient(): Promise<PoolClient> {
 
 /**
  * Выполнить запросы в транзакции
- * 
+ *
  * @param callback функция, которая выполняет запросы
  * @returns результат callback функции
  */
-export async function transaction<T>(
-  callback: (client: PoolClient) => Promise<T>
-): Promise<T> {
+export async function transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await getClient();
 
   try {

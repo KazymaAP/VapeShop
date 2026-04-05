@@ -8,10 +8,7 @@ import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { ApiResponse } from '@/types/api';
 
-export default requireAuth(async (
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) => {
+export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResponse>) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

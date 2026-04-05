@@ -20,33 +20,33 @@ Phase P3: Система уведомлений             ✅ 100% (завер
 
 ### Backend (5 файлов)
 
-| Файл | Строк | Статус | Описание |
-|------|-------|--------|---------|
-| `lib/notifications.ts` | 330 | ✅ | Основной модуль отправки уведомлений |
-| `pages/api/orders/[id]/status.ts` | 110 | ✅ | API для изменения статуса заказа |
-| `pages/api/cron/abandoned-cart.ts` | 160 | ✅ | Cron задача для напоминаний |
-| `pages/api/admin/settings/notifications.ts` | 130 | ✅ | Admin API для настроек |
-| `db/migrations/003_notification_settings.sql` | 80 | ⏳ | SQL миграция (требует запуска) |
+| Файл                                          | Строк | Статус | Описание                             |
+| --------------------------------------------- | ----- | ------ | ------------------------------------ |
+| `lib/notifications.ts`                        | 330   | ✅     | Основной модуль отправки уведомлений |
+| `pages/api/orders/[id]/status.ts`             | 110   | ✅     | API для изменения статуса заказа     |
+| `pages/api/cron/abandoned-cart.ts`            | 160   | ✅     | Cron задача для напоминаний          |
+| `pages/api/admin/settings/notifications.ts`   | 130   | ✅     | Admin API для настроек               |
+| `db/migrations/003_notification_settings.sql` | 80    | ⏳     | SQL миграция (требует запуска)       |
 
 **Итого backend:** 810 строк кода
 
 ### Frontend (1 файл)
 
-| Файл | Строк | Статус | Описание |
-|------|-------|--------|---------|
-| `pages/admin/settings/notifications.tsx` | 280 | ✅ | React админ-панель |
+| Файл                                     | Строк | Статус | Описание           |
+| ---------------------------------------- | ----- | ------ | ------------------ |
+| `pages/admin/settings/notifications.tsx` | 280   | ✅     | React админ-панель |
 
 **Итого frontend:** 280 строк кода
 
 ### Документация (5 файлов)
 
-| Файл | Размер | Статус | Описание |
-|------|--------|--------|---------|
-| `docs/03_notifications/README.md` | 12.2 KB | ✅ | Полное руководство |
-| `docs/03_notifications/IMPLEMENTATION_CHECKLIST.md` | 7.0 KB | ✅ | Чеклист внедрения |
-| `docs/03_notifications/COPY_PASTE_TEMPLATES.md` | 7.2 KB | ✅ | Готовые код-шаблоны |
-| `docs/03_notifications/SUMMARY.md` | 9.0 KB | ✅ | Краткий обзор |
-| `docs/03_notifications/NAVIGATION.md` | 6.9 KB | ✅ | Навигатор документации |
+| Файл                                                | Размер  | Статус | Описание               |
+| --------------------------------------------------- | ------- | ------ | ---------------------- |
+| `docs/03_notifications/README.md`                   | 12.2 KB | ✅     | Полное руководство     |
+| `docs/03_notifications/IMPLEMENTATION_CHECKLIST.md` | 7.0 KB  | ✅     | Чеклист внедрения      |
+| `docs/03_notifications/COPY_PASTE_TEMPLATES.md`     | 7.2 KB  | ✅     | Готовые код-шаблоны    |
+| `docs/03_notifications/SUMMARY.md`                  | 9.0 KB  | ✅     | Краткий обзор          |
+| `docs/03_notifications/NAVIGATION.md`               | 6.9 KB  | ✅     | Навигатор документации |
 
 **Итого документация:** 42.3 KB
 
@@ -134,10 +134,12 @@ CRON_SECRET=your_random_secret_here_32+_chars
 
 ```json
 {
-  "crons": [{
-    "path": "/api/cron/abandoned-cart",
-    "schedule": "0 * * * *"
-  }]
+  "crons": [
+    {
+      "path": "/api/cron/abandoned-cart",
+      "schedule": "0 * * * *"
+    }
+  ]
 }
 ```
 

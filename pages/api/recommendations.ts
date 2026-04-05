@@ -7,10 +7,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { ApiResponse } from '@/types/api';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -51,7 +48,7 @@ export default async function handler(
       });
     }
 
-    const categories = userCategories.rows.map(r => r.category);
+    const categories = userCategories.rows.map((r) => r.category);
 
     // Рекомендуем товары из похожих категорий
     let query_str = `
@@ -77,9 +74,7 @@ export default async function handler(
       LIMIT $${exclude_purchased ? 3 : 2}
     `;
 
-    const params = exclude_purchased
-      ? [categories, userId, limit]
-      : [categories, limit];
+    const params = exclude_purchased ? [categories, userId, limit] : [categories, limit];
 
     const result = await query(query_str, params);
 
@@ -88,7 +83,6 @@ export default async function handler(
       type: 'category_based',
       relatedCategories: categories,
     });
-
   } catch (err) {
     console.error('Recommendations error:', err);
     res.status(500).json({ error: 'Failed to fetch recommendations' });

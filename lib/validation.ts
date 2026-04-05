@@ -1,13 +1,13 @@
 /**
  * Zod схемы для валидации входных данных всех API эндпоинтов
  * Гарантирует безопасность и консистентность данных
- * 
+ *
  * Использование:
  * const parsed = validateData(CreateOrderSchema, req.body);
  */
 
 import { z } from 'zod';
-import { LIMITS, DELIVERY_TYPES, ORDER_STATUS, PAYMENT_STATUS } from './constants';
+import { LIMITS, DELIVERY_TYPES, ORDER_STATUS } from './constants';
 
 // ============ Общие схемы ============
 
@@ -61,7 +61,7 @@ export const BulkUpdateProductSchema = z.object({
     z.object({
       id: IdSchema,
       ...CreateProductSchema.shape,
-    }),
+    })
   ),
 });
 
@@ -78,22 +78,25 @@ export const CreateOrderItemSchema = z.object({
 });
 
 export const CreateOrderSchema = z.object({
-  items: z.array(CreateOrderItemSchema).min(1, 'Должен быть хотя бы один товар').max(LIMITS.MAX_PRODUCTS_PER_ORDER),
-  delivery_method: z.enum([DELIVERY_TYPES.PICKUP, DELIVERY_TYPES.COURIER], {
-    errorMap: () => ({ message: 'Способ доставки должен быть pickup или courier' }),
-  }),
+  items: z
+    .array(CreateOrderItemSchema)
+    .min(1, 'Должен быть хотя бы один товар')
+    .max(LIMITS.MAX_PRODUCTS_PER_ORDER),
+  delivery_method: z.enum([DELIVERY_TYPES.PICKUP, DELIVERY_TYPES.COURIER] as const),
   address: z.string().optional(),
   promo_code: z.string().max(50).optional(),
 });
 
 export const UpdateOrderSchema = z.object({
-  status: z.enum([
-    ORDER_STATUS.PENDING,
-    ORDER_STATUS.CONFIRMED,
-    ORDER_STATUS.SHIPPED,
-    ORDER_STATUS.COMPLETED,
-    ORDER_STATUS.CANCELLED,
-  ]).optional(),
+  status: z
+    .enum([
+      ORDER_STATUS.PENDING,
+      ORDER_STATUS.CONFIRMED,
+      ORDER_STATUS.SHIPPED,
+      ORDER_STATUS.COMPLETED,
+      ORDER_STATUS.CANCELLED,
+    ] as const)
+    .optional(),
   comment: z.string().max(500).optional(),
 });
 
@@ -104,12 +107,12 @@ export type UpdateOrderInput = z.infer<typeof UpdateOrderSchema>;
 
 export const UpdateRoleSchema = z.object({
   userId: z.number().int().positive(),
-  newRole: z.enum(['customer', 'admin', 'manager', 'courier', 'support', 'seller', 'super_admin']),
+  newRole: z.enum(['customer', 'admin', 'manager', 'courier', 'support', 'seller', 'super_admin'] as const),
 });
 
 export const updatePromoCodeSchema = z.object({
   code: z.string().min(1).toUpperCase(),
-  discount_type: z.enum(['percent', 'fixed']).optional(),
+  discount_type: z.enum(['percent', 'fixed'] as const).optional(),
   discount_value: z.number().positive().optional(),
   max_uses: z.number().int().nonnegative().optional(),
   valid_from: z.string().datetime().optional(),
@@ -126,7 +129,7 @@ export function validateData<T>(schema: z.ZodSchema, data: unknown): T {
   const result = schema.safeParse(data);
 
   if (!result.success) {
-    const errors = result.error.errors.map((err) => ({
+    const errors = result.error.issues.map((err) => ({
       path: err.path.join('.'),
       message: err.message,
     }));
@@ -142,12 +145,12 @@ export function validateData<T>(schema: z.ZodSchema, data: unknown): T {
  */
 export function validateDataSafe<T>(
   schema: z.ZodSchema,
-  data: unknown,
+  data: unknown
 ): { success: boolean; data?: T; errors?: Array<{ path: string; message: string }> } {
   const result = schema.safeParse(data);
 
   if (!result.success) {
-    const errors = result.error.errors.map((err) => ({
+    const errors = result.error.issues.map((err) => ({
       path: err.path.join('.'),
       message: err.message,
     }));

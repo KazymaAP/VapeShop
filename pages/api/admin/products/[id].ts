@@ -8,10 +8,7 @@ import { query } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
 import { ApiResponse } from '@/types/api';
 
-export default requireAuth(async (
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) => {
+export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResponse>) => {
   if (req.method !== 'PATCH') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -25,8 +22,16 @@ export default requireAuth(async (
     }
 
     // Allowlist полей которые можно редактировать
-    const allowedFields = ['name', 'price', 'stock', 'category', 'brand', 'is_active', 'discount_percent'];
-    
+    const allowedFields = [
+      'name',
+      'price',
+      'stock',
+      'category',
+      'brand',
+      'is_active',
+      'discount_percent',
+    ];
+
     if (!allowedFields.includes(field)) {
       return res.status(400).json({ error: `Field ${field} cannot be edited` });
     }
@@ -68,10 +73,7 @@ export default requireAuth(async (
     await query(
       `INSERT INTO audit_log (user_telegram_id, action, details, created_at)
        VALUES ($1, 'PRODUCT_INLINE_EDIT', $2, NOW())`,
-      [
-        userTelegramId,
-        JSON.stringify({ product_id: id, field, new_value: value }),
-      ]
+      [userTelegramId, JSON.stringify({ product_id: id, field, new_value: value })]
     );
 
     return res.status(200).json({

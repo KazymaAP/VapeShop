@@ -125,7 +125,7 @@
 
 1. ✅ Admin endpoints - Все защищены
 2. ⚠️ Support & Courier endpoints - ТРЕБУЮТ ПРОВЕРКИ
-3. ⚠️ User endpoints (profile, balance) - ТРЕБУЮТ ПРОВЕРКИ  
+3. ⚠️ User endpoints (profile, balance) - ТРЕБУЮТ ПРОВЕРКИ
 4. ⚠️ Order endpoints - ТРЕБУЮТ ПРОВЕРКИ
 5. ⚠️ Cron endpoints - Должны использовать CRON_SECRET вместо JWT
 6. ⚠️ Cart endpoints - ТРЕБУЮТ ПРОВЕРКИ

@@ -33,6 +33,7 @@
 ## Стратегия исправления (приоритет)
 
 ### Приоритет 1: ERRORS (обязательные для build)
+
 - [ ] Удалить неиспользуемые импорты (NextApiRequest, NextApiResponse и т.д.)
 - [ ] Переименовать неиспользуемые переменные на `_` (например `_err`)
 - [ ] Заменить `any` на правильные типы
@@ -40,6 +41,7 @@
 - [ ] Исправить const/let
 
 ### Приоритет 2: WARNINGS (хорошая практика)
+
 - [ ] Добавить missing dependencies в useEffect
 - [ ] Удалить console.log в production коде
 - [ ] Исправить conditional hooks
@@ -47,19 +49,22 @@
 ## Файлы для исправления (по приоритету)
 
 ### BATCH 1: API endpoints (самые критичные)
-- pages/api/admin/*.ts (10+ files)
-- pages/api/user/*.ts (3+ files)
-- pages/api/orders/*.ts (5+ files)
-- pages/api/courier/*.ts (2+ files)
+
+- pages/api/admin/\*.ts (10+ files)
+- pages/api/user/\*.ts (3+ files)
+- pages/api/orders/\*.ts (5+ files)
+- pages/api/courier/\*.ts (2+ files)
 
 ### BATCH 2: Компоненты
-- pages/admin/*.tsx (10+ files)
-- components/*.tsx (20+ files)
-- pages/*.tsx (10+ files)
+
+- pages/admin/\*.tsx (10+ files)
+- components/\*.tsx (20+ files)
+- pages/\*.tsx (10+ files)
 
 ### BATCH 3: Lib файлы
-- lib/*.ts (10+ files)
-- lib/bot/*.ts (3+ files)
+
+- lib/\*.ts (10+ files)
+- lib/bot/\*.ts (3+ files)
 
 ## Прогресс
 

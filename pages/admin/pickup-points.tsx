@@ -14,7 +14,7 @@ export async function getServerSideProps() {
 }
 
 export default function AdminPickupPoints() {
-  const { _isReady } = useTelegramWebApp();
+  useTelegramWebApp();
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -239,15 +239,26 @@ export default function AdminPickupPoints() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border bg-bgDark/50">
-                      <th className="text-left px-6 py-4 text-sm font-semibold text-textPrimary">Название</th>
-                      <th className="text-left px-6 py-4 text-sm font-semibold text-textPrimary">Адрес</th>
-                      <th className="text-left px-6 py-4 text-sm font-semibold text-textPrimary">Статус</th>
-                      <th className="text-right px-6 py-4 text-sm font-semibold text-textPrimary">Действия</th>
+                      <th className="text-left px-6 py-4 text-sm font-semibold text-textPrimary">
+                        Название
+                      </th>
+                      <th className="text-left px-6 py-4 text-sm font-semibold text-textPrimary">
+                        Адрес
+                      </th>
+                      <th className="text-left px-6 py-4 text-sm font-semibold text-textPrimary">
+                        Статус
+                      </th>
+                      <th className="text-right px-6 py-4 text-sm font-semibold text-textPrimary">
+                        Действия
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {pickupPoints.map((point) => (
-                      <tr key={point.id} className="border-b border-border hover:bg-bgDark/50 transition-colors">
+                      <tr
+                        key={point.id}
+                        className="border-b border-border hover:bg-bgDark/50 transition-colors"
+                      >
                         <td className="px-6 py-4">
                           <p className="text-textPrimary font-medium">{point.name}</p>
                         </td>
@@ -293,4 +304,3 @@ export default function AdminPickupPoints() {
     </div>
   );
 }
-

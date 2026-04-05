@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 
 // ===== DELIVERY SELECTOR =====
 interface DeliverySelectorProps {
-  onSelect: (type: 'courier' | 'pickup', details: any) => void;
+  onSelect: (type: 'courier' | 'pickup', details: Record<string, unknown>) => void;
   pickupLocations?: Array<{ id: string; name: string; hours: string }>;
 }
 
@@ -20,14 +20,16 @@ export function DeliverySelector({ onSelect, pickupLocations = [] }: DeliverySel
 
       <div className="space-y-3">
         {/* Courier option */}
-        <label className="flex items-start gap-3 p-3 rounded border-2 cursor-pointer transition"
-          style={{ borderColor: selected === 'courier' ? '#c084fc' : 'var(--color-border)' }}>
+        <label
+          className="flex items-start gap-3 p-3 rounded border-2 cursor-pointer transition"
+          style={{ borderColor: selected === 'courier' ? '#c084fc' : 'var(--color-border)' }}
+        >
           <input
             type="radio"
             name="delivery"
             value="courier"
             checked={selected === 'courier'}
-            onChange={e => setSelected(e.target.value as 'courier')}
+            onChange={(e) => setSelected(e.target.value as 'courier')}
             className="mt-1 w-4 h-4 accent-neon"
           />
           <div className="flex-1">
@@ -39,14 +41,16 @@ export function DeliverySelector({ onSelect, pickupLocations = [] }: DeliverySel
 
         {/* Pickup option */}
         {pickupLocations.length > 0 && (
-          <label className="flex items-start gap-3 p-3 rounded border-2 cursor-pointer transition"
-            style={{ borderColor: selected === 'pickup' ? '#c084fc' : 'var(--color-border)' }}>
+          <label
+            className="flex items-start gap-3 p-3 rounded border-2 cursor-pointer transition"
+            style={{ borderColor: selected === 'pickup' ? '#c084fc' : 'var(--color-border)' }}
+          >
             <input
               type="radio"
               name="delivery"
               value="pickup"
               checked={selected === 'pickup'}
-              onChange={e => setSelected(e.target.value as 'pickup')}
+              onChange={(e) => setSelected(e.target.value as 'pickup')}
               className="mt-1 w-4 h-4 accent-neon"
             />
             <div className="flex-1">
@@ -57,11 +61,11 @@ export function DeliverySelector({ onSelect, pickupLocations = [] }: DeliverySel
               {selected === 'pickup' && (
                 <select
                   value={selectedLocation}
-                  onChange={e => setSelectedLocation(e.target.value)}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
                   className="mt-2 w-full px-2 py-1 text-sm bg-bgDark border border-border rounded text-textPrimary"
                 >
                   <option value="">Выберите пункт выдачи</option>
-                  {pickupLocations.map(loc => (
+                  {pickupLocations.map((loc) => (
                     <option key={loc.id} value={loc.id}>
                       {loc.name} ({loc.hours})
                     </option>
@@ -118,9 +122,7 @@ export function ReferralShare({ code, stats }: ReferralShareProps) {
         <button
           onClick={copyToClipboard}
           className={`px-3 py-2 rounded font-semibold transition ${
-            copied
-              ? 'bg-success text-white'
-              : 'bg-neon text-bgDark hover:opacity-90'
+            copied ? 'bg-success text-white' : 'bg-neon text-bgDark hover:opacity-90'
           }`}
         >
           {copied ? '✓ Скопировано' : '📋 Копировать'}
@@ -130,7 +132,11 @@ export function ReferralShare({ code, stats }: ReferralShareProps) {
       {/* Share buttons */}
       <div className="flex gap-2 mb-4">
         <button
-          onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Присоединяйся к VapeShop!`)}
+          onClick={() =>
+            window.open(
+              `https://t.me/share/url?url=${encodeURIComponent(link)}&text=Присоединяйся к VapeShop!`
+            )
+          }
           className="flex-1 px-3 py-2 bg-[#0088cc] text-white rounded hover:opacity-90 transition text-sm font-semibold"
         >
           Telegram
@@ -191,18 +197,14 @@ export function OrderTracking({ points, currentStatus }: OrderTrackingProps) {
                   point.completed
                     ? 'bg-success text-white'
                     : currentStatus === point.status
-                    ? 'bg-neon text-bgDark'
-                    : 'bg-border text-textSecondary'
+                      ? 'bg-neon text-bgDark'
+                      : 'bg-border text-textSecondary'
                 }`}
               >
                 {point.completed ? '✓' : idx + 1}
               </div>
               {idx < points.length - 1 && (
-                <div
-                  className={`w-1 h-12 my-1 ${
-                    point.completed ? 'bg-success' : 'bg-border'
-                  }`}
-                />
+                <div className={`w-1 h-12 my-1 ${point.completed ? 'bg-success' : 'bg-border'}`} />
               )}
             </div>
 
@@ -247,7 +249,7 @@ export function ComparisonTable({ products, specs }: ComparisonTableProps) {
         <thead>
           <tr className="border-b border-border">
             <th className="p-3 text-left">Параметр</th>
-            {products.map(p => (
+            {products.map((p) => (
               <th key={p.id} className="p-3 text-center min-w-[150px]">
                 <p className="font-semibold text-textPrimary">{p.name}</p>
                 <p className="text-xs text-neon mt-1">{p.price}₽</p>
@@ -256,10 +258,10 @@ export function ComparisonTable({ products, specs }: ComparisonTableProps) {
           </tr>
         </thead>
         <tbody>
-          {specs.map(spec => (
+          {specs.map((spec) => (
             <tr key={spec} className="border-b border-border hover:bg-cardBg">
               <td className="p-3 font-semibold text-textPrimary">{spec}</td>
-              {products.map(p => (
+              {products.map((p) => (
                 <td key={p.id} className="p-3 text-center text-textSecondary">
                   {p.specs[spec] || '—'}
                 </td>

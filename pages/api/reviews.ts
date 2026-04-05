@@ -12,7 +12,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!product_id) return res.status(400).json({ error: 'product_id required' });
 
       // Проверяем, что товар существует и активен
-      const productCheck = await query('SELECT id FROM products WHERE id = $1 AND is_active = true', [product_id]);
+      const productCheck = await query(
+        'SELECT id FROM products WHERE id = $1 AND is_active = true',
+        [product_id]
+      );
       if (productCheck.rows.length === 0) {
         return res.status(404).json({ error: 'Product not found' });
       }
@@ -43,7 +46,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Проверяем, что товар существует и активен
-      const productCheck = await query('SELECT id FROM products WHERE id = $1 AND is_active = true', [product_id]);
+      const productCheck = await query(
+        'SELECT id FROM products WHERE id = $1 AND is_active = true',
+        [product_id]
+      );
       if (productCheck.rows.length === 0) {
         return res.status(404).json({ error: 'Product not found' });
       }
@@ -126,4 +132,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
-

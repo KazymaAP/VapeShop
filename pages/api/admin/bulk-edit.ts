@@ -6,7 +6,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
-import { ApiResponse } from '@/types/api';
+import { ApiResponse, ApiError } from '@/types/api';
 
 interface BulkEditItem {
   productId: string;
@@ -18,23 +18,20 @@ interface BulkEditItem {
   };
 }
 
-export default requireAuth(async (
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) => {
+export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResponse | ApiError>) => {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Method not allowed', timestamp: Date.now() });
   }
 
   try {
     const { items } = req.body as { items: BulkEditItem[] };
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Items array required' });
+      return res.status(400).json({ success: false, error: 'Items array required', timestamp: Date.now() });
     }
 
     if (items.length > 100) {
-      return res.status(400).json({ error: 'Maximum 100 items per request' });
+      return res.status(400).json({ success: false, error: 'Maximum 100 items per request', timestamp: Date.now() });
     }
 
     const results = [];
@@ -84,12 +81,13 @@ export default requireAuth(async (
     }
 
     return res.status(200).json({
+      success: true,
       data: results,
-      count: results.length,
+      timestamp: Date.now(),
       message: `Successfully updated ${results.length} products`,
     });
   } catch (err) {
     console.error('Bulk edit error:', err);
-    res.status(500).json({ error: 'Failed to update products' });
+    res.status(500).json({ success: false, error: 'Failed to update products', timestamp: Date.now() });
   }
 });

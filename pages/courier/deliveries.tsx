@@ -24,7 +24,7 @@ export default function CourierDeliveriesPage() {
   const loadDeliveries = async () => {
     try {
       const response = await fetch('/api/courier/deliveries', {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -53,18 +53,31 @@ export default function CourierDeliveriesPage() {
             <div key={delivery.id} className="bg-cardBg rounded-lg border border-border p-4">
               <div className="flex justify-between items-start mb-3">
                 <h3 className="text-lg font-bold text-neon">Заказ #{delivery.orderNumber}</h3>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                  delivery.status === 'pending' ? 'bg-warning' : 'bg-success'
-                } text-white`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs font-semibold ${
+                    delivery.status === 'pending' ? 'bg-warning' : 'bg-success'
+                  } text-white`}
+                >
                   {delivery.status === 'pending' ? 'В пути' : 'Доставлен'}
                 </span>
               </div>
-              
+
               <div className="space-y-2 mb-4">
-                <p className="text-textSecondary"><span className="text-textPrimary">Адрес:</span> {delivery.address}</p>
-                <p className="text-textSecondary"><span className="text-textPrimary">Контакт:</span> {delivery.contactName}</p>
-                <p className="text-textSecondary"><span className="text-textPrimary">Телефон:</span> <a href={`tel:${delivery.contactPhone}`} className="text-neon hover:underline">{delivery.contactPhone}</a></p>
-                <p className="text-textSecondary"><span className="text-textPrimary">Товаров:</span> {delivery.itemCount}</p>
+                <p className="text-textSecondary">
+                  <span className="text-textPrimary">Адрес:</span> {delivery.address}
+                </p>
+                <p className="text-textSecondary">
+                  <span className="text-textPrimary">Контакт:</span> {delivery.contactName}
+                </p>
+                <p className="text-textSecondary">
+                  <span className="text-textPrimary">Телефон:</span>{' '}
+                  <a href={`tel:${delivery.contactPhone}`} className="text-neon hover:underline">
+                    {delivery.contactPhone}
+                  </a>
+                </p>
+                <p className="text-textSecondary">
+                  <span className="text-textPrimary">Товаров:</span> {delivery.itemCount}
+                </p>
               </div>
 
               <a

@@ -84,11 +84,13 @@
 ## 📦 Зависимости
 
 ### Установленные:
+
 - [x] @dnd-kit/sortable
 - [x] @dnd-kit/core
 - [x] @dnd-kit/utilities
 
 ### Уже есть в проекте:
+
 - [x] Next.js 14
 - [x] React 18
 - [x] TypeScript
@@ -126,6 +128,7 @@
 - [x] 'cancelled' (Отменён) — отменён (финальный)
 
 Допустимые переходы:
+
 - [x] new → confirmed, cancelled
 - [x] confirmed → readyship, cancelled
 - [x] readyship → shipped, cancelled

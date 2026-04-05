@@ -12,7 +12,9 @@ export default function NotFound() {
         <div className="text-6xl mb-4 animate-bounce">😕</div>
 
         {/* Заголовок */}
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Страница не найдена</h1>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          Страница не найдена
+        </h1>
 
         {/* Описание */}
         <p className="text-gray-600 dark:text-gray-400 mb-8">
@@ -38,10 +40,14 @@ export default function NotFound() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Полезные ссылки:</p>
           <div className="space-y-2 text-sm">
             <Link href="/">
-              <a className="text-blue-600 dark:text-blue-400 hover:underline block">Главная страница</a>
+              <a className="text-blue-600 dark:text-blue-400 hover:underline block">
+                Главная страница
+              </a>
             </Link>
             <Link href="/products">
-              <a className="text-blue-600 dark:text-blue-400 hover:underline block">Каталог товаров</a>
+              <a className="text-blue-600 dark:text-blue-400 hover:underline block">
+                Каталог товаров
+              </a>
             </Link>
             <Link href="/orders">
               <a className="text-blue-600 dark:text-blue-400 hover:underline block">Мои заказы</a>

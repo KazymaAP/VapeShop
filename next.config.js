@@ -2,8 +2,8 @@
 const nextConfig = {
   // ============ Оптимизация компиляции ============
   reactStrictMode: true,
-  swcMinify: true,  // Быстрее и меньше размер bundle
-  
+  swcMinify: true, // Быстрее и меньше размер bundle
+
   // ============ Изображения ============
   images: {
     remotePatterns: [
@@ -13,14 +13,14 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',  // для тестовых изображений
+        hostname: 'images.unsplash.com', // для тестовых изображений
       },
     ],
     // Оптимизация размеров изображений
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     // ISR для оптимизации при деплое
-    minimumCacheTTL: 60 * 60 * 24 * 365,  // 1 год для статичных
+    minimumCacheTTL: 60 * 60 * 24 * 365, // 1 год для статичных
   },
 
   // ============ Безопасность ============
@@ -61,8 +61,8 @@ const nextConfig = {
 
   // ============ Production режим ============
   compress: true,
-  productionBrowserSourceMaps: false,  // Не отправлять source maps браузеру
-  poweredByHeader: false,  // Скрыть X-Powered-By заголовок
+  productionBrowserSourceMaps: false, // Не отправлять source maps браузеру
+  poweredByHeader: false, // Скрыть X-Powered-By заголовок
 
   // ============ Опционально: экспериментальные функции ============
   experimental: {

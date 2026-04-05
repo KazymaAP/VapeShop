@@ -30,7 +30,7 @@ export async function getServerSideProps() {
 
 /**
  * AdminActivate - страница активации товаров
- * 
+ *
  * Отображает таблицу неактивированных товаров и позволяет
  * их активировать с выбором цены, категории, бренда и изображений.
  */
@@ -94,7 +94,7 @@ export default function AdminActivate() {
     if (selectedIds.size === items.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(items.map(item => item.id)));
+      setSelectedIds(new Set(items.map((item) => item.id)));
     }
   };
 
@@ -136,9 +136,7 @@ export default function AdminActivate() {
       <AdminSidebar />
       <main className="flex-1 ml-0 md:ml-64 p-4 md:p-6">
         <div className="mb-6 mt-10 md:mt-0">
-          <h1 className="text-2xl md:text-3xl font-bold gradient-text">
-            Активация товаров
-          </h1>
+          <h1 className="text-2xl md:text-3xl font-bold gradient-text">Активация товаров</h1>
           <p className="text-textSecondary text-sm mt-1">
             Всего: {totalCount} товаров · Страница {page} из {totalPages}
           </p>
@@ -152,9 +150,7 @@ export default function AdminActivate() {
 
         {selectedIds.size > 0 && (
           <div className="mb-6 p-4 bg-neon/10 border border-neon/40 rounded-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <span className="text-neon font-medium">
-              Выбрано: {selectedIds.size} товаров
-            </span>
+            <span className="text-neon font-medium">Выбрано: {selectedIds.size} товаров</span>
             <button
               onClick={handleActivateSelected}
               className="bg-gradient-to-r from-[#7c3aed] to-neon rounded-full px-6 py-2.5 text-sm text-white font-medium hover:opacity-90 transition-opacity"
@@ -167,7 +163,10 @@ export default function AdminActivate() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16"
+              />
             ))}
           </div>
         ) : items.length === 0 ? (
@@ -227,9 +226,7 @@ export default function AdminActivate() {
                         />
                       </td>
                       <td className="p-4">
-                        <p className="text-textPrimary font-medium text-sm">
-                          {item.name}
-                        </p>
+                        <p className="text-textPrimary font-medium text-sm">{item.name}</p>
                       </td>
                       <td className="p-4">
                         <p className="text-textSecondary text-sm max-w-xs truncate">
@@ -238,15 +235,9 @@ export default function AdminActivate() {
                       </td>
                       <td className="p-4">
                         <div className="text-xs text-neon font-mono space-y-1">
-                          <div>
-                            T1: {item.tier1_price.toLocaleString('ru-RU')} ₽
-                          </div>
-                          <div>
-                            T2: {item.tier2_price.toLocaleString('ru-RU')} ₽
-                          </div>
-                          <div>
-                            T3: {item.tier3_price.toLocaleString('ru-RU')} ₽
-                          </div>
+                          <div>T1: {item.tier1_price.toLocaleString('ru-RU')} ₽</div>
+                          <div>T2: {item.tier2_price.toLocaleString('ru-RU')} ₽</div>
+                          <div>T3: {item.tier3_price.toLocaleString('ru-RU')} ₽</div>
                         </div>
                       </td>
                       <td className="p-4 text-textSecondary text-sm">

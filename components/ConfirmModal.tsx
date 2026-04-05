@@ -5,6 +5,15 @@
 import { useState } from 'react';
 import clsx from 'clsx';
 
+declare global {
+  interface Window {
+    __confirmModalHandlers?: {
+      onConfirm: () => void | Promise<void>;
+      onCancel: () => void;
+    };
+  }
+}
+
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
@@ -44,33 +53,40 @@ export function ConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="presentation">
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      role="presentation"
+    >
       {/* Modal */}
-      <div className={clsx(
-        'bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200',
-        className
-      )} role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
+      <div
+        className={clsx(
+          'bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200',
+          className
+        )}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+      >
         {/* Иконка */}
-        <div className={clsx(
-          'w-12 h-12 rounded-full flex items-center justify-center mb-4',
-          isDangerous
-            ? 'bg-red-100 dark:bg-red-900/30'
-            : 'bg-yellow-100 dark:bg-yellow-900/30'
-        )}>
-          <span className="text-2xl">
-            {isDangerous ? '⚠️' : '❓'}
-          </span>
+        <div
+          className={clsx(
+            'w-12 h-12 rounded-full flex items-center justify-center mb-4',
+            isDangerous ? 'bg-red-100 dark:bg-red-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30'
+          )}
+        >
+          <span className="text-2xl">{isDangerous ? '⚠️' : '❓'}</span>
         </div>
 
         {/* Заголовок */}
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2" id="confirm-dialog-title">
+        <h2
+          className="text-xl font-bold text-gray-900 dark:text-white mb-2"
+          id="confirm-dialog-title"
+        >
           {title}
         </h2>
 
         {/* Сообщение */}
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
-          {message}
-        </p>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">{message}</p>
 
         {/* Кнопки */}
         <div className="flex gap-3">
@@ -123,7 +139,9 @@ export function ConfirmModal({
  */
 export function useConfirmModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const [config, setConfig] = useState<Omit<ConfirmModalProps, 'isOpen' | 'onConfirm' | 'onCancel'>>({
+  const [config, setConfig] = useState<
+    Omit<ConfirmModalProps, 'isOpen' | 'onConfirm' | 'onCancel'>
+  >({
     title: '',
     message: '',
   });
@@ -148,7 +166,7 @@ export function useConfirmModal() {
       };
 
       // Переопределяем обработчики в модальном окне
-      (window as any).__confirmModalHandlers = {
+      (window as Window).__confirmModalHandlers = {
         onConfirm: handleConfirm,
         onCancel: handleCancel,
       };
@@ -169,14 +187,7 @@ function Spinner() {
       fill="none"
       viewBox="0 0 24 24"
     >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path
         className="opacity-75"
         fill="currentColor"

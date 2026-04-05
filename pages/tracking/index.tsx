@@ -55,12 +55,15 @@ export default function TrackingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user: _user, webapp: _webapp } = useTelegramWebApp();
-  
+
   const orderId = searchParams?.get('orderId');
   const [tracking, setTracking] = useState<TrackingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+  } | null>(null);
 
   useEffect(() => {
     if (!orderId) {
@@ -78,7 +81,7 @@ export default function TrackingPage() {
       setError(null);
 
       const response = await fetch(`/api/orders/tracking?orderId=${orderId}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to load tracking');
@@ -184,11 +187,13 @@ export default function TrackingPage() {
       {tracking.delivery && tracking.delivery.courier_name && (
         <div className="p-4 mx-4 mt-4 bg-cardBg rounded-lg border border-border">
           <h3 className="text-lg font-bold text-textPrimary mb-4">🚚 Информация о доставке</h3>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between items-start">
               <span className="text-textSecondary">Курьер:</span>
-              <span className="text-textPrimary font-semibold">{tracking.delivery.courier_name}</span>
+              <span className="text-textPrimary font-semibold">
+                {tracking.delivery.courier_name}
+              </span>
             </div>
 
             {tracking.delivery.courier_phone && (
@@ -236,9 +241,7 @@ export default function TrackingPage() {
                   <p className="font-semibold text-textPrimary">
                     {STATUS_LABELS[event.status] || event.status}
                   </p>
-                  <span className="text-textSecondary text-xs">
-                    {formatDate(event.timestamp)}
-                  </span>
+                  <span className="text-textSecondary text-xs">{formatDate(event.timestamp)}</span>
                 </div>
 
                 {event.description && (
@@ -281,13 +284,7 @@ export default function TrackingPage() {
       </div>
 
       {/* Toast */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

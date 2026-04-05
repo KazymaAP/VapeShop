@@ -101,7 +101,11 @@ export default function AdminPages() {
         <div className="flex items-center justify-between mb-6 mt-10 md:mt-0">
           <h1 className="text-2xl font-bold gradient-text">Статические страницы</h1>
           <button
-            onClick={() => { setShowForm(!showForm); setEditingSlug(null); setFormData({ slug: '', title: '', content: '' }); }}
+            onClick={() => {
+              setShowForm(!showForm);
+              setEditingSlug(null);
+              setFormData({ slug: '', title: '', content: '' });
+            }}
             className="bg-gradient-to-r from-[#7c3aed] to-neon rounded-full px-4 py-2 text-sm text-white font-medium ripple"
           >
             {showForm ? 'Отмена' : '+ Добавить'}
@@ -109,12 +113,20 @@ export default function AdminPages() {
         </div>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="bg-cardBg border border-border rounded-2xl p-6 mb-6 space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-cardBg border border-border rounded-2xl p-6 mb-6 space-y-4"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
                 value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '') })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''),
+                  })
+                }
                 placeholder="Slug (например: about)"
                 required
                 disabled={!!editingSlug}
@@ -148,7 +160,9 @@ export default function AdminPages() {
         )}
 
         {message && (
-          <div className={`mb-4 p-3 rounded-xl text-sm ${message.startsWith('Ошибка') ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}>
+          <div
+            className={`mb-4 p-3 rounded-xl text-sm ${message.startsWith('Ошибка') ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}
+          >
             {message}
           </div>
         )}
@@ -156,7 +170,10 @@ export default function AdminPages() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16"
+              />
             ))}
           </div>
         ) : pages.length === 0 ? (
@@ -170,9 +187,15 @@ export default function AdminPages() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Slug</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Заголовок</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Обновлено</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Действия</th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Заголовок
+                  </th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Обновлено
+                  </th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Действия
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -180,7 +203,9 @@ export default function AdminPages() {
                   <tr key={page.slug} className="border-b border-border/50 hover:bg-bgDark/50">
                     <td className="p-4 font-mono text-sm text-neon">/{page.slug}</td>
                     <td className="p-4 text-textPrimary font-medium">{page.title}</td>
-                    <td className="p-4 text-textSecondary text-sm">{new Date(page.updated_at).toLocaleDateString('ru-RU')}</td>
+                    <td className="p-4 text-textSecondary text-sm">
+                      {new Date(page.updated_at).toLocaleDateString('ru-RU')}
+                    </td>
                     <td className="p-4">
                       <div className="flex gap-2">
                         <button

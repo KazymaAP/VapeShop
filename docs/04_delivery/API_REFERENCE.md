@@ -32,18 +32,20 @@
 
 **Query Parameters:**
 
-| Param | Type | Required | Default | Max | Description |
-|-------|------|----------|---------|-----|-------------|
-| `page` | integer | No | 1 | N/A | Номер страницы |
-| `limit` | integer | No | 20 | 100 | Элементов на странице |
+| Param   | Type    | Required | Default | Max | Description           |
+| ------- | ------- | -------- | ------- | --- | --------------------- |
+| `page`  | integer | No       | 1       | N/A | Номер страницы        |
+| `limit` | integer | No       | 20      | 100 | Элементов на странице |
 
 **Request Example:**
+
 ```bash
 curl -H "X-Telegram-Id: 987654321" \
      "http://localhost:3000/api/admin/pickup-points?page=1&limit=20"
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "pickup_points": [
@@ -66,10 +68,12 @@ curl -H "X-Telegram-Id: 987654321" \
 ```
 
 **Validation Rules:**
+
 - `page` must be >= 1
 - `limit` must be 1-100
 
 **Status Codes:**
+
 - `200` OK - успешно
 - `401` Unauthorized - отсутствует аутентификация
 - `403` Forbidden - не админ
@@ -88,12 +92,13 @@ curl -H "X-Telegram-Id: 987654321" \
 
 **Request Body:**
 
-| Field | Type | Required | Max Length | Description |
-|-------|------|----------|------------|-------------|
-| `name` | string | Yes | 255 | Название пункта |
-| `address` | string | Yes | 500 | Адрес пункта |
+| Field     | Type   | Required | Max Length | Description     |
+| --------- | ------ | -------- | ---------- | --------------- |
+| `name`    | string | Yes      | 255        | Название пункта |
+| `address` | string | Yes      | 500        | Адрес пункта    |
 
 **Request Example:**
+
 ```bash
 curl -X POST http://localhost:3000/api/admin/pickup-points \
   -H "Content-Type: application/json" \
@@ -105,6 +110,7 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "pickup_point": {
@@ -119,10 +125,12 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 ```
 
 **Validation Rules:**
+
 - `name` - обязателен, 1-255 символов, не пуст
 - `address` - обязателен, 1-500 символов, не пуст
 
 **Status Codes:**
+
 - `201` Created - пункт создан
 - `400` Bad Request - неверные параметры
 - `401` Unauthorized - отсутствует аутентификация
@@ -130,6 +138,7 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 - `500` Server Error
 
 **Error Response (400):**
+
 ```json
 {
   "error": "Название пункта выдачи обязательно"
@@ -149,14 +158,15 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 
 **Request Body:**
 
-| Field | Type | Required | Max Length | Description |
-|-------|------|----------|------------|-------------|
-| `id` | string (UUID) | Yes | N/A | ID пункта |
-| `name` | string | No | 255 | Новое название |
-| `address` | string | No | 500 | Новый адрес |
-| `is_active` | boolean | No | N/A | Статус пункта |
+| Field       | Type          | Required | Max Length | Description    |
+| ----------- | ------------- | -------- | ---------- | -------------- |
+| `id`        | string (UUID) | Yes      | N/A        | ID пункта      |
+| `name`      | string        | No       | 255        | Новое название |
+| `address`   | string        | No       | 500        | Новый адрес    |
+| `is_active` | boolean       | No       | N/A        | Статус пункта  |
 
 **Request Example:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/admin/pickup-points \
   -H "Content-Type: application/json" \
@@ -170,6 +180,7 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true
@@ -177,12 +188,14 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
 ```
 
 **Validation Rules:**
+
 - `id` - обязателен, UUID формат
 - `name` - если указано, то 1-255 символов
 - `address` - если указано, то 1-500 символов
 - Минимум одно поле должно быть указано для обновления
 
 **Status Codes:**
+
 - `200` OK - успешно обновлено
 - `400` Bad Request - неверные параметры
 - `401` Unauthorized - отсутствует аутентификация
@@ -191,6 +204,7 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
 - `500` Server Error
 
 **Error Response (404):**
+
 ```json
 {
   "error": "Пункт выдачи не найден"
@@ -209,17 +223,19 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
 
 **Query Parameters:**
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | string (UUID) | Yes | ID пункта для удаления |
+| Param | Type          | Required | Description            |
+| ----- | ------------- | -------- | ---------------------- |
+| `id`  | string (UUID) | Yes      | ID пункта для удаления |
 
 **Request Example:**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=550e8400-e29b-41d4-a716-446655440000" \
   -H "X-Telegram-Id: 987654321"
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true
@@ -227,11 +243,13 @@ curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=550e8400-e29b-4
 ```
 
 **Notes:**
+
 - Это soft delete: `is_active` устанавливается в `false`
 - Данные остаются в БД для аудита
 - Заказы, связанные с этим пунктом, остаются нетронутыми
 
 **Status Codes:**
+
 - `200` OK - успешно удалено
 - `401` Unauthorized - отсутствует аутентификация
 - `403` Forbidden - не админ
@@ -254,16 +272,18 @@ curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=550e8400-e29b-4
 
 **Query Parameters:**
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `telegram_id` | integer | Yes | ID Telegram пользователя |
+| Param         | Type    | Required | Description              |
+| ------------- | ------- | -------- | ------------------------ |
+| `telegram_id` | integer | Yes      | ID Telegram пользователя |
 
 **Request Example:**
+
 ```bash
 curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "addresses": [
@@ -288,6 +308,7 @@ curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 ```
 
 **Response (200 OK - Empty):**
+
 ```json
 {
   "addresses": []
@@ -295,9 +316,11 @@ curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 ```
 
 **Validation Rules:**
+
 - `telegram_id` - обязателен, положительное целое число
 
 **Status Codes:**
+
 - `200` OK - успешно (массив может быть пуст)
 - `400` Bad Request - telegram_id не указан
 - `500` Server Error
@@ -315,13 +338,14 @@ curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 
 **Request Body:**
 
-| Field | Type | Required | Max Length | Description |
-|-------|------|----------|------------|-------------|
-| `telegram_id` | integer | Yes | N/A | ID пользователя |
-| `address` | string | Yes | 500 | Адрес доставки |
-| `is_default` | boolean | No | N/A | По умолчанию? (def: false) |
+| Field         | Type    | Required | Max Length | Description                |
+| ------------- | ------- | -------- | ---------- | -------------------------- |
+| `telegram_id` | integer | Yes      | N/A        | ID пользователя            |
+| `address`     | string  | Yes      | 500        | Адрес доставки             |
+| `is_default`  | boolean | No       | N/A        | По умолчанию? (def: false) |
 
 **Request Example:**
+
 ```bash
 curl -X POST http://localhost:3000/api/addresses \
   -H "Content-Type: application/json" \
@@ -333,6 +357,7 @@ curl -X POST http://localhost:3000/api/addresses \
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "address": {
@@ -347,18 +372,21 @@ curl -X POST http://localhost:3000/api/addresses \
 ```
 
 **Validation Rules:**
+
 - `telegram_id` - обязателен, положительное число
 - `address` - обязателен, 1-500 символов, не пуст
 - UNIQUE constraint: один адрес для пользователя можно добавить только 1 раз
 - Если `is_default=true` → снимаются флаги у других адресов
 
 **Status Codes:**
+
 - `200` OK - адрес добавлен
 - `400` Bad Request - неверные параметры
 - `409` Conflict - адрес уже существует (UNIQUE violation)
 - `500` Server Error
 
 **Error Response (409):**
+
 ```json
 {
   "error": "Этот адрес уже сохранен"
@@ -378,13 +406,14 @@ curl -X POST http://localhost:3000/api/addresses \
 
 **Request Body:**
 
-| Field | Type | Required | Max Length | Description |
-|-------|------|----------|------------|-------------|
-| `id` | string (UUID) | Yes | N/A | ID адреса |
-| `address` | string | No | 500 | Новый адрес |
-| `is_default` | boolean | No | N/A | Установить по умолчанию? |
+| Field        | Type          | Required | Max Length | Description              |
+| ------------ | ------------- | -------- | ---------- | ------------------------ |
+| `id`         | string (UUID) | Yes      | N/A        | ID адреса                |
+| `address`    | string        | No       | 500        | Новый адрес              |
+| `is_default` | boolean       | No       | N/A        | Установить по умолчанию? |
 
 **Request Example:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/addresses \
   -H "Content-Type: application/json" \
@@ -395,6 +424,7 @@ curl -X PUT http://localhost:3000/api/addresses \
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true
@@ -402,11 +432,13 @@ curl -X PUT http://localhost:3000/api/addresses \
 ```
 
 **Validation Rules:**
+
 - `id` - обязателен, UUID формат
 - `address` - если указано, то 1-500 символов
 - Если `is_default=true` → снимаются флаги у других адресов этого пользователя
 
 **Status Codes:**
+
 - `200` OK - успешно обновлено
 - `400` Bad Request - неверные параметры
 - `401` Unauthorized - не аутентифицирован
@@ -425,16 +457,18 @@ curl -X PUT http://localhost:3000/api/addresses \
 
 **Query Parameters:**
 
-| Param | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | string (UUID) | Yes | ID адреса для удаления |
+| Param | Type          | Required | Description            |
+| ----- | ------------- | -------- | ---------------------- |
+| `id`  | string (UUID) | Yes      | ID адреса для удаления |
 
 **Request Example:**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/addresses?id=770e8400-e29b-41d4-a716-446655440002"
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true
@@ -442,11 +476,13 @@ curl -X DELETE "http://localhost:3000/api/addresses?id=770e8400-e29b-41d4-a716-4
 ```
 
 **Notes:**
+
 - Адрес полностью удаляется из БД
 - Если это был адрес по умолчанию, флаг снимается
 - Заказы, использовавшие этот адрес, остаются нетронутыми
 
 **Status Codes:**
+
 - `200` OK - успешно удалено
 - `401` Unauthorized - не аутентифицирован
 - `404` Not Found - адрес не найден
@@ -470,11 +506,13 @@ curl -X DELETE "http://localhost:3000/api/addresses?id=770e8400-e29b-41d4-a716-4
 **Query Parameters:** Нет
 
 **Request Example:**
+
 ```bash
 curl "http://localhost:3000/api/pickup-points"
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "pickup_points": [
@@ -499,12 +537,14 @@ curl "http://localhost:3000/api/pickup-points"
 ```
 
 **Notes:**
+
 - Возвращает ТОЛЬКО активные пункты (`is_active = true`)
 - Отключенные пункты не включаются в ответ
 - Результат можно кэшировать на клиенте (редко меняется)
 - Это самый быстрый endpoint
 
 **Status Codes:**
+
 - `200` OK - успешно
 - `500` Server Error
 
@@ -523,27 +563,28 @@ curl "http://localhost:3000/api/pickup-points"
 
 **Request Body (для самовывоза):**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `items` | array | Yes | Массив товаров |
-| `items[].product_id` | string | Yes | ID продукта |
-| `items[].quantity` | integer | Yes | Количество (>0) |
-| `delivery_method` | string | Yes | "pickup" |
-| `pickup_point_id` | string (UUID) | Yes | ID пункта выдачи |
-| `delivery_date` | string | No | Дата (YYYY-MM-DD) |
+| Field                | Type          | Required | Description       |
+| -------------------- | ------------- | -------- | ----------------- |
+| `items`              | array         | Yes      | Массив товаров    |
+| `items[].product_id` | string        | Yes      | ID продукта       |
+| `items[].quantity`   | integer       | Yes      | Количество (>0)   |
+| `delivery_method`    | string        | Yes      | "pickup"          |
+| `pickup_point_id`    | string (UUID) | Yes      | ID пункта выдачи  |
+| `delivery_date`      | string        | No       | Дата (YYYY-MM-DD) |
 
 **Request Body (для доставки на адрес):**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `items` | array | Yes | Массив товаров |
-| `items[].product_id` | string | Yes | ID продукта |
-| `items[].quantity` | integer | Yes | Количество (>0) |
-| `delivery_method` | string | Yes | "delivery" |
-| `address` | string | Yes | Адрес доставки |
-| `delivery_date` | string | No | Дата (YYYY-MM-DD) |
+| Field                | Type    | Required | Description       |
+| -------------------- | ------- | -------- | ----------------- |
+| `items`              | array   | Yes      | Массив товаров    |
+| `items[].product_id` | string  | Yes      | ID продукта       |
+| `items[].quantity`   | integer | Yes      | Количество (>0)   |
+| `delivery_method`    | string  | Yes      | "delivery"        |
+| `address`            | string  | Yes      | Адрес доставки    |
+| `delivery_date`      | string  | No       | Дата (YYYY-MM-DD) |
 
 **Request Example (Pickup):**
+
 ```bash
 curl -X POST http://localhost:3000/api/orders \
   -H "Content-Type: application/json" \
@@ -560,6 +601,7 @@ curl -X POST http://localhost:3000/api/orders \
 ```
 
 **Request Example (Delivery):**
+
 ```bash
 curl -X POST http://localhost:3000/api/orders \
   -H "Content-Type: application/json" \
@@ -575,6 +617,7 @@ curl -X POST http://localhost:3000/api/orders \
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "order": {
@@ -591,6 +634,7 @@ curl -X POST http://localhost:3000/api/orders \
 ```
 
 **Validation Rules:**
+
 - `items` - массив не пуст, минимум 1 товар
 - `product_id` - обязателен для каждого товара
 - `quantity` - обязателен, целое число > 0
@@ -605,6 +649,7 @@ curl -X POST http://localhost:3000/api/orders \
 - `delivery_date` - если указана, то формат YYYY-MM-DD, >= завтра
 
 **Status Codes:**
+
 - `201` Created - заказ создан
 - `400` Bad Request - неверные параметры
 - `401` Unauthorized - не аутентифицирован
@@ -612,6 +657,7 @@ curl -X POST http://localhost:3000/api/orders \
 - `500` Server Error
 
 **Error Response (400):**
+
 ```json
 {
   "error": "delivery_method должен быть 'pickup' или 'delivery'"
@@ -619,6 +665,7 @@ curl -X POST http://localhost:3000/api/orders \
 ```
 
 **Error Response (404):**
+
 ```json
 {
   "error": "Пункт выдачи не найден"
@@ -641,17 +688,17 @@ curl -X POST http://localhost:3000/api/orders \
 
 ### Коды ошибок HTTP
 
-| Code | Name | Description | Решение |
-|------|------|-------------|---------|
-| 200 | OK | Успешный запрос | N/A |
-| 201 | Created | Ресурс создан | N/A |
-| 400 | Bad Request | Неверные параметры | Проверьте request body |
-| 401 | Unauthorized | Требуется аутентификация | Добавьте X-Telegram-Id |
-| 403 | Forbidden | Недостаточно прав | Требуется админ роль |
-| 404 | Not Found | Ресурс не найден | Проверьте ID |
-| 409 | Conflict | Конфликт данных (UNIQUE) | Данные уже существуют |
-| 405 | Method Not Allowed | HTTP метод не поддерживается | Используйте правильный метод |
-| 500 | Server Error | Ошибка сервера | Свяжитесь с поддержкой |
+| Code | Name               | Description                  | Решение                      |
+| ---- | ------------------ | ---------------------------- | ---------------------------- |
+| 200  | OK                 | Успешный запрос              | N/A                          |
+| 201  | Created            | Ресурс создан                | N/A                          |
+| 400  | Bad Request        | Неверные параметры           | Проверьте request body       |
+| 401  | Unauthorized       | Требуется аутентификация     | Добавьте X-Telegram-Id       |
+| 403  | Forbidden          | Недостаточно прав            | Требуется админ роль         |
+| 404  | Not Found          | Ресурс не найден             | Проверьте ID                 |
+| 409  | Conflict           | Конфликт данных (UNIQUE)     | Данные уже существуют        |
+| 405  | Method Not Allowed | HTTP метод не поддерживается | Используйте правильный метод |
+| 500  | Server Error       | Ошибка сервера               | Свяжитесь с поддержкой       |
 
 ---
 
@@ -668,6 +715,7 @@ curl -X POST http://localhost:3000/api/orders \
 ### Проверка Admin роли
 
 Admin endpoints требуют:
+
 1. Наличие `X-Telegram-Id` заголовка
 2. Пользователь с этим ID должен иметь роль `admin` в БД
 
@@ -693,8 +741,12 @@ SELECT role FROM users WHERE telegram_id = 987654321;
 
 ```json
 {
-  "data_name": { /* объект */ },
-  "metadata": { /* доп. информация */ }
+  "data_name": {
+    /* объект */
+  },
+  "metadata": {
+    /* доп. информация */
+  }
 }
 ```
 
@@ -710,7 +762,9 @@ SELECT role FROM users WHERE telegram_id = 987654321;
 
 ```json
 {
-  "items": [ /* массив */ ],
+  "items": [
+    /* массив */
+  ],
   "pagination": {
     "total": 100,
     "page": 1,
@@ -724,18 +778,18 @@ SELECT role FROM users WHERE telegram_id = 987654321;
 
 ## 📊 Rate Limits
 
-| Endpoint | Limit | Window |
-|----------|-------|--------|
-| GET /api/pickup-points | 200/min | 1 minute |
-| GET /api/admin/pickup-points | 100/min | 1 minute |
-| POST /api/admin/pickup-points | 20/min | 1 minute |
-| PUT /api/admin/pickup-points | 20/min | 1 minute |
-| DELETE /api/admin/pickup-points | 20/min | 1 minute |
-| GET /api/addresses | 100/min | 1 minute |
-| POST /api/addresses | 20/min | 1 minute |
-| PUT /api/addresses | 20/min | 1 minute |
-| DELETE /api/addresses | 20/min | 1 minute |
-| POST /api/orders | 10/min | 1 minute |
+| Endpoint                        | Limit   | Window   |
+| ------------------------------- | ------- | -------- |
+| GET /api/pickup-points          | 200/min | 1 minute |
+| GET /api/admin/pickup-points    | 100/min | 1 minute |
+| POST /api/admin/pickup-points   | 20/min  | 1 minute |
+| PUT /api/admin/pickup-points    | 20/min  | 1 minute |
+| DELETE /api/admin/pickup-points | 20/min  | 1 minute |
+| GET /api/addresses              | 100/min | 1 minute |
+| POST /api/addresses             | 20/min  | 1 minute |
+| PUT /api/addresses              | 20/min  | 1 minute |
+| DELETE /api/addresses           | 20/min  | 1 minute |
+| POST /api/orders                | 10/min  | 1 minute |
 
 При превышении лимита: `429 Too Many Requests`
 
@@ -750,4 +804,3 @@ SELECT role FROM users WHERE telegram_id = 987654321;
 **Версия:** 1.0  
 **Последнее обновление:** 2024  
 **Статус:** ✅ Complete
-

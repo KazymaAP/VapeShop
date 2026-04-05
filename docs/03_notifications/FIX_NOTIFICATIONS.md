@@ -30,35 +30,32 @@ setBotInstance(bot);
 **Файл:** `pages/api/orders.ts`
 
 **Шаг 2.1 - Добавлен импорт:**
+
 ```typescript
 // Строка 4
 import { notifyAdminsNewOrder } from '../../lib/notifications';
 ```
 
 **Шаг 2.2 - Добавлен вызов после создания заказа (после строки 160):**
+
 ```typescript
 const order = orderRes.rows[0];
 
 // Получаем информацию о пользователе для уведомления
-const userRes = await query(
-  'SELECT username, first_name FROM users WHERE telegram_id = $1',
-  [telegram_id]
-);
+const userRes = await query('SELECT username, first_name FROM users WHERE telegram_id = $1', [
+  telegram_id,
+]);
 const user = userRes.rows[0];
 const username = user?.username || user?.first_name || 'Покупатель';
 
 // Отправляем уведомление админам о новом заказе
-await notifyAdminsNewOrder(
-  order.id,
-  total,
-  username,
-  items.length
-);
+await notifyAdminsNewOrder(order.id, total, username, items.length);
 
 // Add items to order...
 ```
 
 **Что происходит:**
+
 1. Получаем информацию о пользователе (username или first_name)
 2. Вызываем `notifyAdminsNewOrder` с параметрами:
    - `order.id` - ID заказа
@@ -69,13 +66,14 @@ await notifyAdminsNewOrder(
 3. Функция `notifyAdminsNewOrder` (из `lib/notifications.ts`):
    - Получает список админов через `broadcastNotification('admin', ...)`
    - Отправляет каждому админу сообщение вида:
+
    ```
    🆕 Новый заказ #ABC12345
-   
+
    👤 От: @username
    💰 Сумма: 1250 ⭐️
    📦 Товаров: 3 шт.
-   
+
    [Кнопка: Просмотреть заказ]
    ```
 
@@ -127,9 +125,9 @@ npm run dev
 
 ```sql
 -- Проверить, отправлены ли уведомления
-SELECT * FROM notification_history 
-WHERE event_type = 'order_new_admin' 
-ORDER BY sent_at DESC 
+SELECT * FROM notification_history
+WHERE event_type = 'order_new_admin'
+ORDER BY sent_at DESC
 LIMIT 10;
 
 -- Должны быть записи со статусом 'sent' (успешно отправлено)
@@ -137,17 +135,18 @@ LIMIT 10;
 
 ## Файлы, измененные/созданные
 
-| Файл | Тип | Описание |
-|------|-----|---------|
-| `pages/api/bot.ts` | 🔧 Изменен | Добавлена инициализация `setBotInstance(bot)` |
-| `pages/api/orders.ts` | 🔧 Изменен | Добавлен импорт и вызов `notifyAdminsNewOrder()` |
-| `lib/notifications.ts` | ✓ Не изменен | Функция уже была готова |
-| `docs/01_database/README.md` | 📝 Создан | Документация БД |
-| `docs/03_notifications/FIX_NOTIFICATIONS.md` | 📝 Создан | Этот файл |
+| Файл                                         | Тип          | Описание                                         |
+| -------------------------------------------- | ------------ | ------------------------------------------------ |
+| `pages/api/bot.ts`                           | 🔧 Изменен   | Добавлена инициализация `setBotInstance(bot)`    |
+| `pages/api/orders.ts`                        | 🔧 Изменен   | Добавлен импорт и вызов `notifyAdminsNewOrder()` |
+| `lib/notifications.ts`                       | ✓ Не изменен | Функция уже была готова                          |
+| `docs/01_database/README.md`                 | 📝 Создан    | Документация БД                                  |
+| `docs/03_notifications/FIX_NOTIFICATIONS.md` | 📝 Создан    | Этот файл                                        |
 
 ## Обратная совместимость
 
 ✅ **Изменения полностью обратно совместимы:**
+
 - Существующие функции не удалены
 - Новые строки кода добавлены, не заменены
 - Если админы не в БД → сообщение не отправляется (graceful degradation)
@@ -160,7 +159,8 @@ LIMIT 10;
 
 ### Проблема: Админы не получают сообщения
 
-**Решение:** 
+**Решение:**
+
 1. Проверьте `ADMIN_TELEGRAM_IDS` в `.env`
 2. Проверьте, что бот-администратор чата
 3. Проверьте логи: `SELECT * FROM notification_history WHERE event_type = 'order_new_admin'`
@@ -174,6 +174,7 @@ LIMIT 10;
 ✅ **Уведомления админам работают!**
 
 Следующие фазы:
+
 - [ ] P4 - Доставка (самовывоз + курьер) - ✅ Готово
 - [ ] P5 - CSV импорт - ✅ Готово
 - [ ] P6 - Промокоды - ✅ Готово

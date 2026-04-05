@@ -20,7 +20,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(200).json({ data: [] });
     }
 
-    const productIds = userOrdersResult.rows.map(r => r.product_id);
+    const productIds = userOrdersResult.rows.map((r) => r.product_id);
 
     // Рекомендации: товары, которые покупали люди, купившие те же товары
     const recommendedResult = await query(
@@ -47,4 +47,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['customer']);
-

@@ -20,7 +20,7 @@ export class ApiError extends Error {
     public statusCode: number,
     public code: string,
     message: string,
-    public details?: Record<string, unknown>,
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'ApiError';
@@ -34,7 +34,7 @@ function logError(
   level: string,
   message: string,
   error: unknown,
-  details?: Record<string, unknown>,
+  details?: Record<string, unknown>
 ): void {
   const timestamp = new Date().toISOString();
   const errorMessage = error instanceof Error ? error.message : String(error);
@@ -88,7 +88,7 @@ export function apiError(
   status: number,
   message: string,
   code?: string,
-  details?: Record<string, unknown>,
+  details?: Record<string, unknown>
 ): void {
   const errorResponse: ApiErrorResponse = {
     error: message,
@@ -112,7 +112,7 @@ export function apiError(
 export function apiSuccess<T>(
   res: NextApiResponse<ApiSuccessResponse<T>>,
   data: T,
-  status: number = HTTP_STATUS.OK,
+  status: number = HTTP_STATUS.OK
 ): void {
   res.status(status).json({
     success: true,
@@ -128,7 +128,7 @@ export function handleApiError(
   err: unknown,
   res: NextApiResponse<ApiErrorResponse>,
   defaultMessage: string = ERROR_MESSAGES.INTERNAL_ERROR,
-  context?: string,
+  context?: string
 ): void {
   const statusCode = getStatusCodeFromError(err);
 
@@ -142,32 +142,17 @@ export function handleApiError(
     // Известные ошибки БД
     if (err.message.includes('permission denied')) {
       logError(LOG_LEVELS.WARN, 'Permission Error', err, { context });
-      return apiError(
-        res,
-        HTTP_STATUS.FORBIDDEN,
-        ERROR_MESSAGES.FORBIDDEN,
-        'PERMISSION_DENIED',
-      );
+      return apiError(res, HTTP_STATUS.FORBIDDEN, ERROR_MESSAGES.FORBIDDEN, 'PERMISSION_DENIED');
     }
 
     if (err.message.includes('syntax error')) {
       logError(LOG_LEVELS.WARN, 'Syntax Error', err, { context });
-      return apiError(
-        res,
-        HTTP_STATUS.BAD_REQUEST,
-        ERROR_MESSAGES.INVALID_INPUT,
-        'SYNTAX_ERROR',
-      );
+      return apiError(res, HTTP_STATUS.BAD_REQUEST, ERROR_MESSAGES.INVALID_INPUT, 'SYNTAX_ERROR');
     }
 
     if (err.message.includes('unique violation')) {
       logError(LOG_LEVELS.WARN, 'Duplicate Entry Error', err, { context });
-      return apiError(
-        res,
-        HTTP_STATUS.CONFLICT,
-        ERROR_MESSAGES.DUPLICATE_ENTRY,
-        'DUPLICATE_ENTRY',
-      );
+      return apiError(res, HTTP_STATUS.CONFLICT, ERROR_MESSAGES.DUPLICATE_ENTRY, 'DUPLICATE_ENTRY');
     }
 
     logError(LOG_LEVELS.ERROR, context || 'Error', err);
@@ -178,6 +163,6 @@ export function handleApiError(
   apiError(
     res,
     statusCode,
-    process.env.NODE_ENV === 'production' ? ERROR_MESSAGES.INTERNAL_ERROR : defaultMessage,
+    process.env.NODE_ENV === 'production' ? ERROR_MESSAGES.INTERNAL_ERROR : defaultMessage
   );
 }

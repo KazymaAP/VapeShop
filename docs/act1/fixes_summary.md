@@ -13,22 +13,22 @@
 
 ### Безопасность
 
-| Проблема | Файл | Статус | Приоритет |
-|----------|------|--------|-----------|
-| Используется x-telegram-id вместо getTelegramId | pages/api/user/balance.ts | 🔄 ИСПРАВЛЯЕТСЯ | CRITICAL |
-| Проверить HMAC валидацию | pages/api/cart.ts | ⏳ В ОЧЕРЕДИ | HIGH |
-| Cron endpoints без проверки CRON_SECRET | pages/api/cron/*.ts | ⏳ В ОЧЕРЕДИ | HIGH |
-| Support endpoints без requireAuth | pages/api/support/*.ts | ⏳ В ОЧЕРЕДИ | HIGH |
-| Courier endpoints без requireAuth | pages/api/courier/*.ts | ⏳ В ОЧЕРЕДИ | HIGH |
+| Проблема                                        | Файл                      | Статус          | Приоритет |
+| ----------------------------------------------- | ------------------------- | --------------- | --------- |
+| Используется x-telegram-id вместо getTelegramId | pages/api/user/balance.ts | 🔄 ИСПРАВЛЯЕТСЯ | CRITICAL  |
+| Проверить HMAC валидацию                        | pages/api/cart.ts         | ⏳ В ОЧЕРЕДИ    | HIGH      |
+| Cron endpoints без проверки CRON_SECRET         | pages/api/cron/\*.ts      | ⏳ В ОЧЕРЕДИ    | HIGH      |
+| Support endpoints без requireAuth               | pages/api/support/\*.ts   | ⏳ В ОЧЕРЕДИ    | HIGH      |
+| Courier endpoints без requireAuth               | pages/api/courier/\*.ts   | ⏳ В ОЧЕРЕДИ    | HIGH      |
 
 ### Lint ошибки
 
-| Тип | Количество | Статус | Файлы |
-|-----|-----------|--------|-------|
-| `any` типы | ~50 | 🔄 ИСПРАВЛЯЮТСЯ | pages/admin/*, pages/api/admin/* |
-| Неиспользуемые переменные | ~20 | 🔄 ИСПРАВЛЯЮТСЯ | pages/admin/*, pages/api/admin/* |
-| Missing deps в useEffect | ~15 | 🔄 ИСПРАВЛЯЮТСЯ | pages/admin/*, components/* |
-| `<img>` вместо `<Image>` | ~5 | 🔄 ИСПРАВЛЯЮТСЯ | pages/admin/banners.tsx |
+| Тип                       | Количество | Статус          | Файлы                            |
+| ------------------------- | ---------- | --------------- | -------------------------------- |
+| `any` типы                | ~50        | 🔄 ИСПРАВЛЯЮТСЯ | pages/admin/_, pages/api/admin/_ |
+| Неиспользуемые переменные | ~20        | 🔄 ИСПРАВЛЯЮТСЯ | pages/admin/_, pages/api/admin/_ |
+| Missing deps в useEffect  | ~15        | 🔄 ИСПРАВЛЯЮТСЯ | pages/admin/_, components/_      |
+| `<img>` вместо `<Image>`  | ~5         | 🔄 ИСПРАВЛЯЮТСЯ | pages/admin/banners.tsx          |
 
 ---
 
@@ -41,7 +41,7 @@
 
 2. **Отсутствие .env.example** ✅
    - Создан файл с правильной структурой переменных
-   - Включены все необходимые ключи (TELEGRAM_BOT_TOKEN, DATABASE_URL, SUPABASE_*, и т.д.)
+   - Включены все необходимые ключи (TELEGRAM*BOT_TOKEN, DATABASE_URL, SUPABASE*\*, и т.д.)
 
 3. **Неиспользуемая переменная в pages/admin/pages.tsx** ✅
    - Удалена переменная `user` и импорт `useRouter`
@@ -54,12 +54,14 @@
 ## 🔧 ТЕКУЩИЙ ПЛАН ИСПРАВЛЕНИЙ
 
 ### Фаза 1: ESLint (🔄 В ПРОЦЕССЕ)
+
 - [ ] Заменить все `any` на конкретные типы
 - [ ] Удалить неиспользуемые переменные и импорты
 - [ ] Добавить missing dependencies в useEffect
 - [ ] Заменить `<img>` на `<Image>`
 
 ### Фаза 2: Безопасность (🔄 В ПРОЦЕССЕ)
+
 - [ ] Исправить user/balance.ts (x-telegram-id → getTelegramId)
 - [ ] Проверить cart.ts HMAC валидацию
 - [ ] Добавить requireAuth в support endpoints
@@ -67,12 +69,14 @@
 - [ ] Защитить cron endpoints CRON_SECRET проверкой
 
 ### Фаза 3: Функциональность (⏳ ОЖИДАНИЕ)
+
 - [ ] Проверить и завершить реферальную систему
 - [ ] Добавить недостающие API endpoints
 - [ ] Проверить тип данных (UUID vs BIGINT) в БД
 - [ ] Добавить недостающие индексы
 
 ### Фаза 4: Производительность (⏳ ОЖИДАНИЕ)
+
 - [ ] Добавить пагинацию где её нет
 - [ ] Добавить кэширование (React Query/SWR)
 - [ ] Оптимизировать изображения (next/image)
@@ -82,19 +86,20 @@
 
 ## 📊 Метрики Цикла 1
 
-| Метрика | Значение | Статус |
-|---------|---------|--------|
-| Файлов проанализировано | ~30+ | ✅ |
-| Критических проблем найдено | 10+ | ⏳ |
-| Исправлено | 3 | ✅ |
-| В процессе исправления | 7 | 🔄 |
-| В очереди | 20+ | ⏳ |
+| Метрика                     | Значение | Статус |
+| --------------------------- | -------- | ------ |
+| Файлов проанализировано     | ~30+     | ✅     |
+| Критических проблем найдено | 10+      | ⏳     |
+| Исправлено                  | 3        | ✅     |
+| В процессе исправления      | 7        | 🔄     |
+| В очереди                   | 20+      | ⏳     |
 
 ---
 
 ## 🗂️ Файлы, измененные в Цикле 1
 
 ### Переименованы:
+
 - db/migrations/010_role_improvements_part1.sql → 010_role_improvements_a.sql
 - db/migrations/010_role_improvements_part2.sql → 010_role_improvements_b.sql
 - db/migrations/010_role_improvements_part3.sql → 010_role_improvements_c.sql
@@ -104,18 +109,21 @@
 - db/migrations/018_phase4_features.sql → 018_phase4_features_b.sql
 
 ### Созданы:
+
 - .env.example
 
 ### Отредактированы:
+
 - pages/admin/pages.tsx (удалены неиспользуемые переменные)
 - types/api.ts (добавлены типы Dashboard)
 - pages/api/admin/products.ts (может быть отредактирован агентом)
 
 ### В процессе редактирования:
-- pages/admin/*.tsx (eslint fixes)
-- pages/api/admin/*.ts (eslint fixes)
+
+- pages/admin/\*.tsx (eslint fixes)
+- pages/api/admin/\*.ts (eslint fixes)
 - pages/api/user/balance.ts (security fix)
-- pages/api/*.ts (various security fixes)
+- pages/api/\*.ts (various security fixes)
 
 ---
 

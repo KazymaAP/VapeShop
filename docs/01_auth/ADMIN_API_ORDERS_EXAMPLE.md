@@ -40,7 +40,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
          LIMIT 100`
       );
 
-      const orders = result.rows.map(row => ({
+      const orders = result.rows.map((row) => ({
         id: row.id,
         user_telegram_id: row.user_telegram_id,
         items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items,
@@ -96,7 +96,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             new_status: status,
           }),
         ]
-      ).catch(err => console.error('Logging error:', err));
+      ).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({ success: true, message: `Статус заказа изменён на ${status}` });
     } catch (err) {
@@ -120,12 +120,14 @@ export default requireAuth(handler, ['admin', 'manager']);
 ## Что изменилось?
 
 ### 1. Импорты
+
 ```typescript
 // Добавили
 import { requireAuth, getTelegramId } from '../../../lib/auth';
 ```
 
 ### 2. Переименование функции
+
 ```typescript
 // Было
 export default async function handler(req, res) { ... }
@@ -135,16 +137,19 @@ async function handler(req, res) { ... }
 ```
 
 ### 3. Обёртка в конце файла
+
 ```typescript
 export default requireAuth(handler, ['admin', 'manager']);
 ```
 
 Это делает:
+
 - ✅ Проверяет наличие X-Telegram-Id заголовка → 401 если нет
 - ✅ Проверяет роль пользователя → 403 если не admin/manager
 - ✅ Проверяет блокировку пользователя → 403 если заблокирован
 
 ### 4. Логирование действия
+
 ```typescript
 const telegramId = getTelegramId(req);
 await query(
@@ -158,6 +163,7 @@ await query(
 ## Тестирование
 
 ### Тест 1: Без заголовка (401)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/orders
 # Ответ: {"error":"Unauthorized"}
@@ -165,6 +171,7 @@ curl -X GET http://localhost:3000/api/admin/orders
 ```
 
 ### Тест 2: С заголовком admin (200)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/orders \
   -H "X-Telegram-Id: 123456789"
@@ -173,6 +180,7 @@ curl -X GET http://localhost:3000/api/admin/orders \
 ```
 
 ### Тест 3: С заголовком buyer (403)
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/orders \
   -H "X-Telegram-Id: 987654321"  # Пользователь с ролью buyer
@@ -181,6 +189,7 @@ curl -X GET http://localhost:3000/api/admin/orders \
 ```
 
 ### Тест 4: Обновить статус заказа
+
 ```bash
 curl -X PUT http://localhost:3000/api/admin/orders \
   -H "X-Telegram-Id: 123456789" \
@@ -196,6 +205,7 @@ curl -X PUT http://localhost:3000/api/admin/orders \
 ## Проверка логирования
 
 В БД должна появиться запись:
+
 ```sql
 SELECT * FROM admin_logs
 WHERE user_telegram_id = 123456789
@@ -253,25 +263,32 @@ export default requireAuth(handler, ['admin']); // Только админы
 ## Частые ошибки
 
 ### ❌ Ошибка 1: Забыли обёртку requireAuth
+
 ```typescript
 export default handler; // ❌ НЕ ЗАЩИЩЕНО!
 ```
+
 **Решение:**
+
 ```typescript
 export default requireAuth(handler, ['admin']); // ✓ ЗАЩИЩЕНО
 ```
 
 ### ❌ Ошибка 2: export default async function вместо async function
+
 ```typescript
 export default async function handler(req, res) { ... } // ❌ Не работает с requireAuth
 ```
+
 **Решение:**
+
 ```typescript
 async function handler(req, res) { ... }
 export default requireAuth(handler, ['admin']); // ✓ Правильно
 ```
 
 ### ❌ Ошибка 3: Забыли логирование
+
 ```typescript
 async function handler(req, res) {
   if (req.method === 'PUT') {
@@ -279,7 +296,9 @@ async function handler(req, res) {
   }
 }
 ```
+
 **Решение:**
+
 ```typescript
 async function handler(req, res) {
   if (req.method === 'PUT') {
@@ -292,14 +311,14 @@ async function handler(req, res) {
 
 ## Резюме изменений на примере /api/admin/orders.ts
 
-| Аспект | До | После |
-|--------|----|----- |
-| **Кто может получить доступ?** | Любой | Только admin или manager |
-| **Логирование действий** | Нет | Да, в таблице admin_logs |
-| **Проверка блокировки** | Нет | Да, middleware requireAuth |
-| **Возврат 401 без заголовка** | Нет | Да |
-| **Возврат 403 без прав** | Нет | Да |
-| **Безопасность** | ⚠️ Низкая | ✓ Средняя-высокая |
+| Аспект                         | До        | После                      |
+| ------------------------------ | --------- | -------------------------- |
+| **Кто может получить доступ?** | Любой     | Только admin или manager   |
+| **Логирование действий**       | Нет       | Да, в таблице admin_logs   |
+| **Проверка блокировки**        | Нет       | Да, middleware requireAuth |
+| **Возврат 401 без заголовка**  | Нет       | Да                         |
+| **Возврат 403 без прав**       | Нет       | Да                         |
+| **Безопасность**               | ⚠️ Низкая | ✓ Средняя-высокая          |
 
 ## Применение ко ВСЕМ админским эндпоинтам
 

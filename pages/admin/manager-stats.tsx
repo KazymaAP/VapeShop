@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTelegramWebApp } from '../../lib/telegram';
 
 interface ManagerStats {
   name: string;
@@ -20,7 +21,7 @@ export default function ManagerStatsPage() {
   const loadStats = async () => {
     try {
       const response = await fetch('/api/admin/manager-stats', {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -66,4 +67,3 @@ export default function ManagerStatsPage() {
     </div>
   );
 }
-

@@ -4,7 +4,6 @@
  */
 
 import { useState } from 'react';
-import { safeFetch } from '../lib/useFetch';
 
 interface ExportFiltersProps {
   onExporting?: (state: boolean) => void;

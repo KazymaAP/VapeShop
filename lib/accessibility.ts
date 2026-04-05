@@ -3,6 +3,8 @@
  * Только утилиты, без JSX компонентов (JSX должны быть в .tsx файлах)
  */
 
+import React from 'react';
+
 /**
  * Hook для управления фокусом при открытии/закрытии модалей
  */
@@ -50,7 +52,7 @@ export const HOVER_EFFECTS = {
   opacity: 'hover:opacity-80 transition-opacity duration-200',
   translateY: 'hover:-translate-y-1 transition-transform duration-200',
   color: 'hover:text-neon transition-colors duration-200',
-  combined: 'hover:scale-105 hover:shadow-neon hover:-translate-y-1 transition-all duration-200'
+  combined: 'hover:scale-105 hover:shadow-neon hover:-translate-y-1 transition-all duration-200',
 };
 
 /**
@@ -84,12 +86,10 @@ export function useKeyboardShortcuts(shortcuts: Record<string, () => void>) {
 /**
  * Утилита для auto-focus при открытии элемента
  */
-export function useAutoFocus(isOpen: boolean, ref: React.RefObject<HTMLInputElement>) {
+export function useAutoFocus(ref: React.RefObject<HTMLInputElement>) {
   return (isOpen: boolean) => {
     if (isOpen && ref.current) {
       setTimeout(() => ref.current?.focus(), 0);
     }
   };
 }
-
-import React from 'react';

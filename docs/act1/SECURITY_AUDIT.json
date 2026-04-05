@@ -4,23 +4,14 @@
       "authType": "requireAuth middleware",
       "protected": 28,
       "total": 28,
-      "roles": [
-        "admin",
-        "super_admin",
-        "manager"
-      ],
+      "roles": ["admin", "super_admin", "manager"],
       "status": "PASS"
     },
     "support": {
       "authType": "requireAuth middleware",
       "protected": 5,
       "total": 5,
-      "roles": [
-        "support",
-        "admin",
-        "super_admin",
-        "customer"
-      ],
+      "roles": ["support", "admin", "super_admin", "customer"],
       "status": "PASS"
     },
     "other": {
@@ -40,10 +31,7 @@
       "authType": "requireAuth middleware",
       "protected": 2,
       "total": 2,
-      "roles": [
-        "courier",
-        "admin"
-      ],
+      "roles": ["courier", "admin"],
       "status": "PASS"
     }
   },

@@ -8,17 +8,20 @@
 ## 🚀 С ЧЕГО НАЧАТЬ
 
 ### Вариант 1: "Я в спешке" (5 минут)
+
 1. Откройте: `COPY_PASTE_TEMPLATES.md`
 2. Скопируйте куски кода
 3. Вставьте в свои файлы
 4. **Готово!**
 
 ### Вариант 2: "Хочу понять" (15-30 минут)
+
 1. Прочитайте: `SUMMARY.md` (15 мин)
 2. Посмотрите: `README.md` → Архитектура (15 мин)
 3. **Готово!**
 
 ### Вариант 3: "Хочу всё знать" (1-2 часа)
+
 1. Прочитайте: `README.md` полностью
 2. Следуйте: `IMPLEMENTATION_CHECKLIST.md`
 3. Выполните все тесты
@@ -29,16 +32,16 @@
 
 ## 📖 ДОКУМЕНТАЦИЯ (7 файлов)
 
-| # | Файл | Размер | Для кого | Время |
-|---|------|--------|---------|-------|
-| 1 | **README.md** | 12.2 KB | Все | 30 мин |
-| 2 | **SUMMARY.md** | 9.0 KB | Новички | 15 мин |
-| 3 | **COPY_PASTE_TEMPLATES.md** | 7.2 KB | Разработчики | 10 мин |
-| 4 | **IMPLEMENTATION_CHECKLIST.md** | 7.0 KB | ТЛ/PM | 10 мин |
-| 5 | **NAVIGATION.md** | 6.9 KB | Поиск | 5 мин |
-| 6 | **PROJECT_STATUS.md** | 7.1 KB | PM/CTO | 10 мин |
-| 7 | **FILES_LIST.md** | 3.5 KB | Навигация | 3 мин |
-| 8 | **INDEX.md** (этот файл) | 5.0 KB | Обзор | 5 мин |
+| #   | Файл                            | Размер  | Для кого     | Время  |
+| --- | ------------------------------- | ------- | ------------ | ------ |
+| 1   | **README.md**                   | 12.2 KB | Все          | 30 мин |
+| 2   | **SUMMARY.md**                  | 9.0 KB  | Новички      | 15 мин |
+| 3   | **COPY_PASTE_TEMPLATES.md**     | 7.2 KB  | Разработчики | 10 мин |
+| 4   | **IMPLEMENTATION_CHECKLIST.md** | 7.0 KB  | ТЛ/PM        | 10 мин |
+| 5   | **NAVIGATION.md**               | 6.9 KB  | Поиск        | 5 мин  |
+| 6   | **PROJECT_STATUS.md**           | 7.1 KB  | PM/CTO       | 10 мин |
+| 7   | **FILES_LIST.md**               | 3.5 KB  | Навигация    | 3 мин  |
+| 8   | **INDEX.md** (этот файл)        | 5.0 KB  | Обзор        | 5 мин  |
 
 **Всего документации: 57.9 KB** ✨
 
@@ -100,22 +103,22 @@ db/migrations/003_notification_settings.sql
 
 ### 4 типа уведомлений
 
-| Событие | Отправитель | Получатель | Когда |
-|---------|-----------|-----------|-------|
-| 🆕 **order_new_admin** | Bot | Админы | Заказ оплачен |
-| 📦 **order_status_changed_buyer** | Bot | Покупатель | Статус изменился |
-| 🚀 **order_ready_ship** | Bot | Покупатель | Готово + 6-digit код |
-| 💔 **abandoned_cart** | Cron | Покупатель | Каждый час (>2h) |
+| Событие                           | Отправитель | Получатель | Когда                |
+| --------------------------------- | ----------- | ---------- | -------------------- |
+| 🆕 **order_new_admin**            | Bot         | Админы     | Заказ оплачен        |
+| 📦 **order_status_changed_buyer** | Bot         | Покупатель | Статус изменился     |
+| 🚀 **order_ready_ship**           | Bot         | Покупатель | Готово + 6-digit код |
+| 💔 **abandoned_cart**             | Cron        | Покупатель | Каждый час (>2h)     |
 
 ### 5 API Endpoints
 
-| Метод | URL | Роли | Защита |
-|-------|-----|------|--------|
-| GET | `/api/admin/settings/notifications` | admin | ✅ requireAuth |
-| POST | `/api/admin/settings/notifications` | admin | ✅ requireAuth |
-| PUT | `/api/admin/settings/notifications` | admin | ✅ requireAuth |
-| PATCH | `/api/orders/[id]/status` | admin, manager | ✅ requireAuth |
-| GET | `/api/cron/abandoned-cart` | public | ✅ CRON_SECRET |
+| Метод | URL                                 | Роли           | Защита         |
+| ----- | ----------------------------------- | -------------- | -------------- |
+| GET   | `/api/admin/settings/notifications` | admin          | ✅ requireAuth |
+| POST  | `/api/admin/settings/notifications` | admin          | ✅ requireAuth |
+| PUT   | `/api/admin/settings/notifications` | admin          | ✅ requireAuth |
+| PATCH | `/api/orders/[id]/status`           | admin, manager | ✅ requireAuth |
+| GET   | `/api/cron/abandoned-cart`          | public         | ✅ CRON_SECRET |
 
 ### 3 таблицы БД
 
@@ -149,6 +152,7 @@ abandoned_carts            -- Отслеживание
 ### 📖 README.md (12.2 KB)
 
 **Содержание:**
+
 - ✅ Архитектура (с диаграммой)
 - ✅ Компоненты системы
 - ✅ 4 типа уведомлений подробно
@@ -171,6 +175,7 @@ abandoned_carts            -- Отслеживание
 ### 📋 SUMMARY.md (9.0 KB)
 
 **Содержание:**
+
 - ✅ Что реализовано (таблица)
 - ✅ Быстрый старт (3 шага)
 - ✅ Файловая структура
@@ -187,6 +192,7 @@ abandoned_carts            -- Отслеживание
 ### 🔧 COPY_PASTE_TEMPLATES.md (7.2 KB)
 
 **Секции:**
+
 1. ✅ Интеграция в orders.ts
 2. ✅ Инициализация в bot.ts
 3. ✅ SQL миграция
@@ -205,6 +211,7 @@ abandoned_carts            -- Отслеживание
 ### ✅ IMPLEMENTATION_CHECKLIST.md (7.0 KB)
 
 **7 фаз:**
+
 1. Backend (создание функций)
 2. Frontend (админ-панель)
 3. Integration (подключение)
@@ -222,6 +229,7 @@ abandoned_carts            -- Отслеживание
 ### 🗺️ NAVIGATION.md (6.9 KB)
 
 **Содержит:**
+
 - ✅ Карта документации
 - ✅ Выбор по ситуации
 - ✅ Поиск по ключевым словам
@@ -238,6 +246,7 @@ abandoned_carts            -- Отслеживание
 ### 📊 PROJECT_STATUS.md (7.1 KB)
 
 **Содержит:**
+
 - ✅ Общая готовность (%)
 - ✅ Список файлов с описанием
 - ✅ Статус каждого компонента
@@ -254,6 +263,7 @@ abandoned_carts            -- Отслеживание
 ### 📑 FILES_LIST.md (3.5 KB)
 
 **Содержит:**
+
 - ✅ Таблица всех файлов
 - ✅ Размеры и описания
 - ✅ Где что находится
@@ -275,6 +285,7 @@ psql -U postgres -d vape_shop < db/migrations/003_notification_settings.sql
 ```
 
 **Проверка:**
+
 ```sql
 SELECT * FROM notification_settings;
 -- Должно вернуть 4 строки
@@ -311,12 +322,7 @@ export { bot };
 import { notifyAdminsNewOrder } from '../../lib/notifications';
 
 // После успешной оплаты:
-await notifyAdminsNewOrder(
-  orderId,
-  totalPrice,
-  userUsername,
-  itemsCount
-);
+await notifyAdminsNewOrder(orderId, totalPrice, userUsername, itemsCount);
 ```
 
 **Статус:** ⏳ ТРЕБУЕТ ВНИМАНИЯ
@@ -332,6 +338,7 @@ CRON_SECRET=your_random_secret_here_32_chars_minimum
 ```
 
 **Генерировать:**
+
 ```bash
 openssl rand -base64 32
 ```
@@ -346,10 +353,12 @@ openssl rand -base64 32
 
 ```json
 {
-  "crons": [{
-    "path": "/api/cron/abandoned-cart",
-    "schedule": "0 * * * *"
-  }]
+  "crons": [
+    {
+      "path": "/api/cron/abandoned-cart",
+      "schedule": "0 * * * *"
+    }
+  ]
 }
 ```
 
@@ -389,15 +398,18 @@ openssl rand -base64 32
 ## 🎓 ОБУЧЕНИЕ
 
 ### День 1: Основы (30 минут)
+
 - Прочитайте: `SUMMARY.md`
 - Посмотрите: `README.md` → Архитектура
 
 ### День 2: Практика (1 час)
+
 - Используйте: `COPY_PASTE_TEMPLATES.md`
 - Протестируйте через curl
 - Откройте админ-панель
 
 ### День 3: Глубина (1-2 часа)
+
 - Прочитайте: `README.md` полностью
 - Поймите весь workflow
 - Узнайте как отлаживать
@@ -432,6 +444,7 @@ openssl rand -base64 32
 ✅ **Система полностью готова!**
 
 **Что вы получили:**
+
 - Полностью рабочую систему уведомлений
 - 100% документацию
 - Production-ready код
@@ -439,12 +452,14 @@ openssl rand -base64 32
 - Примеры и чеклисты
 
 **Что делать сейчас:**
+
 1. Выберите вариант старта выше
 2. Начните с нужного документа
 3. Следуйте инструкциям
 4. Интегрируйте в свой проект
 
 **Документация:**
+
 - 📖 README.md - полное руководство
 - 📋 SUMMARY.md - краткий обзор
 - 🔧 COPY_PASTE_TEMPLATES.md - готовый код

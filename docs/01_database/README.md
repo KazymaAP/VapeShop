@@ -29,7 +29,6 @@ psql -U user -d vapeshop -f db/migrations/008_content_management.sql
   - `role` (VARCHAR) - Роль: admin, manager, seller, customer
   - `is_blocked` (BOOLEAN) - Флаг блокировки
   - `username`, `first_name`, `last_name` - Данные профиля
-  
 - **categories** - Категории товаров
   - `id` (SERIAL PRIMARY KEY)
   - `name` (VARCHAR UNIQUE) - Название категории
@@ -170,6 +169,7 @@ psql -U user -d vapeshop -f db/migrations/008_content_management.sql
 ### Отсутствующие миграции (создаются в 001)
 
 Миграции для P5-P7 объединены в миграцию 001:
+
 - **005** - CSV импорт (table price_import создается в 001)
 - **006** - Промокоды (table promocodes должна быть, см. P6)
 - **007** - Канбан-доска (не требует отдельной таблицы)
@@ -180,30 +180,30 @@ psql -U user -d vapeshop -f db/migrations/008_content_management.sql
 
 ```sql
 -- Проверить все таблицы
-SELECT table_name FROM information_schema.tables 
+SELECT table_name FROM information_schema.tables
 WHERE table_schema = 'public';
 
 -- Проверить структуру таблицы
-SELECT column_name, data_type, is_nullable 
-FROM information_schema.columns 
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
 WHERE table_name = 'products';
 
 -- Проверить индексы
-SELECT * FROM pg_indexes 
+SELECT * FROM pg_indexes
 WHERE tablename = 'products';
 ```
 
 ## Справка по статусам заказов
 
-| Статус | Описание |
-|--------|---------|
-| `pending` | Ожидание оплаты |
-| `new` | Оплачен, ожидает комплектации |
-| `confirmed` | Подтвержден менеджером |
-| `readyship` | Готов к отправке |
-| `shipped` | Отправлен |
-| `done` | Завершен (код проверен) |
-| `cancelled` | Отменен |
+| Статус      | Описание                      |
+| ----------- | ----------------------------- |
+| `pending`   | Ожидание оплаты               |
+| `new`       | Оплачен, ожидает комплектации |
+| `confirmed` | Подтвержден менеджером        |
+| `readyship` | Готов к отправке              |
+| `shipped`   | Отправлен                     |
+| `done`      | Завершен (код проверен)       |
+| `cancelled` | Отменен                       |
 
 ---
 

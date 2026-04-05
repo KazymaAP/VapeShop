@@ -28,7 +28,10 @@ interface FiltersResponse {
   timestamp: number;
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse<FiltersResponse | { error: string }>) {
+async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<FiltersResponse | { error: string }>
+) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

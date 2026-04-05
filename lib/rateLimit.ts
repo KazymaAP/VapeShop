@@ -11,17 +11,17 @@ const DEFAULT_MAX_REQUESTS = 10;
 /**
  * Простая реализация Rate Limiting через память
  * Для production используйте Redis!
- * 
+ *
  * Примеры использования:
- * 
+ *
  * // Защитить endpoint от злоупотреблений
  * export default rateLimit(handler, { windowMs: 60000, max: 10 });
- * 
+ *
  * // С ключом по telegram_id
- * export default rateLimit(handler, { 
- *   windowMs: 60000, 
+ * export default rateLimit(handler, {
+ *   windowMs: 60000,
  *   max: 5,
- *   keyGenerator: (req) => req.body.telegram_id 
+ *   keyGenerator: (req) => req.body.telegram_id
  * });
  */
 export interface RateLimitOptions {

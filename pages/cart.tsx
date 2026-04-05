@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useTelegramWebApp, useMainButton, hapticImpact, hapticSuccess, hapticError } from '../lib/telegram';
+import {
+  useTelegramWebApp,
+  useMainButton,
+  hapticImpact,
+  hapticSuccess,
+  hapticError,
+} from '../lib/telegram';
 
 interface CartItem {
   product_id: string;
@@ -119,7 +125,7 @@ export default function CartPage() {
         body: JSON.stringify({ code: promoCode, total: subtotal }),
       });
       const data = await res.json();
-      
+
       if (data.valid) {
         setPromoDiscount(data.discount);
         hapticSuccess();
@@ -175,7 +181,11 @@ export default function CartPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           telegram_id: user.id,
-          items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, price: i.price })),
+          items: items.map((i) => ({
+            product_id: i.product_id,
+            quantity: i.quantity,
+            price: i.price,
+          })),
           delivery_method: deliveryMethod,
           pickup_point_id: deliveryMethod === 'pickup' ? selectedPickupPointId : null,
           delivery_date: deliveryMethod === 'courier' ? deliveryDate : null,
@@ -236,14 +246,23 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-bgDark flex flex-col items-center justify-center px-4">
-        <svg className="w-20 h-20 text-neon opacity-50 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <svg
+          className="w-20 h-20 text-neon opacity-50 mb-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
           <circle cx="9" cy="21" r="1" />
           <circle cx="20" cy="21" r="1" />
           <path d="M1 1H5L7.68 14.39A2 2 0 0 0 9.66 16H19.4A2 2 0 0 0 21.28 14.63L23 6H6" />
         </svg>
         <h2 className="text-xl font-bold text-textPrimary">Корзина пуста</h2>
         <p className="text-textSecondary mt-2 text-center">Добавьте товары из каталога</p>
-        <Link href="/" className="mt-6 bg-gradient-to-r from-[#7c3aed] to-neon rounded-full px-8 py-3 text-white font-semibold ripple">
+        <Link
+          href="/"
+          className="mt-6 bg-gradient-to-r from-[#7c3aed] to-neon rounded-full px-8 py-3 text-white font-semibold ripple"
+        >
           Перейти в каталог
         </Link>
       </div>
@@ -254,8 +273,19 @@ export default function CartPage() {
     <div className="min-h-screen bg-bgDark pb-32">
       <div className="sticky top-0 z-30 bg-bgDark/90 backdrop-blur-md border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="text-textSecondary hover:text-neon" aria-label="Вернуться назад">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <button
+            onClick={() => router.back()}
+            className="text-textSecondary hover:text-neon"
+            aria-label="Вернуться назад"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </button>
@@ -265,12 +295,28 @@ export default function CartPage() {
 
       <div className="px-4 py-4 space-y-3">
         {items.map((item) => (
-          <div key={item.product_id} className="bg-cardBg border border-border rounded-2xl p-4 flex gap-4" role="listitem" aria-label={`Товар ${item.name}, количество ${item.quantity}, цена ${item.price.toLocaleString('ru-RU')} ₽`}>
+          <div
+            key={item.product_id}
+            className="bg-cardBg border border-border rounded-2xl p-4 flex gap-4"
+            role="listitem"
+            aria-label={`Товар ${item.name}, количество ${item.quantity}, цена ${item.price.toLocaleString('ru-RU')} ₽`}
+          >
             <div className="w-20 h-20 bg-gradient-to-br from-[#1f1f2a] to-[#131318] rounded-xl flex items-center justify-center flex-shrink-0">
               {item.image ? (
-                <Image src={item.image} alt={item.name} className="w-full h-full object-contain rounded-xl" width={80} height={80} />
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  className="w-full h-full object-contain rounded-xl"
+                  width={80}
+                  height={80}
+                />
               ) : (
-                <svg className="w-8 h-8 text-neon opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg
+                  className="w-8 h-8 text-neon opacity-50"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
                   <path d="M7 9H5L3 12L5 15H7M17 9H19L21 12L19 15H17" />
                 </svg>
               )}
@@ -287,7 +333,12 @@ export default function CartPage() {
                   >
                     −
                   </button>
-                  <span className="text-textPrimary font-semibold w-6 text-center" aria-label={`Количество: ${item.quantity}`}>{item.quantity}</span>
+                  <span
+                    className="text-textPrimary font-semibold w-6 text-center"
+                    aria-label={`Количество: ${item.quantity}`}
+                  >
+                    {item.quantity}
+                  </span>
                   <button
                     onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                     className="w-8 h-8 rounded-full bg-bgDark border border-border flex items-center justify-center text-textPrimary hover:border-neon"
@@ -301,7 +352,14 @@ export default function CartPage() {
                   className="text-danger hover:opacity-80"
                   aria-label={`Удалить ${item.name} из корзины`}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
                   </svg>
                 </button>
@@ -331,7 +389,9 @@ export default function CartPage() {
             </button>
           </div>
           {promoDiscount > 0 && (
-            <p className="text-success text-sm mt-2">Скидка: −{promoDiscount.toLocaleString('ru-RU')} ₽</p>
+            <p className="text-success text-sm mt-2">
+              Скидка: −{promoDiscount.toLocaleString('ru-RU')} ₽
+            </p>
           )}
         </div>
 
@@ -470,7 +530,9 @@ export default function CartPage() {
           )}
 
           {deliveryError && (
-            <p className="text-danger text-xs mt-3 px-3 py-2 bg-danger/10 rounded-lg">{deliveryError}</p>
+            <p className="text-danger text-xs mt-3 px-3 py-2 bg-danger/10 rounded-lg">
+              {deliveryError}
+            </p>
           )}
         </div>
 

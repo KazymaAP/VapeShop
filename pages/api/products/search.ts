@@ -7,10 +7,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { ApiResponse } from '@/types/api';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -90,11 +87,7 @@ export default async function handler(
            rating DESC,
            name ASC
          LIMIT $3`,
-        [
-          `%${searchTerm}%`,
-          `${searchTerm}%`,
-          limitNum,
-        ]
+        [`%${searchTerm}%`, `${searchTerm}%`, limitNum]
       );
     }
 
@@ -117,11 +110,7 @@ export default async function handler(
            AND (${words.map((_, i) => `LOWER(name) LIKE $${result.rows.length + i + 1}`).join(' OR ')})
            ORDER BY rating DESC, name ASC
            LIMIT $${result.rows.length + words.length + 1}`,
-          [
-            ...result.rows.map(r => r.id),
-            ...words.map(w => `%${w}%`),
-            5 - result.rows.length,
-          ]
+          [...result.rows.map((r) => r.id), ...words.map((w) => `%${w}%`), 5 - result.rows.length]
         );
 
         result.rows = [...result.rows, ...additionalResult.rows];
@@ -134,7 +123,6 @@ export default async function handler(
       type,
       count: result.rows.length,
     });
-
   } catch (err) {
     console.error('Search error:', err);
     res.status(500).json({ error: 'Search failed' });

@@ -1,6 +1,7 @@
 # Phase P4: Delivery Management - Implementation Guide
 
 ## Overview
+
 This document describes the implementation of Phase P4 delivery management functionality for the VapeShop Telegram Mini App.
 
 ## Architecture
@@ -8,18 +9,21 @@ This document describes the implementation of Phase P4 delivery management funct
 ### Components
 
 #### Database Layer
+
 - **Tables**: `pickup_points`, `addresses`, orders (enhanced)
 - **Indexes**: Optimized for user lookups, active status filtering, and date ranges
 - **Triggers**: Automatic timestamp updates
 - **Constraints**: Unique address per user, foreign key relationships
 
 #### API Layer
+
 - **Admin APIs**: Pickup point CRUD with role-based access control
 - **Customer APIs**: Address management with ownership verification
 - **Public APIs**: Pickup point listing for cart/checkout
 - **Order API**: Enhanced with delivery validation
 
 #### Authentication
+
 - Uses existing `requireAuth` middleware from lib/auth.ts
 - Role-based access control: admin, buyer
 - Ownership checks on customer endpoints
@@ -55,12 +59,14 @@ docs/04_delivery/
 #### File: `pages/api/admin/pickup-points.ts`
 
 **Features:**
+
 - GET: Retrieve all pickup points with pagination
 - POST: Create new pickup point with validation
 - PUT: Update existing pickup point with change logging
 - DELETE: Soft delete (mark as inactive)
 
 **Key Implementation Points:**
+
 ```typescript
 // Authentication wrapper
 export default requireAuth(handler, ['admin']);
@@ -82,6 +88,7 @@ export default requireAuth(handler, ['admin']);
 ```
 
 **Example Request Flow:**
+
 1. Admin makes PUT request with new data
 2. Current values fetched from database
 3. Only changed fields included in UPDATE
@@ -93,12 +100,14 @@ export default requireAuth(handler, ['admin']);
 #### File: `pages/api/addresses.ts`
 
 **Features:**
+
 - GET: Retrieve user's addresses (automatically filtered by auth)
 - POST: Add new address (first address auto-set as default)
 - PUT: Update address or set as default
 - DELETE: Remove address (auto-promote if was default)
 
 **Key Implementation Points:**
+
 ```typescript
 // Authentication
 export default requireAuth(handler, ['buyer']);
@@ -119,6 +128,7 @@ const telegramId = getTelegramId(req);
 ```
 
 **Edge Cases Handled:**
+
 - Duplicate address per user prevented
 - Setting address as default unsets others atomically
 - Deletion of default address handles auto-promotion
@@ -129,12 +139,14 @@ const telegramId = getTelegramId(req);
 #### File: `pages/api/pickup-points.ts`
 
 **Features:**
+
 - GET: Retrieve active pickup points
 - Optional pagination for large lists
 - HTTP caching (1 hour)
 - No authentication required
 
 **Key Implementation Points:**
+
 ```typescript
 // Caching
 res.setHeader('Cache-Control', 'public, max-age=3600');
@@ -150,6 +162,7 @@ res.setHeader('Cache-Control', 'public, max-age=3600');
 ```
 
 **Performance:**
+
 - Indexed on is_active and name for fast filtering
 - Lightweight response suitable for frontend caching
 - Cache reduces database load
@@ -159,6 +172,7 @@ res.setHeader('Cache-Control', 'public, max-age=3600');
 #### File: `pages/api/orders.ts`
 
 **Features:**
+
 - Enhanced POST handler for order creation
 - Pickup vs courier delivery validation
 - Automatic pickup point validation
@@ -187,6 +201,7 @@ isValidDeliveryDate(dateStr): boolean
 ```
 
 **Error Responses:**
+
 - 400: Invalid delivery method or missing fields
 - 404: Pickup point not found
 - 403: User blocked
@@ -196,12 +211,13 @@ isValidDeliveryDate(dateStr): boolean
 ## Database Queries
 
 ### Pickup Points
+
 ```sql
 -- Get all active pickup points
 SELECT * FROM pickup_points WHERE is_active = TRUE ORDER BY name;
 
 -- Get with pagination
-SELECT * FROM pickup_points WHERE is_active = TRUE 
+SELECT * FROM pickup_points WHERE is_active = TRUE
 LIMIT 20 OFFSET 0;
 
 -- Update soft-delete
@@ -209,29 +225,31 @@ UPDATE pickup_points SET is_active = FALSE WHERE id = $1;
 ```
 
 ### Addresses
+
 ```sql
 -- Get user's addresses (sorted by default, then recency)
-SELECT * FROM addresses WHERE user_telegram_id = $1 
+SELECT * FROM addresses WHERE user_telegram_id = $1
 ORDER BY is_default DESC, created_at DESC;
 
 -- Check for duplicate
-SELECT id FROM addresses 
+SELECT id FROM addresses
 WHERE user_telegram_id = $1 AND address = $2;
 
 -- Set new default
-UPDATE addresses SET is_default = FALSE 
+UPDATE addresses SET is_default = FALSE
 WHERE user_telegram_id = $1 AND id != $2;
 
 UPDATE addresses SET is_default = TRUE WHERE id = $1;
 ```
 
 ### Orders
+
 ```sql
 -- Create order with delivery
 INSERT INTO orders (
-  user_telegram_id, status, total, 
-  delivery_method, pickup_point_id, 
-  address, delivery_date, 
+  user_telegram_id, status, total,
+  delivery_method, pickup_point_id,
+  address, delivery_date,
   promo_code, discount, paid_at
 ) VALUES (...);
 ```
@@ -241,22 +259,26 @@ INSERT INTO orders (
 ## Error Handling Strategy
 
 ### Validation Layer
+
 1. Check for required fields
 2. Type validation (string, UUID, etc.)
 3. Length validation (min/max)
 4. Business logic validation (date ranges, active status)
 
 ### Ownership Layer
+
 1. Extract user ID from auth
 2. Query includes WHERE user_telegram_id = $1
 3. Return 404 if not found (instead of 403 for security)
 
 ### Database Layer
+
 1. Unique constraints prevent duplicates
 2. Foreign keys ensure referential integrity
 3. Triggers maintain timestamps
 
 ### Error Response Format
+
 ```json
 {
   "error": "Short error code",
@@ -269,21 +291,25 @@ INSERT INTO orders (
 ## Security Considerations
 
 ### Authentication
+
 - All customer endpoints require buyer role
 - All admin endpoints require admin role
 - Public endpoints explicitly unauthenticated
 
 ### Authorization
+
 - Customer endpoints verify ownership via telegram_id
 - Admin actions logged for audit trail
 - Soft deletes preserve data history
 
 ### Input Sanitization
+
 - All string inputs trimmed
 - Length validation prevents oversized inputs
 - SQL injection prevented by parameterized queries
 
 ### Data Privacy
+
 - Customer addresses only accessible to owner
 - Returning 404 instead of 403 prevents user enumeration
 - Admin logs track all changes
@@ -293,12 +319,14 @@ INSERT INTO orders (
 ## Testing Checklist
 
 ### Unit Tests (to be implemented)
+
 - [ ] Address validation (length, duplicates)
 - [ ] Delivery date validation
 - [ ] Pickup point active status check
 - [ ] Ownership verification
 
 ### Integration Tests (to be implemented)
+
 - [ ] Create/read/update/delete addresses
 - [ ] Create/read/update/delete pickup points
 - [ ] Order with pickup delivery
@@ -306,6 +334,7 @@ INSERT INTO orders (
 - [ ] Default address handling
 
 ### Manual Testing (immediate)
+
 - [ ] Admin can CRUD pickup points
 - [ ] Customer can CRUD addresses
 - [ ] Public can list active pickup points
@@ -313,6 +342,7 @@ INSERT INTO orders (
 - [ ] Cache headers present on public endpoint
 
 ### Edge Cases (to be tested)
+
 - [ ] Duplicate address for same user (rejected)
 - [ ] Invalid pickup point (rejected)
 - [ ] Past delivery date (rejected)
@@ -324,6 +354,7 @@ INSERT INTO orders (
 ## Deployment Notes
 
 ### Database Migration
+
 ```bash
 # Run migration against production database
 psql $NEON_DATABASE_URL < db/migrations/004_delivery_management.sql
@@ -334,12 +365,15 @@ psql $NEON_DATABASE_URL -c \
 ```
 
 ### Environment Variables
+
 - Ensure `NEON_DATABASE_URL` is set
 - Ensure `TELEGRAM_BOT_TOKEN` is set (for order notifications)
 - Ensure `X-Telegram-Id` header is available for testing
 
 ### Rollback Plan
+
 If issues arise:
+
 1. Soft deletes don't destroy data - just set flags
 2. Migration is idempotent (uses IF NOT EXISTS)
 3. Can restore from backup if needed
@@ -349,12 +383,14 @@ If issues arise:
 ## Performance Optimization
 
 ### Current Optimizations
+
 - Indexes on user_telegram_id, is_active, created_at
 - Pagination support (20-100 items per page)
 - HTTP caching for public pickup points (1 hour)
 - Efficient queries (minimal joins, proper WHERE clauses)
 
 ### Future Optimizations
+
 - Add Redis caching for frequently accessed addresses
 - Batch update operations for default address
 - Implement address geocoding for validation
@@ -365,11 +401,13 @@ If issues arise:
 ## Monitoring and Logging
 
 ### Logged Actions
+
 - Admin: create_pickup_point, update_pickup_point, delete_pickup_point
 - Customer: Implicit via requireAuth on all protected endpoints
 - System: Errors logged to console (can be enhanced with monitoring service)
 
 ### Metrics to Track
+
 - Pickup vs courier delivery preference
 - Most popular pickup points
 - Address management frequency
@@ -380,6 +418,7 @@ If issues arise:
 ## Future Enhancements
 
 ### Phase P5+ Considerations
+
 1. **Delivery Cost Calculator**: Estimate cost based on address
 2. **Address Validation**: Integrate with postal service API
 3. **Pickup Point Schedule**: Add opening hours, closed dates

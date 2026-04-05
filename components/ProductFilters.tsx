@@ -39,22 +39,25 @@ export function ProductFilters({
     priceMax: priceRange.max,
   });
 
-  const updateFilter = useCallback((newFilters: Partial<FilterState>) => {
-    const updated = { ...filters, ...newFilters };
-    setFilters(updated);
-    onFilterChange(updated);
-  }, [filters, onFilterChange]);
+  const updateFilter = useCallback(
+    (newFilters: Partial<FilterState>) => {
+      const updated = { ...filters, ...newFilters };
+      setFilters(updated);
+      onFilterChange(updated);
+    },
+    [filters, onFilterChange]
+  );
 
   const toggleBrand = (brandId: string) => {
     const updated = filters.brands.includes(brandId)
-      ? filters.brands.filter(id => id !== brandId)
+      ? filters.brands.filter((id) => id !== brandId)
       : [...filters.brands, brandId];
     updateFilter({ brands: updated });
   };
 
   const toggleCategory = (categoryId: string) => {
     const updated = filters.categories.includes(categoryId)
-      ? filters.categories.filter(id => id !== categoryId)
+      ? filters.categories.filter((id) => id !== categoryId)
       : [...filters.categories, categoryId];
     updateFilter({ categories: updated });
   };
@@ -69,7 +72,7 @@ export function ProductFilters({
             <input
               type="number"
               value={filters.priceMin}
-              onChange={e => updateFilter({ priceMin: Number(e.target.value) })}
+              onChange={(e) => updateFilter({ priceMin: Number(e.target.value) })}
               className="w-24 px-2 py-1 bg-bgDark border border-border rounded text-textPrimary"
               placeholder="От"
             />
@@ -77,7 +80,7 @@ export function ProductFilters({
             <input
               type="number"
               value={filters.priceMax}
-              onChange={e => updateFilter({ priceMax: Number(e.target.value) })}
+              onChange={(e) => updateFilter({ priceMax: Number(e.target.value) })}
               className="w-24 px-2 py-1 bg-bgDark border border-border rounded text-textPrimary"
               placeholder="До"
             />
@@ -88,7 +91,7 @@ export function ProductFilters({
             min={priceRange.min}
             max={priceRange.max}
             value={filters.priceMax}
-            onChange={e => updateFilter({ priceMax: Number(e.target.value) })}
+            onChange={(e) => updateFilter({ priceMax: Number(e.target.value) })}
             className="w-full"
           />
         </div>
@@ -99,8 +102,11 @@ export function ProductFilters({
         <div>
           <h3 className="font-semibold text-textPrimary mb-3">Бренд</h3>
           <div className="space-y-2">
-            {brands.map(brand => (
-              <label key={brand.id} className="flex items-center gap-2 cursor-pointer hover:bg-bgDark p-2 rounded">
+            {brands.map((brand) => (
+              <label
+                key={brand.id}
+                className="flex items-center gap-2 cursor-pointer hover:bg-bgDark p-2 rounded"
+              >
                 <input
                   type="checkbox"
                   checked={filters.brands.includes(brand.id)}
@@ -122,8 +128,11 @@ export function ProductFilters({
         <div>
           <h3 className="font-semibold text-textPrimary mb-3">Категория</h3>
           <div className="space-y-2">
-            {categories.map(cat => (
-              <label key={cat.id} className="flex items-center gap-2 cursor-pointer hover:bg-bgDark p-2 rounded">
+            {categories.map((cat) => (
+              <label
+                key={cat.id}
+                className="flex items-center gap-2 cursor-pointer hover:bg-bgDark p-2 rounded"
+              >
                 <input
                   type="checkbox"
                   checked={filters.categories.includes(cat.id)}
@@ -146,7 +155,7 @@ export function ProductFilters({
           <input
             type="checkbox"
             checked={filters.inStock}
-            onChange={e => updateFilter({ inStock: e.target.checked })}
+            onChange={(e) => updateFilter({ inStock: e.target.checked })}
             className="w-4 h-4 accent-neon"
           />
           <span className="text-sm text-textPrimary">Только в наличии</span>
@@ -156,7 +165,7 @@ export function ProductFilters({
           <input
             type="checkbox"
             checked={filters.onSale}
-            onChange={e => updateFilter({ onSale: e.target.checked })}
+            onChange={(e) => updateFilter({ onSale: e.target.checked })}
             className="w-4 h-4 accent-neon"
           />
           <span className="text-sm text-textPrimary">Со скидкой</span>

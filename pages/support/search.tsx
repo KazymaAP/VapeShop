@@ -23,7 +23,7 @@ export default function SupportSearchPage() {
     setLoading(true);
     try {
       const response = await fetch(`/api/support/search-customer?q=${encodeURIComponent(query)}`, {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -67,12 +67,18 @@ export default function SupportSearchPage() {
       <div className="space-y-4">
         {results.map((customer) => (
           <div key={customer.id} className="bg-cardBg rounded-lg border border-border p-4">
-            <h3 className="text-lg font-bold text-neon">{customer.firstName} {customer.lastName || ''}</h3>
+            <h3 className="text-lg font-bold text-neon">
+              {customer.firstName} {customer.lastName || ''}
+            </h3>
             <p className="text-textSecondary text-sm">Telegram ID: {customer.telegramId}</p>
-            {customer.phone && <p className="text-textSecondary text-sm">Телефон: {customer.phone}</p>}
-            {customer.username && <p className="text-textSecondary text-sm">@{customer.username}</p>}
+            {customer.phone && (
+              <p className="text-textSecondary text-sm">Телефон: {customer.phone}</p>
+            )}
+            {customer.username && (
+              <p className="text-textSecondary text-sm">@{customer.username}</p>
+            )}
             <p className="text-textSecondary text-sm mt-2">Заказов: {customer.orders}</p>
-            
+
             <a
               href={`/support/customers/${customer.id}`}
               className="block mt-3 px-4 py-2 bg-neon text-white rounded text-center font-semibold hover:bg-opacity-90"

@@ -10,53 +10,53 @@
 
 ### ✅ Backend компоненты (100%)
 
-| Компонент | Файл | Строк | Статус |
-|-----------|------|-------|--------|
-| Аутентификация | `lib/auth.ts` | 261 | ✅ Готов |
-| Получение ID | getTelegramIdFromRequest() | - | ✅ Готов |
-| Проверка ролей | getUserRole() | - | ✅ Готов |
-| Проверка блокировки | isUserBlocked() | - | ✅ Готов |
-| Middleware защиты | requireAuth() | - | ✅ Готов |
-| Логирование | getTelegramId() | - | ✅ Готов |
+| Компонент           | Файл                       | Строк | Статус   |
+| ------------------- | -------------------------- | ----- | -------- |
+| Аутентификация      | `lib/auth.ts`              | 261   | ✅ Готов |
+| Получение ID        | getTelegramIdFromRequest() | -     | ✅ Готов |
+| Проверка ролей      | getUserRole()              | -     | ✅ Готов |
+| Проверка блокировки | isUserBlocked()            | -     | ✅ Готов |
+| Middleware защиты   | requireAuth()              | -     | ✅ Готов |
+| Логирование         | getTelegramId()            | -     | ✅ Готов |
 
 ### ✅ Frontend компоненты (100%)
 
-| Компонент | Файл | Строк | Статус |
-|-----------|------|-------|--------|
-| Фронтенд утилиты | `lib/frontend/auth.ts` | 191 | ✅ Готов |
-| Получение заголовков | getTelegramIdHeader() | - | ✅ Готов |
-| Fetch с авто-заголовком | fetchWithAuth() | - | ✅ Готов |
-| Fetch с ошибками | fetchWithAuthAndHandle() | - | ✅ Готов |
-| Информация пользователя | getCurrentUser() | - | ✅ Готов |
+| Компонент               | Файл                     | Строк | Статус   |
+| ----------------------- | ------------------------ | ----- | -------- |
+| Фронтенд утилиты        | `lib/frontend/auth.ts`   | 191   | ✅ Готов |
+| Получение заголовков    | getTelegramIdHeader()    | -     | ✅ Готов |
+| Fetch с авто-заголовком | fetchWithAuth()          | -     | ✅ Готов |
+| Fetch с ошибками        | fetchWithAuthAndHandle() | -     | ✅ Готов |
+| Информация пользователя | getCurrentUser()         | -     | ✅ Готов |
 
 ### ✅ Защита API (12.5%)
 
-| API | Статус | Роль |
-|-----|--------|------|
-| `/api/admin/products.ts` | ✅ Защищен | admin |
-| `/api/cart.ts` | ✅ Защищен (блокировка) | любой |
-| `/api/admin/orders.ts` | ⏳ TODO | admin, manager |
-| `/api/admin/users.ts` | ⏳ TODO | admin |
-| `/api/admin/stats.ts` | ⏳ TODO | admin |
-| `/api/admin/settings.ts` | ⏳ TODO | admin |
-| `/api/admin/import.ts` | ⏳ TODO | admin |
-| `/api/admin/broadcast.ts` | ⏳ TODO | admin |
+| API                       | Статус                  | Роль           |
+| ------------------------- | ----------------------- | -------------- |
+| `/api/admin/products.ts`  | ✅ Защищен              | admin          |
+| `/api/cart.ts`            | ✅ Защищен (блокировка) | любой          |
+| `/api/admin/orders.ts`    | ⏳ TODO                 | admin, manager |
+| `/api/admin/users.ts`     | ⏳ TODO                 | admin          |
+| `/api/admin/stats.ts`     | ⏳ TODO                 | admin          |
+| `/api/admin/settings.ts`  | ⏳ TODO                 | admin          |
+| `/api/admin/import.ts`    | ⏳ TODO                 | admin          |
+| `/api/admin/broadcast.ts` | ⏳ TODO                 | admin          |
 
 ### ✅ Документация (11 файлов, 71.3 KB)
 
-| Документ | Размер | Тип | Статус |
-|----------|--------|-----|--------|
-| SESSION_SUMMARY.md | 9.9 KB | Резюме сессии | ✅ |
-| README_AUTH_SYSTEM.md | 10.3 KB | Главный документ | ✅ |
-| QUICK_AUTH_REFERENCE.md | 10.4 KB | Быстрая справка | ✅ |
-| AUTH_SYSTEM_SUMMARY.md | 10.8 KB | Полный обзор | ✅ |
-| ADMIN_API_ORDERS_EXAMPLE.md | 9.4 KB | Пример | ✅ |
-| ADMIN_API_AUTH_GUIDE.md | 6.2 KB | Руководство | ✅ |
-| FRONTEND_ADMIN_AUTH_SETUP.md | 8.6 KB | Фронтенд гайд | ✅ |
-| AUTH_IMPLEMENTATION_CHECKLIST.md | 8.0 KB | Чеклист | ✅ |
-| NEXT_STEPS.md | 7.6 KB | Планы | ✅ |
-| NAVIGATION.md | 7.6 KB | Навигатор | ✅ |
-| COPY_PASTE_TEMPLATES.md | 10.7 KB | Шаблоны | ✅ |
+| Документ                         | Размер  | Тип              | Статус |
+| -------------------------------- | ------- | ---------------- | ------ |
+| SESSION_SUMMARY.md               | 9.9 KB  | Резюме сессии    | ✅     |
+| README_AUTH_SYSTEM.md            | 10.3 KB | Главный документ | ✅     |
+| QUICK_AUTH_REFERENCE.md          | 10.4 KB | Быстрая справка  | ✅     |
+| AUTH_SYSTEM_SUMMARY.md           | 10.8 KB | Полный обзор     | ✅     |
+| ADMIN_API_ORDERS_EXAMPLE.md      | 9.4 KB  | Пример           | ✅     |
+| ADMIN_API_AUTH_GUIDE.md          | 6.2 KB  | Руководство      | ✅     |
+| FRONTEND_ADMIN_AUTH_SETUP.md     | 8.6 KB  | Фронтенд гайд    | ✅     |
+| AUTH_IMPLEMENTATION_CHECKLIST.md | 8.0 KB  | Чеклист          | ✅     |
+| NEXT_STEPS.md                    | 7.6 KB  | Планы            | ✅     |
+| NAVIGATION.md                    | 7.6 KB  | Навигатор        | ✅     |
+| COPY_PASTE_TEMPLATES.md          | 10.7 KB | Шаблоны          | ✅     |
 
 ---
 
@@ -91,33 +91,43 @@
 ### 🔍 Я ищу...
 
 #### Общий обзор системы
+
 → **README_AUTH_SYSTEM.md**
 
 #### Быстрые примеры кода
+
 → **QUICK_AUTH_REFERENCE.md** или **COPY_PASTE_TEMPLATES.md**
 
 #### Подробный пример защиты API
+
 → **ADMIN_API_ORDERS_EXAMPLE.md**
 
 #### Как защитить все админские API
+
 → **ADMIN_API_AUTH_GUIDE.md**
 
 #### Как обновить фронтенд
+
 → **FRONTEND_ADMIN_AUTH_SETUP.md**
 
 #### Полную архитектуру и схему БД
+
 → **AUTH_SYSTEM_SUMMARY.md**
 
 #### Чеклист и прогресс
+
 → **AUTH_IMPLEMENTATION_CHECKLIST.md**
 
 #### Следующие шаги и приоритеты
+
 → **NEXT_STEPS.md**
 
 #### Где найти нужный документ
+
 → **NAVIGATION.md** (этот файл!)
 
 #### Готовые куски кода для копирования
+
 → **COPY_PASTE_TEMPLATES.md**
 
 ---
@@ -125,6 +135,7 @@
 ## 🎯 Главные файлы проекта
 
 ### Код (3 файла)
+
 ```
 lib/auth.ts                    ← Backend аутентификация
 lib/frontend/auth.ts           ← Frontend утилиты
@@ -132,6 +143,7 @@ pages/api/admin/products.ts    ← Пример защиты API
 ```
 
 ### Документация (11 файлов)
+
 ```
 README_AUTH_SYSTEM.md              ← Начните с этого
 QUICK_AUTH_REFERENCE.md            ← Быстрые примеры
@@ -151,18 +163,21 @@ SESSION_SUMMARY.md                 ← Что было сделано
 ## 📋 Чеклист для следующей работы
 
 ### Минимум (1-2 часа)
+
 - [ ] Защитить `/api/admin/orders.ts`
 - [ ] Обновить `pages/admin/products.tsx` и `pages/admin/orders.tsx`
 - [ ] Создать таблицу admin_logs в БД
 - [ ] Протестировать через curl
 
 ### Стандарт (3-4 часа)
+
 - [ ] Защитить все 7 оставшихся admin API
 - [ ] Обновить все 8 компонентов админки
 - [ ] Создать таблицу admin_logs
 - [ ] Протестировать каждый эндпоинт
 
 ### Полный (5-6 часов)
+
 - [ ] Всё из "Стандарт"
 - [ ] Добавить HMAC-SHA256 верификацию initData
 - [ ] Добавить rate limiting
@@ -174,21 +189,25 @@ SESSION_SUMMARY.md                 ← Что было сделано
 ## 🔐 Ключевые концепции
 
 ### Аутентификация
+
 - Заголовок `X-Telegram-Id` отправляется с каждым запросом
 - Backend получает ID из заголовка или initData
 - Проверяется наличие пользователя в БД
 
 ### Авторизация
+
 - 4 роли: admin, manager, seller, buyer
 - Каждый эндпоинт требует определенную роль
 - Middleware `requireAuth()` проверяет роль
 
 ### Блокировка
+
 - Заблокированные пользователи не могут делать ничего
 - Проверка `is_blocked` перед операциями
 - Возвращает 403 Forbidden
 
 ### Логирование
+
 - Все действия админов записываются в `admin_logs`
 - Содержит: кто, что, когда, какие параметры
 - Используется для audit trail
@@ -198,6 +217,7 @@ SESSION_SUMMARY.md                 ← Что было сделано
 ## 💻 Примеры использования
 
 ### Backend
+
 ```typescript
 import { requireAuth, getTelegramId } from '../../../lib/auth';
 
@@ -210,6 +230,7 @@ export default requireAuth(handler, ['admin']);
 ```
 
 ### Frontend
+
 ```typescript
 import { fetchWithAuth } from '../../../lib/frontend/auth';
 
@@ -220,13 +241,15 @@ const response = await fetchWithAuth('/api/admin/products', {
 ```
 
 ### SQL
+
 ```sql
 UPDATE users SET role = 'admin' WHERE telegram_id = 123456789;
-INSERT INTO admin_logs (user_telegram_id, action, details) 
+INSERT INTO admin_logs (user_telegram_id, action, details)
   VALUES (123456789, 'create_product', '{}');
 ```
 
 ### Testing
+
 ```bash
 curl -X GET http://localhost:3000/api/admin/products \
   -H "X-Telegram-Id: 123456789"
@@ -237,6 +260,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 ## ✨ Особенности реализации
 
 ### ✅ Плюсы
+
 - Полностью типизирован TypeScript
 - Поддерживает разные способы передачи ID
 - Гибкая система ролей
@@ -244,12 +268,14 @@ curl -X GET http://localhost:3000/api/admin/products \
 - Полная документация
 
 ### ⚠️ Ограничения
+
 - Заголовок X-Telegram-Id не криптографически защищен
 - Нет rate limiting
 - Нет двухфакторной аутентификации
 - Нет refresh tokens
 
 ### 🔮 Будущее
+
 - HMAC-SHA256 верификация initData
 - Rate limiting по IP/юзеру
 - Двухфакторная аутентификация для админов
@@ -260,18 +286,22 @@ curl -X GET http://localhost:3000/api/admin/products \
 ## 🎓 Обучающие материалы
 
 ### Для быстрого старта
+
 1. COPY_PASTE_TEMPLATES.md - готовые куски кода
 2. QUICK_AUTH_REFERENCE.md - примеры и SQL
 
 ### Для понимания
+
 1. README_AUTH_SYSTEM.md - обзор
 2. AUTH_SYSTEM_SUMMARY.md - архитектура
 
 ### Для практики
+
 1. ADMIN_API_ORDERS_EXAMPLE.md - пример
 2. ADMIN_API_AUTH_GUIDE.md - руководство
 
 ### Для отладки
+
 1. NEXT_STEPS.md - инструменты
 2. AUTH_SYSTEM_SUMMARY.md - проблемы и решения
 
@@ -280,20 +310,25 @@ curl -X GET http://localhost:3000/api/admin/products \
 ## 📞 Помощь и поддержка
 
 ### Я не знаю с чего начать
+
 → Прочитайте SESSION_SUMMARY.md (то что было сделано)
 → Затем README_AUTH_SYSTEM.md (обзор)
 
 ### Я знаю что нужно сделать, но забыл как
+
 → Используйте COPY_PASTE_TEMPLATES.md
 
 ### Я хочу понять архитектуру
+
 → Прочитайте AUTH_SYSTEM_SUMMARY.md
 
 ### Я застрял на ошибке
+
 → Смотрите AUTH_SYSTEM_SUMMARY.md → Проблемы
 → Или NEXT_STEPS.md → Инструменты отладки
 
 ### Я хочу смотреть прогресс
+
 → Используйте AUTH_IMPLEMENTATION_CHECKLIST.md
 
 ---
@@ -303,26 +338,31 @@ curl -X GET http://localhost:3000/api/admin/products \
 После завершения всех этапов:
 
 ✅ **Backend**
+
 - Все admin API защищены
 - Все действия логируются
 - Система RBAC работает
 
 ✅ **Frontend**
+
 - Все компоненты используют fetchWithAuth
 - Заголовки отправляются автоматически
 - Ошибки обрабатываются
 
 ✅ **База данных**
+
 - Таблица admin_logs создана
 - Логи содержат полную информацию
 - Можно анализировать действия админов
 
 ✅ **Документация**
+
 - Полная и понятная
 - Примеры и шаблоны
 - Легко найти нужное
 
 ✅ **Безопасность**
+
 - Аутентификация работает
 - Авторизация по ролям
 - Логирование всех действий
@@ -332,18 +372,21 @@ curl -X GET http://localhost:3000/api/admin/products \
 ## 🚀 Начните сейчас!
 
 ### Минимальный путь (30 минут):
+
 1. Откройте COPY_PASTE_TEMPLATES.md
 2. Скопируйте шаблон для `/api/admin/orders.ts`
 3. Вставьте в файл
 4. Тестируйте через curl
 
 ### Рекомендуемый путь (1 час):
+
 1. Прочитайте README_AUTH_SYSTEM.md
 2. Скопируйте примеры из ADMIN_API_ORDERS_EXAMPLE.md
 3. Защитите `/api/admin/orders.ts`
 4. Обновите `pages/admin/products.tsx`
 
 ### Полный путь (3-4 часа):
+
 1. Пройдите по документам в NAVIGATION.md
 2. Защитите все 7 admin API
 3. Обновите все 8 компонентов админки

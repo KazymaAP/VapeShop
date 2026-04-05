@@ -7,16 +7,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const userId = getTelegramId(req);
 
     try {
-      const result = await query(
-        'SELECT * FROM user_levels WHERE user_id = $1',
-        [userId]
-      );
+      const result = await query('SELECT * FROM user_levels WHERE user_id = $1', [userId]);
 
       if (result.rows.length === 0) {
-        await query(
-          'INSERT INTO user_levels (user_id, level, experience) VALUES ($1, 1, 0)',
-          [userId]
-        );
+        await query('INSERT INTO user_levels (user_id, level, experience) VALUES ($1, 1, 0)', [
+          userId,
+        ]);
         return res.status(200).json({ data: { level: 1, experience: 0, badges: [] } });
       }
 
@@ -49,5 +45,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['customer']);
-
-

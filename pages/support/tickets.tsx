@@ -25,7 +25,7 @@ export default function SupportTicketsPage() {
   const loadTickets = async () => {
     try {
       const response = await fetch(`/api/support/tickets?status=${filter}`, {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -41,7 +41,7 @@ export default function SupportTicketsPage() {
   const priorityColors: Record<string, string> = {
     low: 'bg-success',
     medium: 'bg-warning',
-    high: 'bg-danger'
+    high: 'bg-danger',
   };
 
   if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
@@ -78,12 +78,20 @@ export default function SupportTicketsPage() {
             >
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-bold text-textPrimary">{ticket.subject}</h3>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${priorityColors[ticket.priority]} text-white`}>
-                  {ticket.priority === 'low' ? 'Низкий' : ticket.priority === 'medium' ? 'Средний' : 'Высокий'}
+                <span
+                  className={`px-2 py-1 rounded text-xs font-semibold ${priorityColors[ticket.priority]} text-white`}
+                >
+                  {ticket.priority === 'low'
+                    ? 'Низкий'
+                    : ticket.priority === 'medium'
+                      ? 'Средний'
+                      : 'Высокий'}
                 </span>
               </div>
               <p className="text-textSecondary text-sm">Клиент: {ticket.customerName}</p>
-              <p className="text-textSecondary text-sm">Дата: {new Date(ticket.createdAt).toLocaleString('ru-RU')}</p>
+              <p className="text-textSecondary text-sm">
+                Дата: {new Date(ticket.createdAt).toLocaleString('ru-RU')}
+              </p>
             </a>
           ))}
         </div>

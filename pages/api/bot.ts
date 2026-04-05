@@ -1,6 +1,13 @@
 import { Bot, webhookCallback } from 'grammy';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { handleStart, handleMenu, handleOrders, handleReferral, handleHelp, handleAdmin } from '@/lib/bot/handlers';
+import {
+  handleStart,
+  handleMenu,
+  handleOrders,
+  handleReferral,
+  handleHelp,
+  handleAdmin,
+} from '@/lib/bot/handlers';
 import { handlePaymentSuccess, handlePreCheckout } from '@/lib/bot/payments';
 import { setBotInstance } from '@/lib/notifications';
 import { query } from '@/lib/db';
@@ -38,13 +45,14 @@ bot.on('callback_query:data', async (ctx) => {
       }
 
       const order = orderResult.rows[0];
-      const statusText = {
-        'pending': '⏳ В ожидании',
-        'processing': '⚙️ В обработке',
-        'shipped': '📦 Отправлена',
-        'delivered': '✅ Доставлена',
-        'cancelled': '❌ Отменена',
-      }[order.status as string] || order.status;
+      const statusText =
+        {
+          pending: '⏳ В ожидании',
+          processing: '⚙️ В обработке',
+          shipped: '📦 Отправлена',
+          delivered: '✅ Доставлена',
+          cancelled: '❌ Отменена',
+        }[order.status as string] || order.status;
 
       await ctx.reply(
         `Заказ #${order.id.toString().slice(0, 8)}\nСтатус: ${statusText}\nСумма: ${order.total_price} ₽`,
@@ -87,7 +95,7 @@ bot.on('callback_query:data', async (ctx) => {
       }
 
       const order = orderResult.rows[0];
-      
+
       // Проверяем, что заказ ещё не оплачен
       if (order.status !== 'pending') {
         await ctx.reply('⚠️ Этот заказ уже был обработан');

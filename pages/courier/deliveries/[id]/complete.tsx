@@ -27,7 +27,7 @@ export default function CourierCompleteDeliveryPage() {
       const response = await fetch(`/api/courier/deliveries/${deliveryId}/complete`, {
         method: 'POST',
         headers: { 'X-Telegram-Id': user?.id.toString() || '' },
-        body: formData
+        body: formData,
       });
 
       if (response.ok) {

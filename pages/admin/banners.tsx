@@ -149,42 +149,42 @@ export default function BannersAdminPage() {
               type="text"
               placeholder="URL изображения"
               value={formData.image_url}
-              onChange={e => setFormData({ ...formData, image_url: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
               className="w-full bg-bgDark border border-border rounded px-3 py-2 text-white"
             />
             <input
               type="text"
               placeholder="Ссылка (опционально)"
               value={formData.link}
-              onChange={e => setFormData({ ...formData, link: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, link: e.target.value })}
               className="w-full bg-bgDark border border-border rounded px-3 py-2 text-white"
             />
             <input
               type="text"
               placeholder="Заголовок (опционально)"
               value={formData.title}
-              onChange={e => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               className="w-full bg-bgDark border border-border rounded px-3 py-2 text-white"
             />
             <input
               type="text"
               placeholder="Описание (опционально)"
               value={formData.description}
-              onChange={e => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full bg-bgDark border border-border rounded px-3 py-2 text-white"
             />
             <input
               type="number"
               placeholder="Порядок"
               value={formData.order_index}
-              onChange={e => setFormData({ ...formData, order_index: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, order_index: parseInt(e.target.value) })}
               className="w-full bg-bgDark border border-border rounded px-3 py-2 text-white"
             />
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
                 checked={formData.is_active}
-                onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
+                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                 className="w-4 h-4 rounded"
               />
               <span>Активный баннер</span>
@@ -200,8 +200,11 @@ export default function BannersAdminPage() {
 
         {/* Список баннеров */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {banners.map(banner => (
-            <div key={banner.id} className="bg-cardBg border border-border rounded-lg overflow-hidden">
+          {banners.map((banner) => (
+            <div
+              key={banner.id}
+              className="bg-cardBg border border-border rounded-lg overflow-hidden"
+            >
               {/* Превью изображения */}
               {banner.image_url && (
                 <div className="w-full h-40 bg-bgDark flex items-center justify-center overflow-hidden">
@@ -214,18 +217,30 @@ export default function BannersAdminPage() {
                   />
                 </div>
               )}
-              
+
               {/* Информация */}
               <div className="p-4">
-                <h3 className="font-bold text-neon mb-2">{banner.title || `Баннер #${banner.id}`}</h3>
+                <h3 className="font-bold text-neon mb-2">
+                  {banner.title || `Баннер #${banner.id}`}
+                </h3>
                 <p className="text-sm text-gray-400 mb-2">{banner.description}</p>
                 {banner.link && (
                   <p className="text-xs text-gray-500 mb-3">
-                    <strong>Ссылка:</strong> <a href={banner.link} target="_blank" rel="noopener noreferrer" className="text-neon hover:underline">{banner.link}</a>
+                    <strong>Ссылка:</strong>{' '}
+                    <a
+                      href={banner.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-neon hover:underline"
+                    >
+                      {banner.link}
+                    </a>
                   </p>
                 )}
                 <div className="flex gap-2">
-                  <span className={`text-xs px-2 py-1 rounded ${banner.is_active ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}`}>
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${banner.is_active ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}`}
+                  >
                     {banner.is_active ? 'Активен' : 'Неактивен'}
                   </span>
                   <span className="text-xs bg-border text-gray-300 px-2 py-1 rounded">
@@ -254,4 +269,3 @@ export default function BannersAdminPage() {
     </div>
   );
 }
-

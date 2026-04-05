@@ -5,7 +5,7 @@ import { getTelegramIdFromRequest } from '@/lib/auth';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Получаем текущего пользователя
   const currentTelegramId = await getTelegramIdFromRequest(req);
-  
+
   // Для всех операций нужна авторизация
   if (!currentTelegramId) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'POST') {
     try {
       const { address, is_default } = req.body;
-      
+
       if (!address || address.trim().length === 0) {
         return res.status(400).json({ error: 'Address is required' });
       }
@@ -39,7 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // ⚠️ КРИТИЧНО: используем текущего пользователя, игнорируем telegram_id из body
       if (is_default) {
-        await query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [currentTelegramId]);
+        await query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [
+          currentTelegramId,
+        ]);
       }
 
       const result = await query(
@@ -55,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else if (req.method === 'DELETE') {
     try {
       const { id } = req.query;
-      if (!id) return res.status(400).json({ error: 'id required' });
+      if (!id || Array.isArray(id)) return res.status(400).json({ error: 'id required' });
 
       // Проверяем принадлежность адреса пользователю
       const addrRes = await query('SELECT user_telegram_id FROM addresses WHERE id = $1', [id]);
@@ -64,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (Number(addrRes.rows[0].user_telegram_id) !== currentTelegramId) {
-        return res.status(403).json({ error: 'Forbidden: cannot delete another user\'s address' });
+        return res.status(403).json({ error: "Forbidden: cannot delete another user's address" });
       }
 
       await query('DELETE FROM addresses WHERE id = $1', [id]);
@@ -86,11 +88,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (Number(addrRes.rows[0].user_telegram_id) !== currentTelegramId) {
-        return res.status(403).json({ error: 'Forbidden: cannot modify another user\'s address' });
+        return res.status(403).json({ error: "Forbidden: cannot modify another user's address" });
       }
 
       if (is_default) {
-        await query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [currentTelegramId]);
+        await query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [
+          currentTelegramId,
+        ]);
       }
 
       await query('UPDATE addresses SET is_default = $1 WHERE id = $2', [is_default || false, id]);
@@ -104,4 +108,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
-

@@ -10,7 +10,8 @@ import { query } from '@/lib/db';
 import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const telegramId = (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
+  const telegramId =
+    (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
 
   if (!telegramId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -40,7 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         success: true,
         data: result.rows,
         count: result.rows.length,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (err) {
       console.error(err);
@@ -79,7 +80,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         success: true,
         data: result.rows[0],
         message: 'Item saved for later',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (err) {
       console.error(err);
@@ -102,7 +103,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(200).json({
         success: true,
         message: 'Item removed from saved',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (err) {
       console.error(err);
@@ -140,7 +141,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         res.status(200).json({
           success: true,
           message: 'Item moved to cart',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       } catch (err) {
         await query('ROLLBACK');

@@ -26,18 +26,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const addToast = useCallback((message: string, type: ToastType = 'info', duration = 3000) => {
-    const id = `toast-${Date.now()}-${Math.random()}`;
-    setToasts(prev => [...prev, { id, message, type, duration }]);
+  const addToast = useCallback(
+    (message: string, type: ToastType = 'info', duration = 3000) => {
+      const id = `toast-${Date.now()}-${Math.random()}`;
+      setToasts((prev) => [...prev, { id, message, type, duration }]);
 
-    // Auto-remove через duration
-    if (duration > 0) {
-      setTimeout(() => removeToast(id), duration);
-    }
-  }, [removeToast]);
+      // Auto-remove через duration
+      if (duration > 0) {
+        setTimeout(() => removeToast(id), duration);
+      }
+    },
+    [removeToast]
+  );
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
@@ -56,39 +59,33 @@ export function useToast() {
 }
 
 // Компонент контейнера для отображения всех тостов
-function ToastContainer({
-  toasts,
-  onRemove
-}: {
-  toasts: Toast[];
-  onRemove: (id: string) => void;
-}) {
+function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: string) => void }) {
   const getConfig = (type: ToastType) => {
     const configs: Record<ToastType, { bg: string; text: string; icon: string; border: string }> = {
       success: {
         bg: 'bg-green-500 dark:bg-green-600',
         text: 'text-white',
         icon: '✓',
-        border: 'border-green-600 dark:border-green-700'
+        border: 'border-green-600 dark:border-green-700',
       },
       error: {
         bg: 'bg-red-500 dark:bg-red-600',
         text: 'text-white',
         icon: '✕',
-        border: 'border-red-600 dark:border-red-700'
+        border: 'border-red-600 dark:border-red-700',
       },
       info: {
         bg: 'bg-blue-500 dark:bg-blue-600',
         text: 'text-white',
         icon: 'ℹ',
-        border: 'border-blue-600 dark:border-blue-700'
+        border: 'border-blue-600 dark:border-blue-700',
       },
       warning: {
         bg: 'bg-yellow-500 dark:bg-yellow-600',
         text: 'text-white',
         icon: '⚠',
-        border: 'border-yellow-600 dark:border-yellow-700'
-      }
+        border: 'border-yellow-600 dark:border-yellow-700',
+      },
     };
     return configs[type];
   };
@@ -101,7 +98,7 @@ function ToastContainer({
       aria-live="polite"
       aria-atomic="true"
     >
-      {toasts.map(toast => {
+      {toasts.map((toast) => {
         const config = getConfig(toast.type);
         return (
           <div

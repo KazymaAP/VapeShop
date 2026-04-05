@@ -16,35 +16,38 @@ interface EmptyStateProps {
   className?: string;
 }
 
-const EMPTY_STATE_CONFIG: Record<string, { emoji: string; title: string; description: string; action?: { label: string; href: string } }> = {
+const EMPTY_STATE_CONFIG: Record<
+  string,
+  { emoji: string; title: string; description: string; action?: { label: string; href: string } }
+> = {
   'empty-cart': {
     emoji: '🛒',
     title: 'Корзина пуста',
     description: 'Добавьте товары из каталога, чтобы начать покупки',
-    action: { label: 'Перейти в каталог', href: '/products' }
+    action: { label: 'Перейти в каталог', href: '/products' },
   },
   'no-orders': {
     emoji: '📦',
     title: 'У вас нет заказов',
     description: 'Оформите первый заказ и отслеживайте его статус здесь',
-    action: { label: 'В каталог товаров', href: '/products' }
+    action: { label: 'В каталог товаров', href: '/products' },
   },
   'no-results': {
     emoji: '🔍',
     title: 'Ничего не найдено',
-    description: 'Попробуйте изменить критерии поиска или фильтры'
+    description: 'Попробуйте изменить критерии поиска или фильтры',
   },
   'no-favorites': {
     emoji: '❤️',
     title: 'Избранное пусто',
     description: 'Добавляйте понравившиеся товары в избранное для быстрого доступа',
-    action: { label: 'Исследовать товары', href: '/products' }
+    action: { label: 'Исследовать товары', href: '/products' },
   },
   'no-products': {
     emoji: '📋',
     title: 'Товаров нет',
-    description: 'В этой категории пока нет товаров. Посмотрите другие категории.'
-  }
+    description: 'В этой категории пока нет товаров. Посмотрите другие категории.',
+  },
 };
 
 export function EmptyState({
@@ -53,7 +56,7 @@ export function EmptyState({
   description,
   icon,
   action,
-  className = ''
+  className = '',
 }: EmptyStateProps) {
   const config = EMPTY_STATE_CONFIG[type];
   const finalEmoji = icon || config?.emoji || '👋';
@@ -76,14 +79,10 @@ export function EmptyState({
       </div>
 
       {/* Заголовок */}
-      <h2 className="text-2xl font-bold text-textPrimary mb-2">
-        {finalTitle}
-      </h2>
+      <h2 className="text-2xl font-bold text-textPrimary mb-2">{finalTitle}</h2>
 
       {/* Описание */}
-      <p className="text-textSecondary max-w-sm mb-6">
-        {finalDescription}
-      </p>
+      <p className="text-textSecondary max-w-sm mb-6">{finalDescription}</p>
 
       {/* CTA кнопка */}
       {finalAction && (

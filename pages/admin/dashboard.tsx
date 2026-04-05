@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { DashboardData } from '../../types/api';
 
 export default function Dashboard() {
@@ -8,7 +18,7 @@ export default function Dashboard() {
     kpi: { total_revenue: 0, total_orders: 0, avg_order: 0 },
     revenue_by_day: [],
     top_products: [],
-    top_categories: []
+    top_categories: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +75,7 @@ export default function Dashboard() {
                   contentStyle={{
                     backgroundColor: '#111115',
                     border: '1px solid #2a2a33',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
                   }}
                 />
                 <Line
@@ -95,7 +105,7 @@ export default function Dashboard() {
                   contentStyle={{
                     backgroundColor: '#111115',
                     border: '1px solid #2a2a33',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
                   }}
                 />
                 <Bar dataKey="sold" fill="#c084fc" />
@@ -112,7 +122,9 @@ export default function Dashboard() {
           {data.top_categories.map((cat, i) => (
             <div key={i} className="flex justify-between items-center p-2 bg-bgDark rounded">
               <span className="text-textPrimary">{cat.category}</span>
-              <span className="text-neon">{cat.sold} sold • ₽{cat.revenue.toLocaleString()}</span>
+              <span className="text-neon">
+                {cat.sold} sold • ₽{cat.revenue.toLocaleString()}
+              </span>
             </div>
           ))}
         </div>

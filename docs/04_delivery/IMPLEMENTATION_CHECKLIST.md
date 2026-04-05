@@ -26,6 +26,7 @@ Phase 10: Deployment    ▓▓▓▓▓ ✅
 ## 📊 Phase 1: Database Setup
 
 ### 1.1 SQL миграция
+
 - [ ] Создана таблица `pickup_points`
   - [ ] Поле `id` (UUID PRIMARY KEY)
   - [ ] Поле `name` (VARCHAR 255)
@@ -50,6 +51,7 @@ Phase 10: Deployment    ▓▓▓▓▓ ✅
   - [ ] Добавлено поле `delivery_date` (DATE)
 
 ### 1.2 Индексы
+
 - [ ] Создан индекс `idx_pickup_points_is_active` на (is_active)
 - [ ] Создан индекс `idx_pickup_points_created_at` на (created_at DESC)
 - [ ] Создан индекс `idx_addresses_user_telegram_id` на (user_telegram_id)
@@ -60,6 +62,7 @@ Phase 10: Deployment    ▓▓▓▓▓ ✅
 - [ ] Создан индекс `idx_orders_delivery_date` на (delivery_date)
 
 ### 1.3 Триггеры
+
 - [ ] Создан триггер `trigger_pickup_points_updated_at`
   - Автоматически обновляет `updated_at` при изменении
 
@@ -67,16 +70,18 @@ Phase 10: Deployment    ▓▓▓▓▓ ✅
   - Автоматически обновляет `updated_at` при изменении
 
 ### 1.4 Начальные данные
+
 - [ ] Добавлены 3 примера пунктов выдачи:
   - [ ] "Пункт выдачи - Центр"
   - [ ] "Пункт выдачи - Восток"
   - [ ] "Пункт выдачи - Запад"
 
-**Проверка:** 
+**Проверка:**
+
 ```sql
 SELECT COUNT(*) FROM pickup_points;
 SELECT COUNT(*) FROM addresses;
-SELECT * FROM information_schema.columns 
+SELECT * FROM information_schema.columns
 WHERE table_name='orders' AND column_name IN ('delivery_method','pickup_point_id','address','delivery_date');
 ```
 
@@ -87,6 +92,7 @@ WHERE table_name='orders' AND column_name IN ('delivery_method','pickup_point_id
 ## 📊 Phase 2: Admin APIs
 
 ### 2.1 GET /api/admin/pickup-points
+
 - [ ] Создан файл `pages/api/admin/pickup-points.ts`
 - [ ] Реализован GET handler
   - [ ] Поддержка пагинации (page, limit)
@@ -95,6 +101,7 @@ WHERE table_name='orders' AND column_name IN ('delivery_method','pickup_point_id
   - [ ] Сортировка по created_at DESC
 
 **Тест:**
+
 ```bash
 curl -H "X-Telegram-Id: 123456789" \
      "http://localhost:3000/api/admin/pickup-points?page=1&limit=20"
@@ -103,6 +110,7 @@ curl -H "X-Telegram-Id: 123456789" \
 **Ожидаемый результат:** 200 OK с массивом pickup_points и pagination объектом
 
 ### 2.2 POST /api/admin/pickup-points
+
 - [ ] Реализован POST handler
   - [ ] Валидация: name обязателен и не пуст
   - [ ] Валидация: address обязателен и не пуст
@@ -113,6 +121,7 @@ curl -H "X-Telegram-Id: 123456789" \
   - [ ] Возвращает 201 Created
 
 **Тест:**
+
 ```bash
 curl -X POST http://localhost:3000/api/admin/pickup-points \
      -H "Content-Type: application/json" \
@@ -123,6 +132,7 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 **Ожидаемый результат:** 201 Created с pickup_point объектом
 
 ### 2.3 PUT /api/admin/pickup-points
+
 - [ ] Реализован PUT handler
   - [ ] Валидация: id обязателен
   - [ ] Проверка: пункт существует
@@ -133,6 +143,7 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
   - [ ] Возвращает 200 OK
 
 **Тест:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/admin/pickup-points \
      -H "Content-Type: application/json" \
@@ -143,6 +154,7 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
 **Ожидаемый результат:** 200 OK с success: true
 
 ### 2.4 DELETE /api/admin/pickup-points
+
 - [ ] Реализован DELETE handler
   - [ ] Валидация: id обязателен (из query)
   - [ ] Проверка: пункт существует
@@ -152,6 +164,7 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
   - [ ] Возвращает 200 OK
 
 **Тест:**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=uuid-here" \
      -H "X-Telegram-Id: 123456789"
@@ -164,6 +177,7 @@ curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=uuid-here" \
 ## 📊 Phase 3: Customer APIs
 
 ### 3.1 GET /api/addresses
+
 - [ ] Создан файл `pages/api/addresses.ts`
 - [ ] Реализован GET handler
   - [ ] Query param: telegram_id (обязателен)
@@ -173,6 +187,7 @@ curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=uuid-here" \
   - [ ] Возвращает 200 OK
 
 **Тест:**
+
 ```bash
 curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 ```
@@ -180,6 +195,7 @@ curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 **Ожидаемый результат:** 200 OK с массивом addresses
 
 ### 3.2 POST /api/addresses
+
 - [ ] Реализован POST handler
   - [ ] Body: telegram_id, address, is_default (опционально)
   - [ ] Валидация: телеграм ID обязателен
@@ -190,6 +206,7 @@ curl "http://localhost:3000/api/addresses?telegram_id=123456789"
   - [ ] Возвращает 200 OK с созданным адресом
 
 **Тест:**
+
 ```bash
 curl -X POST http://localhost:3000/api/addresses \
      -H "Content-Type: application/json" \
@@ -199,6 +216,7 @@ curl -X POST http://localhost:3000/api/addresses \
 **Ожидаемый результат:** 200 OK с address объектом
 
 ### 3.3 PUT /api/addresses
+
 - [ ] Реализован PUT handler
   - [ ] Body: id, address (опционально), is_default (опционально)
   - [ ] Валидация: id обязателен
@@ -208,6 +226,7 @@ curl -X POST http://localhost:3000/api/addresses \
   - [ ] Возвращает 200 OK
 
 **Тест:**
+
 ```bash
 curl -X PUT http://localhost:3000/api/addresses \
      -H "Content-Type: application/json" \
@@ -217,6 +236,7 @@ curl -X PUT http://localhost:3000/api/addresses \
 **Ожидаемый результат:** 200 OK с success: true
 
 ### 3.4 DELETE /api/addresses
+
 - [ ] Реализован DELETE handler
   - [ ] Query param: id (обязателен)
   - [ ] Удаляет адрес
@@ -224,6 +244,7 @@ curl -X PUT http://localhost:3000/api/addresses \
   - [ ] Возвращает 200 OK
 
 **Тест:**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/addresses?id=uuid-here"
 ```
@@ -235,6 +256,7 @@ curl -X DELETE "http://localhost:3000/api/addresses?id=uuid-here"
 ## 📊 Phase 4: Public APIs
 
 ### 4.1 GET /api/pickup-points (Public)
+
 - [ ] Создан файл `pages/api/pickup-points.ts` (если не существует)
 - [ ] Реализован GET handler
   - [ ] Возвращает ТОЛЬКО активные пункты (is_active=true)
@@ -244,6 +266,7 @@ curl -X DELETE "http://localhost:3000/api/addresses?id=uuid-here"
   - [ ] Кэшируемый результат (редко меняется)
 
 **Тест:**
+
 ```bash
 curl "http://localhost:3000/api/pickup-points"
 ```
@@ -255,6 +278,7 @@ curl "http://localhost:3000/api/pickup-points"
 ## 📊 Phase 5: Order Integration
 
 ### 5.1 POST /api/orders (Updated)
+
 - [ ] Обновлен файл `pages/api/orders.ts`
 - [ ] Добавлена поддержка delivery_method
   - [ ] Body: delivery_method ("pickup" или "delivery")
@@ -267,6 +291,7 @@ curl "http://localhost:3000/api/pickup-points"
   - [ ] Возвращает 201 Created с order объектом
 
 **Тест (Pickup):**
+
 ```bash
 curl -X POST http://localhost:3000/api/orders \
      -H "Content-Type: application/json" \
@@ -280,6 +305,7 @@ curl -X POST http://localhost:3000/api/orders \
 ```
 
 **Тест (Delivery):**
+
 ```bash
 curl -X POST http://localhost:3000/api/orders \
      -H "Content-Type: application/json" \
@@ -299,6 +325,7 @@ curl -X POST http://localhost:3000/api/orders \
 ## 📊 Phase 6: Cart Component
 
 ### 6.1 DeliverySelector Component
+
 - [ ] Создан файл `components/DeliverySelector.tsx`
 - [ ] Содержит:
   - [ ] Radio buttons для выбора метода (pickup/delivery)
@@ -310,6 +337,7 @@ curl -X POST http://localhost:3000/api/orders \
   - [ ] Responsive дизайн
 
 **Интеграция в корзину:**
+
 - [ ] Импортирован в `pages/cart.tsx`
 - [ ] State для delivery_method
 - [ ] State для pickup_point_id
@@ -318,6 +346,7 @@ curl -X POST http://localhost:3000/api/orders \
 - [ ] Передана информация при создании заказа
 
 ### 6.2 PickupPointsList Component
+
 - [ ] Создан файл `components/PickupPointsList.tsx`
 - [ ] Содержит:
   - [ ] Загрузка пунктов с `/api/pickup-points`
@@ -329,6 +358,7 @@ curl -X POST http://localhost:3000/api/orders \
   - [ ] Props: onSelect, selectedId
 
 **Проверка:**
+
 - [ ] При открытии корзины → пункты загружаются
 - [ ] При клике → выбирается пункт
 - [ ] Выбранный пункт отмечен галочкой
@@ -338,6 +368,7 @@ curl -X POST http://localhost:3000/api/orders \
 ## 📊 Phase 7: Profile Component
 
 ### 7.1 AddressManager Component
+
 - [ ] Создан файл `components/AddressManager.tsx`
 - [ ] Содержит:
   - [ ] Загрузка адресов при монтировании компонента
@@ -352,6 +383,7 @@ curl -X POST http://localhost:3000/api/orders \
   - [ ] Props: telegramId
 
 **Функционал:**
+
 - [ ] Получение адресов: GET /api/addresses?telegram_id=...
 - [ ] Добавление: POST /api/addresses
 - [ ] Обновление (default): PUT /api/addresses
@@ -359,6 +391,7 @@ curl -X POST http://localhost:3000/api/orders \
 - [ ] Обновление UI после каждой операции
 
 **Интеграция:**
+
 - [ ] Добавлена в `pages/profile.tsx`
 - [ ] Показывается в разделе "Мои адреса"
 
@@ -367,6 +400,7 @@ curl -X POST http://localhost:3000/api/orders \
 ## 📊 Phase 8: Admin Panel
 
 ### 8.1 AdminPickupPointsPanel Component
+
 - [ ] Создан файл `components/AdminPickupPointsPanel.tsx`
 - [ ] Содержит:
   - [ ] Таблица/список всех пунктов выдачи
@@ -383,6 +417,7 @@ curl -X POST http://localhost:3000/api/orders \
   - [ ] Подтверждение перед удалением
 
 **Функционал:**
+
 - [ ] Получение пунктов: GET /api/admin/pickup-points?page=1&limit=20
 - [ ] Добавление: POST /api/admin/pickup-points
 - [ ] Обновление: PUT /api/admin/pickup-points
@@ -390,6 +425,7 @@ curl -X POST http://localhost:3000/api/orders \
 - [ ] Обновление UI после каждой операции
 
 **Интеграция:**
+
 - [ ] Добавлена в админ-панель (`pages/admin/`)
 - [ ] Требует админ аутентификацию (через requireAuth)
 - [ ] Видна только админам
@@ -399,17 +435,22 @@ curl -X POST http://localhost:3000/api/orders \
 ## 📊 Phase 9: Testing
 
 ### 9.1 Database Tests
+
 - [ ] Миграция создает таблицы
+
   ```sql
   \dt pickup_points
   \dt addresses
   ```
+
   Результат: ✓ оба exist
 
 - [ ] Индексы созданы
+
   ```sql
   SELECT * FROM pg_indexes WHERE tablename IN ('pickup_points','addresses','orders');
   ```
+
   Результат: ✓ все 8 индексов есть
 
 - [ ] UNIQUE constraint работает
@@ -423,6 +464,7 @@ curl -X POST http://localhost:3000/api/orders \
 ### 9.2 Admin API Tests
 
 **GET /api/admin/pickup-points**
+
 ```bash
 curl -H "X-Telegram-Id: admin-123" \
      "http://localhost:3000/api/admin/pickup-points"
@@ -430,6 +472,7 @@ curl -H "X-Telegram-Id: admin-123" \
 ```
 
 **POST /api/admin/pickup-points**
+
 ```bash
 curl -X POST http://localhost:3000/api/admin/pickup-points \
      -H "Content-Type: application/json" \
@@ -441,6 +484,7 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 ```
 
 **PUT /api/admin/pickup-points**
+
 ```bash
 # Получить ID предыдущего пункта
 curl -X PUT http://localhost:3000/api/admin/pickup-points \
@@ -453,6 +497,7 @@ curl -X PUT http://localhost:3000/api/admin/pickup-points \
 ```
 
 **DELETE /api/admin/pickup-points**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=uuid-123" \
      -H "X-Telegram-Id: admin-123"
@@ -463,12 +508,14 @@ curl -X DELETE "http://localhost:3000/api/admin/pickup-points?id=uuid-123" \
 ### 9.3 Customer API Tests
 
 **GET /api/addresses**
+
 ```bash
 curl "http://localhost:3000/api/addresses?telegram_id=123456789"
 # ✓ 200 OK, returns array (может быть пусто)
 ```
 
 **POST /api/addresses**
+
 ```bash
 curl -X POST http://localhost:3000/api/addresses \
      -H "Content-Type: application/json" \
@@ -478,6 +525,7 @@ curl -X POST http://localhost:3000/api/addresses \
 ```
 
 **PUT /api/addresses**
+
 ```bash
 # Получить ID адреса из предыдущего
 curl -X PUT http://localhost:3000/api/addresses \
@@ -488,6 +536,7 @@ curl -X PUT http://localhost:3000/api/addresses \
 ```
 
 **DELETE /api/addresses**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/addresses?id=uuid-addr"
 # ✓ 200 OK
@@ -497,6 +546,7 @@ curl -X DELETE "http://localhost:3000/api/addresses?id=uuid-addr"
 ### 9.4 Public API Tests
 
 **GET /api/pickup-points**
+
 ```bash
 curl "http://localhost:3000/api/pickup-points"
 # ✓ 200 OK
@@ -507,6 +557,7 @@ curl "http://localhost:3000/api/pickup-points"
 ### 9.5 Order Integration Tests
 
 **POST /api/orders with Pickup**
+
 ```bash
 # 1. Получить ID активного пункта
 curl "http://localhost:3000/api/pickup-points"
@@ -528,6 +579,7 @@ curl -X POST http://localhost:3000/api/orders \
 ```
 
 **POST /api/orders with Delivery**
+
 ```bash
 curl -X POST http://localhost:3000/api/orders \
      -H "Content-Type: application/json" \
@@ -546,6 +598,7 @@ curl -X POST http://localhost:3000/api/orders \
 ### 9.6 Frontend Component Tests
 
 **Cart DeliverySelector**
+
 - [ ] Компонент рендерится
 - [ ] Есть 2 радио кнопки (pickup/delivery)
 - [ ] При выборе pickup → видна PickupPointsList
@@ -554,6 +607,7 @@ curl -X POST http://localhost:3000/api/orders \
 - [ ] Selected значения передаются через props
 
 **Profile AddressManager**
+
 - [ ] Загружает адреса при монтировании
 - [ ] Показывает список адресов
 - [ ] Кнопка "Добавить" открывает форму
@@ -563,6 +617,7 @@ curl -X POST http://localhost:3000/api/orders \
 - [ ] Адрес по умолчанию отмечен
 
 **Admin Panel**
+
 - [ ] Загружает пункты при монтировании
 - [ ] Показывает таблицу пунктов
 - [ ] Кнопка "Добавить" работает
@@ -574,6 +629,7 @@ curl -X POST http://localhost:3000/api/orders \
 ## 📊 Phase 10: Deployment
 
 ### 10.1 Pre-deployment Checklist
+
 - [ ] Все файлы коммитены в git
 - [ ] Нет console.log / debug кода
 - [ ] ENV переменные установлены
@@ -582,7 +638,9 @@ curl -X POST http://localhost:3000/api/orders \
 - [ ] No hardcoded URLs (использовать NEXT_PUBLIC_API_URL)
 
 ### 10.2 Database Migration (Production)
+
 - [ ] Backup БД создан
+
   ```bash
   pg_dump -h prod-host -U user -d database > backup_$(date +%Y%m%d).sql
   ```
@@ -600,6 +658,7 @@ curl -X POST http://localhost:3000/api/orders \
   ```
 
 ### 10.3 API Deployment
+
 - [ ] Build успешен: `npm run build`
 - [ ] Нет ошибок: `npm start`
 - [ ] Endpoints доступны на production
@@ -609,18 +668,21 @@ curl -X POST http://localhost:3000/api/orders \
   - [ ] POST /api/orders (обновлен)
 
 ### 10.4 Frontend Deployment
+
 - [ ] Компоненты отображаются корректно
 - [ ] Стили применены (Neon colors)
 - [ ] Responsive на мобильных
 - [ ] Не сломаны существующие страницы
 
 ### 10.5 Monitoring
+
 - [ ] Error logging настроен
 - [ ] Логируются все ошибки API
 - [ ] Мониторятся медленные запросы
 - [ ] Проверяется использование БД
 
 ### 10.6 Verification Tests (Production)
+
 ```bash
 # Test 1: Public API доступен
 curl https://prod.vape-shop.com/api/pickup-points
@@ -654,4 +716,3 @@ curl -X POST https://prod.vape-shop.com/api/orders \
 **Версия:** 1.0  
 **Статус:** ✅ Complete  
 **Total Tasks:** 100+
-

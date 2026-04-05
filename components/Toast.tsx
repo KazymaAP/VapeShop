@@ -64,7 +64,9 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
 
 // Hook для управления toast'ами
 export function useToast() {
-  const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: 'success' | 'error' | 'info' | 'warning' }>>([]);
+  const [toasts, setToasts] = useState<
+    Array<{ id: string; message: string; type: 'success' | 'error' | 'info' | 'warning' }>
+  >([]);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     const id = Math.random().toString(36).substr(2, 9);

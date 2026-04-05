@@ -60,33 +60,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Обновляем статус в БД
-      await query(
-        `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2`,
-        [status, id]
-      );
+      await query(`UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2`, [status, id]);
 
       // Логируем действие администратора
       const telegramId = getTelegramId(req);
       await query(
         `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [telegramId, 'update_order_status', JSON.stringify({
-          order_id: id,
-          old_status: oldStatus,
-          new_status: status,
-        })]
-      ).catch(err => console.error('Logging error:', err));
+        [
+          telegramId,
+          'update_order_status',
+          JSON.stringify({
+            order_id: id,
+            old_status: oldStatus,
+            new_status: status,
+          }),
+        ]
+      ).catch((err) => console.error('Logging error:', err));
 
       // Отправляем уведомление покупателю
       // (убедитесь что bot инициализирован перед этим)
       try {
         // Динамический импорт чтобы избежать циклических зависимостей
-        const { notifyBuyerOrderStatus: notifyStatus } = await import('../../../../lib/notifications');
-        await notifyStatus(
-          order.user_telegram_id,
-          id,
-          status,
-          order.code_6digit
-        );
+        const { notifyBuyerOrderStatus: notifyStatus } =
+          await import('../../../../lib/notifications');
+        await notifyStatus(order.user_telegram_id, id, status, order.code_6digit);
       } catch (notifyErr) {
         console.error('Notification error:', notifyErr);
         // Не падаем если уведомление не отправилось

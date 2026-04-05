@@ -51,11 +51,21 @@ export interface ProductResponse {
   is_active?: boolean;
 }
 
-// Заказ
+// Alias для удобства
+export type Product = ProductResponse;
 export interface OrderResponse {
   id: string;
   user_telegram_id: number;
-  status: 'new' | 'confirmed' | 'readyship' | 'shipped' | 'done' | 'cancelled' | 'pending' | 'processing' | 'delivered';
+  status:
+    | 'new'
+    | 'confirmed'
+    | 'readyship'
+    | 'shipped'
+    | 'done'
+    | 'cancelled'
+    | 'pending'
+    | 'processing'
+    | 'delivered';
   total: number;
   delivery_method: 'pickup' | 'courier';
   delivery_date: string;
@@ -210,7 +220,15 @@ export interface UserPublicResponse {
   last_name?: string;
   username?: string;
   avatar?: string;
-  role: 'admin' | 'manager' | 'seller' | 'buyer' | 'customer' | 'support' | 'courier' | 'super_admin';
+  role:
+    | 'admin'
+    | 'manager'
+    | 'seller'
+    | 'buyer'
+    | 'customer'
+    | 'support'
+    | 'courier'
+    | 'super_admin';
   is_blocked?: boolean;
   created_at?: string;
   updated_at?: string;
@@ -271,7 +289,24 @@ export interface DashboardData {
 }
 
 // Статусы
-export type OrderStatus = 'new' | 'confirmed' | 'readyship' | 'shipped' | 'done' | 'cancelled' | 'pending' | 'processing' | 'delivered';
+export type OrderStatus =
+  | 'new'
+  | 'confirmed'
+  | 'readyship'
+  | 'shipped'
+  | 'done'
+  | 'cancelled'
+  | 'pending'
+  | 'processing'
+  | 'delivered';
 export type DiscountType = 'percent' | 'fixed';
 export type DeliveryMethod = 'pickup' | 'courier' | 'self_pickup' | 'locker';
-export type UserRole = 'admin' | 'manager' | 'seller' | 'buyer' | 'customer' | 'support' | 'courier' | 'super_admin';
+export type UserRole =
+  | 'admin'
+  | 'manager'
+  | 'seller'
+  | 'buyer'
+  | 'customer'
+  | 'support'
+  | 'courier'
+  | 'super_admin';

@@ -206,9 +206,7 @@ export default function DeliverySelector({
       )}
 
       {/* Error Message */}
-      {error && (
-        <p className="text-danger text-xs px-3 py-2 bg-danger/10 rounded-lg">{error}</p>
-      )}
+      {error && <p className="text-danger text-xs px-3 py-2 bg-danger/10 rounded-lg">{error}</p>}
     </div>
   );
 }

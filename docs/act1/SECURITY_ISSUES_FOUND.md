@@ -1,4 +1,5 @@
 # SECURITY AUDIT REPORT - VapeShop Next.js Project
+
 ## Отчет о проверке критических проблем безопасности
 
 **Дата проверки:** 2024
@@ -11,7 +12,7 @@
 Проведена полная проверка проекта VapeShop на следующие критические проблемы безопасности:
 
 1. ✅ Admin endpoints - requireAuth, проверка Telegram ID, проверка ролей
-2. ✅ Support и courier endpoints - requireAuth, проверка ролей  
+2. ✅ Support и courier endpoints - requireAuth, проверка ролей
 3. ✅ HMAC валидация в cart.ts
 4. ✅ Cron endpoints - CRON_SECRET валидация
 5. ✅ Использование x-telegram-id header
@@ -22,7 +23,7 @@
 
 ### 1. Admin Endpoints - ВСЕ ЗАЩИЩЕНЫ ✅
 
-**Файл:** \pages/api/admin/*.ts\
+**Файл:** \pages/api/admin/\*.ts\
 
 Все 34 admin эндпоинта имеют правильную защиту:
 
@@ -32,12 +33,12 @@
 
 - **Все эндпоинты проверяют роль:** ✅
   - Требуемые роли: \['admin']\, \['super_admin']\, \['manager', 'admin']\ и т.д.
-  
 - **Все эндпоинты проверяют Telegram ID:** ✅
   - Используется функция \getTelegramIdFromRequest(req)\ или \getTelegramId(req)\
   - Проверка через HMAC-SHA256 верификацию initData от Telegram WebApp
 
 **Защищенные endpoints:**
+
 - \/admin/activate.ts\ - requireAuth(['admin'])
 - \/admin/alerts.ts\ - requireAuth(['manager', 'admin', 'super_admin'])
 - \/admin/audit-logs.ts\ - requireAuth(['super_admin', 'admin', 'manager'])
@@ -69,7 +70,7 @@
 
 ### 2. Support Endpoints - ВСЕ ЗАЩИЩЕНЫ ✅
 
-**Файл:** \pages/api/support/*.ts\
+**Файл:** \pages/api/support/\*.ts\
 
 - \/support/customers/[id].ts\ - requireAuth(['support', 'admin', 'super_admin'])
 - \/support/search-customer.ts\ - requireAuth(['support', 'admin', 'super_admin'])
@@ -79,46 +80,46 @@
 
 ### 3. Courier Endpoints - ВСЕ ЗАЩИЩЕНЫ ✅
 
-**Файл:** \pages/api/courier/*.ts\
+**Файл:** \pages/api/courier/\*.ts\
 
 - \/courier/deliveries.ts\ - requireAuth(['courier', 'admin'])
 - \/courier/deliveries/[id]/complete.ts\ - requireAuth(['courier'])
 
 ### 4. Cron Endpoints - CRON_SECRET ВАЛИДАЦИЯ ✅
 
-**Файл:** \pages/api/cron/*.ts\
+**Файл:** \pages/api/cron/\*.ts\
 
 Все cron-эндпоинты проверяют CRON_SECRET:
 
-- **\/cron/abandoned-cart.ts\** (линия 26-28):
+- \*\*\/cron/abandoned-cart.ts\*\* (линия 26-28):
   \\\
   const token = req.query.token || req.headers['x-cron-secret'];
   if (process.env.CRON_SECRET && token !== process.env.CRON_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  return res.status(401).json({ error: 'Unauthorized' });
   }
   \\\
 
-- **\/cron/cleanup-old-sessions.ts\** (линия 15-17):
+- \*\*\/cron/cleanup-old-sessions.ts\*\* (линия 15-17):
   \\\
   const cronSecret = req.headers['x-cron-secret'];
   if (cronSecret !== process.env.CRON_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  return res.status(401).json({ error: 'Unauthorized' });
   }
   \\\
 
-- **\/cron/db-backup.ts\** (линия 20-22):
+- \*\*\/cron/db-backup.ts\*\* (линия 20-22):
   \\\
   const cronSecret = req.headers['x-cron-secret'];
   if (cronSecret !== process.env.CRON_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  return res.status(401).json({ error: 'Unauthorized' });
   }
   \\\
 
-- **\/cron/price-drop-notifications.ts\** (линия 16-18):
+- \*\*\/cron/price-drop-notifications.ts\*\* (линия 16-18):
   \\\
   const cronSecret = req.headers['x-cron-secret'];
   if (cronSecret !== process.env.CRON_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  return res.status(401).json({ error: 'Unauthorized' });
   }
   \\\
 
@@ -128,9 +129,9 @@
 
 - Используется \getTelegramIdFromRequest(req)\ - получение из HMAC-верифицированных данных
 - Проверка принадлежности корзины текущему пользователю:
-  \\\	ypescript
+  \\\ ypescript
   if (Number(telegram_id) !== currentTelegramId) {
-    return res.status(403).json({ error: 'Forbidden: cannot access another user's cart' });
+  return res.status(403).json({ error: 'Forbidden: cannot access another user's cart' });
   }
   \\\
 
@@ -138,7 +139,8 @@
 
 **Файл:** \pages/api/user/balance.ts\
 
-- Используется \getTelegramId(req)\ после \equireAuth\
+- Используется \getTelegramId(req)\ после \
+  equireAuth\
 - Правильно использует middleware
 - Отчет: \xport default requireAuth(handler, ['customer'])\
 
@@ -151,16 +153,19 @@
 **Файл:** \pages/api/admin/init-super-admin.ts\ (линия 1-86)
 
 **Проблема:**
+
 - Эндпоинт требует существующего admin/super_admin права для создания super_admin
 - Если нет ни одного super_admin в системе, первый admin сможет создать его
 - Это логическая уязвимость: требует предварительного admin в БД
 
 **Текущая защита:**
+
 - ✅ Требует requireAuth(['super_admin', 'admin']) - линия 20
 - ✅ Требует SUPER_ADMIN_INIT_PASSWORD из .env - линия 26
 - ✅ Проверка что super_admin еще не существует - линия 39-44
 
 **Рекомендация:**
+
 1. Убедиться что SUPER_ADMIN_INIT_PASSWORD установлен в .env на production
 2. Эндпоинт должен быть отключен после первой инициализации
 3. Добавить логирование всех попыток доступа
@@ -170,20 +175,21 @@
 **Файл:** \lib/auth.ts\ (линия 48-59)
 
 **Текущая реализация:**
-\\\	ypescript
+\\\ ypescript
 if (process.env.NODE_ENV !== 'production') {
-  const headerTelegramId = req.headers['x-telegram-id'];
-  if (headerTelegramId) {
-    const id = parseInt(headerTelegramId as string, 10);
-    if (!isNaN(id)) {
-      console.warn(\⚠️ WARNING: Using X-Telegram-Id for testing...\);
-      return id;
-    }
-  }
+const headerTelegramId = req.headers['x-telegram-id'];
+if (headerTelegramId) {
+const id = parseInt(headerTelegramId as string, 10);
+if (!isNaN(id)) {
+console.warn(\⚠️ WARNING: Using X-Telegram-Id for testing...\);
+return id;
+}
+}
 }
 \\\
 
 **Статус:** ✅ БЕЗОПАСНО
+
 - x-telegram-id используется ТОЛЬКО в development (!= 'production')
 - На production используется ТОЛЬКО HMAC-верифицированная initData
 - Есть warning в консоли
@@ -195,13 +201,15 @@ if (process.env.NODE_ENV !== 'production') {
 ### Auth Middleware (/lib/auth.ts)
 
 **Функции:**
+
 1. \getTelegramIdFromRequest(req)\ - Получение telegramId с HMAC верификацией
 2. \erifyTelegramInitData(initData)\ - HMAC-SHA256 верификация от Telegram
 3. \parseInitData(initData)\ - Парсинг и валидация initData
 4. \getUserRole(telegramId)\ - Получение роли из БД
 5. \hasRequiredRole(telegramId, roles)\ - Проверка роли
 6. \isUserBlocked(telegramId)\ - Проверка блокировки
-7. \equireAuth(handler, roles)\ - Middleware для защиты эндпоинтов
+7. \
+   equireAuth(handler, roles)\ - Middleware для защиты эндпоинтов
 8. \getTelegramId(req)\ - Получение telegramId после requireAuth
 
 **Уровень защиты:** ⭐⭐⭐⭐⭐ (Отлично)
@@ -237,6 +245,7 @@ if (process.env.NODE_ENV !== 'production') {
 ### Общее состояние безопасности: ХОРОШЕЕ ✅
 
 **Результаты проверки:**
+
 - ✅ Все admin endpoints правильно защищены requireAuth middleware
 - ✅ Все endpoints проверяют роль пользователя
 - ✅ Все endpoints используют HMAC-верифицированный Telegram ID
@@ -246,6 +255,7 @@ if (process.env.NODE_ENV !== 'production') {
 - ✅ Все данные пользователя получаются из защищенных источников
 
 **Потенциальные области улучшения:**
+
 1. Мониторить SUPER_ADMIN_INIT_PASSWORD в .env
 2. Отключить init-super-admin после первой инициализации
 3. Добавить rate limiting на критические эндпоинты (есть в некоторых)
@@ -253,6 +263,7 @@ if (process.env.NODE_ENV !== 'production') {
 5. Мониторить логи RBAC изменений
 
 **Рекомендуемые действия:**
+
 1. ✅ Убедиться что все .env переменные установлены на production:
    - CRON_SECRET
    - TELEGRAM_BOT_TOKEN

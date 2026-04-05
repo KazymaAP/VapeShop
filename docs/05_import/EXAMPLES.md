@@ -38,6 +38,7 @@ Coil Kanthal A1,0.4 Ohm 10 штук в упаковке,200,120.00,110.00,100.00
 ```
 
 **Параметры:**
+
 - ✓ Кодировка: UTF-8
 - ✓ Разделитель: запятая (,)
 - ✓ Цены: точка как разделитель (250.00)
@@ -94,14 +95,14 @@ with open('products_test.csv', 'w', newline='', encoding='utf-8') as f:
         'name', 'specification', 'stock',
         'price_tier_1', 'price_tier_2', 'price_tier_3', 'distributor_price'
     ])
-    
+
     for name, spec in products:
         stock = random.randint(50, 500)
         price1 = round(random.uniform(100, 3000), 2)
         price2 = round(price1 * 0.92, 2)
         price3 = round(price1 * 0.84, 2)
         price_dist = round(price1 * 0.60, 2)
-        
+
         writer.writerow([
             name, spec, stock,
             price1, price2, price3, price_dist
@@ -111,6 +112,7 @@ print("✓ Создан файл: products_test.csv")
 ```
 
 **Запуск:**
+
 ```bash
 python3 generate_csv.py
 ```
@@ -194,13 +196,13 @@ async function uploadCSV(file) {
     const response = await fetch('/api/admin/import', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
-      body: formData
+      body: formData,
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || 'Ошибка при загрузке');
     }
@@ -217,7 +219,7 @@ async function uploadCSV(file) {
 const fileInput = document.getElementById('file-input');
 fileInput.addEventListener('change', async (e) => {
   const file = e.target.files[0];
-  
+
   if (!file.name.endsWith('.csv')) {
     alert('Пожалуйста, выберите CSV файл');
     return;
@@ -244,9 +246,9 @@ async function uploadCSVAxios(file) {
   try {
     const response = await axios.post('/api/admin/import', formData, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data'
-      }
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
     });
 
     return response.data;
@@ -296,10 +298,10 @@ curl -X GET "http://localhost:3000/api/admin/price-import?status=inactive&search
       "name": "Vape Pod Pro",
       "specification": "Никотин 20мг 50 мл",
       "stock": 100,
-      "price_tier_1": 250.00,
-      "price_tier_2": 230.00,
-      "price_tier_3": 200.00,
-      "distributor_price": 150.00,
+      "price_tier_1": 250.0,
+      "price_tier_2": 230.0,
+      "price_tier_3": 200.0,
+      "distributor_price": 150.0,
       "is_activated": false,
       "product_id": null,
       "created_at": "2025-04-02T10:00:00Z",
@@ -310,10 +312,10 @@ curl -X GET "http://localhost:3000/api/admin/price-import?status=inactive&search
       "name": "Atomizer RDA Genesis",
       "specification": "Диаметр 24мм нержавейка",
       "stock": 75,
-      "price_tier_1": 180.00,
-      "price_tier_2": 165.00,
-      "price_tier_3": 150.00,
-      "distributor_price": 100.00,
+      "price_tier_1": 180.0,
+      "price_tier_2": 165.0,
+      "price_tier_3": 150.0,
+      "distributor_price": 100.0,
       "is_activated": false,
       "product_id": null,
       "created_at": "2025-04-02T10:00:00Z",
@@ -337,20 +339,17 @@ async function fetchPriceImport(status = 'inactive', page = 1) {
     const params = new URLSearchParams({
       status,
       page,
-      limit: 20
+      limit: 20,
     });
 
-    const response = await fetch(
-      `/api/admin/price-import?${params}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
+    const response = await fetch(`/api/admin/price-import?${params}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message);
     }
@@ -366,7 +365,7 @@ async function fetchPriceImport(status = 'inactive', page = 1) {
 const result = await fetchPriceImport('inactive', 1);
 console.log(`Всего товаров: ${result.pagination.total}`);
 console.log(`Текущая страница: ${result.pagination.page}`);
-result.data.forEach(product => {
+result.data.forEach((product) => {
   console.log(`- ${product.name} (${product.stock} шт) - ${product.price_tier_1}₽`);
 });
 ```
@@ -422,7 +421,7 @@ curl -X POST http://localhost:3000/api/admin/activate \
     "description": "Никотин 20мг 50 мл",
     "category_id": 5,
     "brand": "GeekVape",
-    "price": 250.00,
+    "price": 250.0,
     "stock": 100,
     "image_url": "https://cdn.vapeshop.ru/products/42.jpg",
     "is_promotion": true,
@@ -458,21 +457,21 @@ async function activateProduct(importedId, pricetier, categoryId, options = {}) 
     image_url: options.imageUrl,
     is_promotion: options.isPromotion || false,
     is_bestseller: options.isBestseller || false,
-    is_new: options.isNew || false
+    is_new: options.isNew || false,
   };
 
   try {
     const response = await fetch('/api/admin/activate', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || 'Ошибка активации');
     }
@@ -489,9 +488,9 @@ try {
   const result = await activateProduct(42, 'price_tier_1', 5, {
     brand: 'GeekVape',
     isPromotion: true,
-    isNew: true
+    isNew: true,
   });
-  
+
   console.log('✓ Товар активирован:', result.data.name);
 } catch (error) {
   alert(`Ошибка: ${error.message}`);
@@ -506,27 +505,22 @@ try {
 async function activateMultipleProducts(products, categoryId) {
   const results = {
     success: [],
-    failed: []
+    failed: [],
   };
 
   for (const product of products) {
     try {
-      const result = await activateProduct(
-        product.id,
-        product.pricetier,
-        categoryId,
-        {
-          brand: product.brand,
-          isPromotion: product.isPromotion
-        }
-      );
-      
+      const result = await activateProduct(product.id, product.pricetier, categoryId, {
+        brand: product.brand,
+        isPromotion: product.isPromotion,
+      });
+
       results.success.push(result.data);
       console.log(`✓ ${product.name} активирован`);
     } catch (error) {
       results.failed.push({
         productId: product.id,
-        error: error.message
+        error: error.message,
       });
       console.error(`✗ ${product.name}: ${error.message}`);
     }
@@ -539,7 +533,7 @@ async function activateMultipleProducts(products, categoryId) {
 const products = [
   { id: 42, name: 'Vape Pod Pro', pricetier: 'price_tier_1', brand: 'GeekVape' },
   { id: 43, name: 'Atomizer RDA', pricetier: 'price_tier_2', brand: 'Voopoo' },
-  { id: 44, name: 'Coil Kanthal', pricetier: 'price_tier_1' }
+  { id: 44, name: 'Coil Kanthal', pricetier: 'price_tier_1' },
 ];
 
 const results = await activateMultipleProducts(products, 5);
@@ -582,12 +576,12 @@ async function deleteImportedProduct(id) {
     const response = await fetch(`/api/admin/price-import/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || 'Ошибка удаления');
     }
@@ -640,7 +634,7 @@ export const CSVUploader: React.FC = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    
+
     if (selectedFile && !selectedFile.name.endsWith('.csv')) {
       setError('Пожалуйста, выберите CSV файл');
       setFile(null);
@@ -854,7 +848,7 @@ export const ProductActivationModal: React.FC<ProductActivationModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
         <h2 className="text-xl font-bold mb-4">Активировать товар</h2>
-        
+
         <div className="mb-4 p-3 bg-gray-100 rounded">
           <p className="font-semibold">{product.name}</p>
           <p className="text-sm text-gray-600">Количество: {product.stock} шт</p>
@@ -979,7 +973,7 @@ export const ProductActivationModal: React.FC<ProductActivationModalProps> = ({
 #### Посмотреть все неактивированные товары
 
 ```sql
-SELECT 
+SELECT
   id, name, specification, stock,
   price_tier_1, created_at
 FROM price_import
@@ -991,7 +985,7 @@ LIMIT 20;
 #### Посмотреть активированные товары
 
 ```sql
-SELECT 
+SELECT
   pi.id, pi.name, pi.is_activated,
   p.id as product_id, p.name as product_name,
   pi.activated_at
@@ -1006,7 +1000,7 @@ LIMIT 20;
 
 ```sql
 -- Товары с одинаковыми названиями
-SELECT 
+SELECT
   name, COUNT(*) as count,
   GROUP_CONCAT(id) as ids
 FROM price_import
@@ -1014,7 +1008,7 @@ GROUP BY name
 HAVING count > 1;
 
 -- Пересечения с основным каталогом
-SELECT 
+SELECT
   pi.id, pi.name,
   p.id as product_id, p.name as product_name
 FROM price_import pi
@@ -1026,7 +1020,7 @@ WHERE pi.is_activated = FALSE;
 
 ```sql
 -- Общая статистика
-SELECT 
+SELECT
   COUNT(*) as total_imported,
   SUM(CASE WHEN is_activated = FALSE THEN 1 ELSE 0 END) as pending,
   SUM(CASE WHEN is_activated = TRUE THEN 1 ELSE 0 END) as activated,
@@ -1034,7 +1028,7 @@ SELECT
 FROM price_import;
 
 -- По датам
-SELECT 
+SELECT
   DATE(created_at) as date,
   COUNT(*) as count,
   SUM(stock) as total_stock
@@ -1047,7 +1041,7 @@ ORDER BY date DESC;
 
 ```sql
 -- Когда активировались товары
-SELECT 
+SELECT
   pi.id, pi.name, pi.activated_at,
   p.id as product_id, p.price
 FROM price_import pi
@@ -1057,7 +1051,7 @@ ORDER BY pi.activated_at DESC
 LIMIT 20;
 
 -- Средняя цена активированных товаров
-SELECT 
+SELECT
   AVG(p.price) as avg_price,
   MIN(p.price) as min_price,
   MAX(p.price) as max_price,
@@ -1085,7 +1079,7 @@ AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
 
 ```sql
 -- История импорта
-SELECT 
+SELECT
   id, user_id, action, product_count,
   status, created_at
 FROM import_logs
@@ -1093,7 +1087,7 @@ ORDER BY created_at DESC
 LIMIT 50;
 
 -- Ошибки импорта
-SELECT 
+SELECT
   id, user_id, action, error_message,
   created_at
 FROM import_logs
@@ -1101,7 +1095,7 @@ WHERE status = 'error'
 ORDER BY created_at DESC;
 
 -- Статистика по пользователям
-SELECT 
+SELECT
   user_id, action,
   COUNT(*) as count,
   SUM(product_count) as total_products
@@ -1124,7 +1118,7 @@ WHERE is_activated = TRUE
 AND product_id NOT IN (SELECT id FROM products);
 
 -- Дублирующиеся активированные товары
-SELECT 
+SELECT
   p.name, COUNT(*) as count,
   GROUP_CONCAT(p.id) as ids
 FROM products p

@@ -30,7 +30,7 @@ export default function TrackingPage() {
   const loadTracking = async (orderId: string) => {
     try {
       const response = await fetch(`/api/orders/${orderId}/tracking`, {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -51,7 +51,7 @@ export default function TrackingPage() {
     confirmed: 'bg-info',
     shipped: 'bg-success',
     delivered: 'bg-success',
-    cancelled: 'bg-danger'
+    cancelled: 'bg-danger',
   };
 
   return (
@@ -60,9 +60,18 @@ export default function TrackingPage() {
 
       {/* Order info */}
       <div className="bg-cardBg rounded-lg border border-border p-4 mb-6">
-        <p className="text-textSecondary mb-2">Номер заказа: <span className="text-neon font-bold">{tracking.orderNumber}</span></p>
-        <p className="text-textSecondary mb-2">Статус: <span className={`px-3 py-1 rounded text-white ${statusColors[tracking.status]}`}>{tracking.status}</span></p>
-        <p className="text-textSecondary">Ожидаемая доставка: <span className="text-textPrimary">{tracking.estimatedDelivery}</span></p>
+        <p className="text-textSecondary mb-2">
+          Номер заказа: <span className="text-neon font-bold">{tracking.orderNumber}</span>
+        </p>
+        <p className="text-textSecondary mb-2">
+          Статус:{' '}
+          <span className={`px-3 py-1 rounded text-white ${statusColors[tracking.status]}`}>
+            {tracking.status}
+          </span>
+        </p>
+        <p className="text-textSecondary">
+          Ожидаемая доставка: <span className="text-textPrimary">{tracking.estimatedDelivery}</span>
+        </p>
       </div>
 
       {/* Timeline */}
@@ -73,14 +82,14 @@ export default function TrackingPage() {
             <div key={idx} className="flex gap-4">
               <div className="flex flex-col items-center">
                 <div className="w-4 h-4 rounded-full bg-neon" />
-                {idx < tracking.events.length - 1 && (
-                  <div className="w-0.5 h-12 bg-border" />
-                )}
+                {idx < tracking.events.length - 1 && <div className="w-0.5 h-12 bg-border" />}
               </div>
               <div>
                 <p className="font-semibold text-textPrimary">{event.status}</p>
                 <p className="text-textSecondary text-sm">{event.description}</p>
-                <p className="text-textSecondary text-xs mt-1">{new Date(event.timestamp).toLocaleString('ru-RU')}</p>
+                <p className="text-textSecondary text-xs mt-1">
+                  {new Date(event.timestamp).toLocaleString('ru-RU')}
+                </p>
               </div>
             </div>
           ))}
@@ -91,9 +100,16 @@ export default function TrackingPage() {
       {tracking.courierName && (
         <div className="bg-cardBg rounded-lg border border-border p-4">
           <h2 className="text-lg font-bold text-textPrimary mb-4">Информация о курьере</h2>
-          <p className="text-textSecondary mb-2">Имя: <span className="text-textPrimary">{tracking.courierName}</span></p>
+          <p className="text-textSecondary mb-2">
+            Имя: <span className="text-textPrimary">{tracking.courierName}</span>
+          </p>
           {tracking.courierPhone && (
-            <p className="text-textSecondary">Телефон: <a href={`tel:${tracking.courierPhone}`} className="text-neon hover:underline">{tracking.courierPhone}</a></p>
+            <p className="text-textSecondary">
+              Телефон:{' '}
+              <a href={`tel:${tracking.courierPhone}`} className="text-neon hover:underline">
+                {tracking.courierPhone}
+              </a>
+            </p>
           )}
         </div>
       )}

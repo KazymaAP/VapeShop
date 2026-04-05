@@ -20,7 +20,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(500).json({ error: 'Failed to fetch promotions' });
     }
   } else if (req.method === 'POST') {
-    const { name, type, discount_value, start_date, end_date, applicable_products, applicable_categories } = req.body;
+    const {
+      name,
+      type,
+      discount_value,
+      start_date,
+      end_date,
+      applicable_products,
+      applicable_categories,
+    } = req.body;
     const userId = getTelegramId(req);
 
     try {
@@ -29,7 +37,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
          applicable_product_ids, applicable_categories, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
-        [name, type, discount_value, start_date, end_date, applicable_products, applicable_categories, userId]
+        [
+          name,
+          type,
+          discount_value,
+          start_date,
+          end_date,
+          applicable_products,
+          applicable_categories,
+          userId,
+        ]
       );
       res.status(201).json({ data: result.rows[0] });
     } catch {
@@ -41,5 +58,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin', 'super_admin']);
-
-

@@ -17,7 +17,11 @@ export default function RolesManager() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [_editingRole, _setEditingRole] = useState<Role | null>(null);
-  const [formData, setFormData] = useState<FormData>({ name: '', description: '', permissions: [] });
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    description: '',
+    permissions: [],
+  });
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
@@ -44,9 +48,9 @@ export default function RolesManager() {
       const res = await fetch('/api/admin/rbac', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-      
+
       if (!res.ok) {
         throw new Error(`API Error: ${res.status}`);
       }
@@ -73,7 +77,7 @@ export default function RolesManager() {
 
   return (
     <AdminLayout title="Role Management">
-      <button 
+      <button
         onClick={() => setShowForm(!showForm)}
         className="mb-4 px-4 py-2 bg-neon text-bgDark rounded-lg"
       >
@@ -106,7 +110,10 @@ export default function RolesManager() {
 
       <div className="space-y-3">
         {roles.map((role) => (
-          <div key={role.id} className="bg-cardBg border border-border rounded-lg p-4 flex justify-between items-center">
+          <div
+            key={role.id}
+            className="bg-cardBg border border-border rounded-lg p-4 flex justify-between items-center"
+          >
             <div>
               <h4 className="text-textPrimary font-bold">{role.name}</h4>
               <p className="text-textSecondary text-sm">{role.description}</p>

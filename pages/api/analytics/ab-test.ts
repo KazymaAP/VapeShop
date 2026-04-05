@@ -8,10 +8,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const testName = req.query.testName as string;
 
     try {
-      const testResult = await query(
-        'SELECT id FROM ab_tests WHERE name = $1 AND status = $2',
-        [testName, 'active']
-      );
+      const testResult = await query('SELECT id FROM ab_tests WHERE name = $1 AND status = $2', [
+        testName,
+        'active',
+      ]);
 
       if (testResult.rows.length === 0) {
         return res.status(200).json({ variant: 'A' });
@@ -20,10 +20,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const testId = testResult.rows[0].id;
       const variant = Math.random() < 0.5 ? 'A' : 'B';
 
-      await query(
-        'INSERT INTO ab_test_results (test_id, user_id, variant) VALUES ($1, $2, $3)',
-        [testId, userId, variant]
-      );
+      await query('INSERT INTO ab_test_results (test_id, user_id, variant) VALUES ($1, $2, $3)', [
+        testId,
+        userId,
+        variant,
+      ]);
 
       res.status(200).json({ variant });
     } catch {
@@ -34,16 +35,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { testName, result } = req.body;
 
     try {
-      const testResult = await query(
-        'SELECT id FROM ab_tests WHERE name = $1',
-        [testName]
-      );
+      const testResult = await query('SELECT id FROM ab_tests WHERE name = $1', [testName]);
 
       if (testResult.rows.length > 0) {
-        await query(
-          'UPDATE ab_test_results SET result = $1 WHERE test_id = $2 AND user_id = $3',
-          [result, testResult.rows[0].id, userId]
-        );
+        await query('UPDATE ab_test_results SET result = $1 WHERE test_id = $2 AND user_id = $3', [
+          result,
+          testResult.rows[0].id,
+          userId,
+        ]);
       }
 
       res.status(200).json({ success: true });
@@ -56,5 +55,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default handler;
-
-

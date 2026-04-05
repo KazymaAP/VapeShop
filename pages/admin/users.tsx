@@ -74,7 +74,10 @@ export default function AdminUsers() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16"
+              />
             ))}
           </div>
         ) : (
@@ -85,9 +88,15 @@ export default function AdminUsers() {
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">ID</th>
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Имя</th>
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Роль</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Заказов</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Статус</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Действия</th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Заказов
+                  </th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Статус
+                  </th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Действия
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -95,7 +104,9 @@ export default function AdminUsers() {
                   <tr key={u.telegram_id} className="border-b border-border/50 hover:bg-bgDark/50">
                     <td className="p-4 text-textSecondary font-mono text-sm">{u.telegram_id}</td>
                     <td className="p-4">
-                      <p className="text-textPrimary font-medium">{u.first_name} {u.last_name || ''}</p>
+                      <p className="text-textPrimary font-medium">
+                        {u.first_name} {u.last_name || ''}
+                      </p>
                       {u.username && <p className="text-textSecondary text-xs">@{u.username}</p>}
                     </td>
                     <td className="p-4">
@@ -112,7 +123,9 @@ export default function AdminUsers() {
                     </td>
                     <td className="p-4 text-textPrimary">{u.orders_count}</td>
                     <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${u.is_blocked ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${u.is_blocked ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}
+                      >
                         {u.is_blocked ? 'Заблокирован' : 'Активен'}
                       </span>
                     </td>
@@ -134,4 +147,3 @@ export default function AdminUsers() {
     </div>
   );
 }
-

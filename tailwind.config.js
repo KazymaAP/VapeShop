@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  content: ['./pages/**/*.{js,ts,jsx,tsx,mdx}', './components/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
       colors: {
@@ -26,7 +23,7 @@ module.exports = {
         'neon-lg': '0 0 20px rgba(192, 132, 252, 0.5)',
       },
       borderWidth: {
-        '3': '3px',
+        3: '3px',
       },
     },
   },

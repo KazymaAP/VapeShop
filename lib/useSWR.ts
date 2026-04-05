@@ -6,11 +6,11 @@
 import useSWR, { SWRConfiguration } from 'swr';
 
 export interface FetchOptions extends SWRConfiguration {
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
 // Дефолтный fetcher для SWR
-export async function fetcher<T = any>(url: string): Promise<T> {
+export async function fetcher<T = unknown>(url: string): Promise<T> {
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -61,7 +61,7 @@ interface ApiResponse<T> {
 }
 
 interface ProductsResponse {
-  items: any[];
+  items: Record<string, unknown>[];
   pagination: {
     page: number;
     limit: number;
@@ -102,7 +102,7 @@ export function useOrders(page = 1, limit = 20, options?: FetchOptions) {
   });
 
   interface OrdersResponse {
-    orders: any[];
+    orders: Record<string, unknown>[];
     pagination: {
       page: number;
       limit: number;
@@ -153,7 +153,7 @@ export function useUserProfile(options?: FetchOptions) {
 // Хук для избранного
 export function useFavorites(options?: FetchOptions) {
   interface FavoritesResponse {
-    products: any[];
+    products: Record<string, unknown>[];
   }
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<FavoritesResponse>>(
@@ -194,15 +194,11 @@ export function useStats(options?: FetchOptions) {
 }
 
 // Обобщённый хук SWR с правильной типизацией
-export function useFetchData<T = any>(
-  url: string | null,
-  options?: FetchOptions
-) {
-  const { data, error, isLoading, mutate } = useSWR<{ data: T }>(
-    url,
-    fetcher,
-    { ...SWR_CONFIG.products, ...options }
-  );
+export function useFetchData<T = unknown>(url: string | null, options?: FetchOptions) {
+  const { data, error, isLoading, mutate } = useSWR<{ data: T }>(url, fetcher, {
+    ...SWR_CONFIG.products,
+    ...options,
+  });
 
   return {
     data: data?.data,

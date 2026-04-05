@@ -2,7 +2,7 @@
  * Компоненты для улучшений админ панели и профиля пользователя
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 interface TabItem {
   id: string;
@@ -20,13 +20,13 @@ interface TabsProps {
 export function Tabs({ tabs, defaultTab = tabs[0]?.id, className = '' }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
-  const activeTabItem = tabs.find(t => t.id === activeTab);
+  const activeTabItem = tabs.find((t) => t.id === activeTab);
 
   return (
     <div className={className}>
       {/* Tab buttons */}
       <div className="flex gap-2 border-b border-border overflow-x-auto">
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -46,9 +46,7 @@ export function Tabs({ tabs, defaultTab = tabs[0]?.id, className = '' }: TabsPro
       </div>
 
       {/* Tab content */}
-      <div className="mt-4">
-        {activeTabItem?.content}
-      </div>
+      <div className="mt-4">{activeTabItem?.content}</div>
     </div>
   );
 }
@@ -111,14 +109,7 @@ interface InfoCardProps {
   className?: string;
 }
 
-export function InfoCard({
-  icon,
-  title,
-  value,
-  subtitle,
-  trend,
-  className = '',
-}: InfoCardProps) {
+export function InfoCard({ icon, title, value, subtitle, trend, className = '' }: InfoCardProps) {
   const trendColor =
     trend === 'up' ? 'text-success' : trend === 'down' ? 'text-danger' : 'text-textSecondary';
   const trendIcon = trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→';
@@ -135,7 +126,8 @@ export function InfoCard({
       </div>
       {trend && (
         <div className={`text-xs font-semibold mt-2 ${trendColor}`}>
-          {trendIcon} {trend === 'up' ? 'Увеличилось' : trend === 'down' ? 'Уменьшилось' : 'Без изменений'}
+          {trendIcon}{' '}
+          {trend === 'up' ? 'Увеличилось' : trend === 'down' ? 'Уменьшилось' : 'Без изменений'}
         </div>
       )}
     </div>
@@ -164,7 +156,7 @@ export function InfiniteScroll({
     if (!sentinelRef || !hasMore) return;
 
     const observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         if (entries[0].isIntersecting && !isLoading) {
           onLoadMore();
         }
@@ -194,9 +186,7 @@ export function InfiniteScroll({
 
       {/* No more items */}
       {!hasMore && (
-        <div className="py-8 text-center text-textSecondary text-sm">
-          ✓ Больше нечего загружать
-        </div>
+        <div className="py-8 text-center text-textSecondary text-sm">✓ Больше нечего загружать</div>
       )}
     </div>
   );

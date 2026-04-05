@@ -17,7 +17,7 @@ interface AuditLog {
 }
 
 export default function SuperAdminDashboard() {
-  const { _user } = useTelegramWebApp();
+  useTelegramWebApp();
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,12 +42,12 @@ export default function SuperAdminDashboard() {
           const d = new Date(l.created_at);
           return d.toDateString() === new Date().toDateString();
         }).length,
-        week: logsData.pagination.total
+        week: logsData.pagination.total,
       });
 
       setAdmins([
         { id: 1, name: 'Admin 1', role: 'admin', active: true },
-        { id: 2, name: 'Admin 2', role: 'admin', active: true }
+        { id: 2, name: 'Admin 2', role: 'admin', active: true },
       ]);
     } catch (err) {
       console.error('Error fetching dashboard:', err);
@@ -80,7 +80,10 @@ export default function SuperAdminDashboard() {
           <h3 className="text-lg text-textPrimary font-bold mb-4">Active Administrators</h3>
           <div className="space-y-2">
             {admins.map((admin) => (
-              <div key={admin.id} className="flex justify-between items-center p-2 bg-bgDark rounded">
+              <div
+                key={admin.id}
+                className="flex justify-between items-center p-2 bg-bgDark rounded"
+              >
                 <span className="text-textPrimary">{admin.name}</span>
                 <span className="text-success text-sm">Active</span>
               </div>
@@ -93,8 +96,12 @@ export default function SuperAdminDashboard() {
           <div className="space-y-2">
             {logs.slice(0, 3).map((log, i) => (
               <div key={i} className="text-sm text-textSecondary p-2 bg-bgDark rounded">
-                <p>{log.action} on {log.target_type}</p>
-                <p className="text-xs text-textSecondary">{new Date(log.created_at).toLocaleString()}</p>
+                <p>
+                  {log.action} on {log.target_type}
+                </p>
+                <p className="text-xs text-textSecondary">
+                  {new Date(log.created_at).toLocaleString()}
+                </p>
               </div>
             ))}
           </div>

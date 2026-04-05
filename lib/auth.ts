@@ -2,15 +2,23 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
 import crypto from 'crypto';
 
-export type UserRole = 'super_admin' | 'admin' | 'manager' | 'support' | 'courier' | 'seller' | 'customer' | 'buyer';
+export type UserRole =
+  | 'super_admin'
+  | 'admin'
+  | 'manager'
+  | 'support'
+  | 'courier'
+  | 'seller'
+  | 'customer'
+  | 'buyer';
 
 /**
  * Извлекает telegram_id из запроса с ОБЯЗАТЕЛЬНОЙ верификацией
- * 
+ *
  * ⚠️ КРИТИЧНО: Всегда требуется верификация initData через HMAC!
  * X-Telegram-Id заголовок используется только для локального тестирования,
  * в production должна использоваться только подписанная initData.
- * 
+ *
  * Приоритет:
  * 1. initData из заголовка Authorization или query (от Telegram WebApp) — ВЕРИФИЦИРОВАННАЯ
  * 2. X-Telegram-Id заголовок ТОЛЬКО если NODE_ENV !== 'production' (для разработки)
@@ -22,9 +30,7 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
 
     // Из query параметров
     if (req.query.initData) {
-      initData = Array.isArray(req.query.initData) 
-        ? req.query.initData[0] 
-        : req.query.initData;
+      initData = Array.isArray(req.query.initData) ? req.query.initData[0] : req.query.initData;
     }
 
     // Из заголовка Authorization
@@ -52,7 +58,7 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
         if (!isNaN(id)) {
           console.warn(
             `⚠️ ПРЕДУПРЕЖДЕНИЕ: Используется X-Telegram-Id для тестирования. ` +
-            `На production это должно быть отключено. Telegram ID: ${id}`
+              `На production это должно быть отключено. Telegram ID: ${id}`
           );
           return id;
         }
@@ -68,24 +74,24 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
 
 /**
  * Верифицирует подпись HMAC-SHA256 для initData от Telegram WebApp
- * 
+ *
  * ⚠️ ОБЯЗАТЕЛЬНАЯ защита на production!
- * 
+ *
  * Формат initData: user=%7B%22id%22%3A123456789...&hash=abc123...
- * 
+ *
  * Процесс верификации:
  * 1. Получить secret_key из bot token (HMAC-SHA256 с ключом 'WebAppData')
  * 2. Собрать data_check_string из всех параметров кроме 'hash'
  * 3. Вычислить hash (HMAC-SHA256 с secret_key)
  * 4. Сравнить с полученным hash (timing-safe сравнение)
- * 
+ *
  * @param initData URL-encoded строка с параметрами от Telegram WebApp
  * @returns true если подпись верна, false иначе
  */
 export function verifyTelegramInitData(initData: string): boolean {
   try {
     const bot_token = process.env.TELEGRAM_BOT_TOKEN;
-    
+
     if (!bot_token) {
       console.error('TELEGRAM_BOT_TOKEN not found in environment');
       return false;
@@ -94,17 +100,14 @@ export function verifyTelegramInitData(initData: string): boolean {
     // Парсим параметры
     const params = new URLSearchParams(initData);
     const hash = params.get('hash');
-    
+
     if (!hash) {
       console.error('No hash found in initData');
       return false;
     }
 
     // Создаём secret_key: HMAC-SHA256 от bot_token с ключом 'WebAppData'
-    const secret_key = crypto
-      .createHmac('sha256', 'WebAppData')
-      .update(bot_token)
-      .digest();
+    const secret_key = crypto.createHmac('sha256', 'WebAppData').update(bot_token).digest();
 
     // Собираем data_check_string из параметров (кроме hash), отсортированные
     const data_check_array: string[] = [];
@@ -147,9 +150,9 @@ export function verifyTelegramInitData(initData: string): boolean {
 
 /**
  * Парсер initData от Telegram WebApp с верификацией подписи
- * 
+ *
  * Формат initData: user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22John%22%7D&chat_instance=...&hash=...
- * 
+ *
  * Возвращает распарсенные данные пользователя или null если подпись невалидна
  */
 function parseInitData(initData: string): { id: number } | null {
@@ -162,16 +165,16 @@ function parseInitData(initData: string): { id: number } | null {
 
     // initData приходит в формате URL-encoded строки
     // Пример: user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22John%22%7D&chat_instance=...
-    
+
     const params = new URLSearchParams(initData);
     const userParam = params.get('user');
-    
+
     if (!userParam) {
       return null;
     }
 
     const user = JSON.parse(decodeURIComponent(userParam));
-    
+
     if (user?.id && typeof user.id === 'number') {
       return { id: user.id };
     }
@@ -188,10 +191,7 @@ function parseInitData(initData: string): { id: number } | null {
  */
 export async function getUserRole(telegramId: number): Promise<UserRole | null> {
   try {
-    const result = await query(
-      'SELECT role FROM users WHERE telegram_id = $1',
-      [telegramId]
-    );
+    const result = await query('SELECT role FROM users WHERE telegram_id = $1', [telegramId]);
 
     if (result.rows.length === 0) {
       return null;
@@ -209,10 +209,7 @@ export async function getUserRole(telegramId: number): Promise<UserRole | null> 
  */
 export async function isUserBlocked(telegramId: number): Promise<boolean> {
   try {
-    const result = await query(
-      'SELECT is_blocked FROM users WHERE telegram_id = $1',
-      [telegramId]
-    );
+    const result = await query('SELECT is_blocked FROM users WHERE telegram_id = $1', [telegramId]);
 
     if (result.rows.length === 0) {
       return false; // Если пользователя нет, не блокируем
@@ -238,17 +235,17 @@ export async function hasRequiredRole(
 
 /**
  * Middleware для защиты API эндпоинтов
- * 
+ *
  * Использование:
  * export default requireAuth(handler, ['admin', 'manager']);
- * 
+ *
  * Где handler - стандартный Next.js API handler
- * 
+ *
  * Проверяет:
  * 1. telegramId существует
  * 2. Пользователь не заблокирован
  * 3. Роль входит в allowedRoles
- * 
+ *
  * Если проверка не пройдена, возвращает 401 или 403 с ошибкой
  */
 export function requireAuth(
@@ -286,7 +283,7 @@ export function requireAuth(
       }
 
       // 4. Добавляем telegramId в req для использования в handler
-      (req as any).telegramId = telegramId;
+      (req as { telegramId?: number }).telegramId = telegramId;
 
       // 5. Вызываем оригинальный handler
       return await handler(req, res);
@@ -303,7 +300,7 @@ export function requireAuth(
 /**
  * Вспомогательная функция для получения telegramId из req
  * Используется внутри handler после requireAuth
- * 
+ *
  * Пример:
  * export default requireAuth(async (req, res) => {
  *   const telegramId = getTelegramId(req);
@@ -311,7 +308,7 @@ export function requireAuth(
  * }, ['admin']);
  */
 export function getTelegramId(req: NextApiRequest): number {
-  return (req as any).telegramId || 0;
+  return (req as { telegramId?: number }).telegramId || 0;
 }
 
 /**
@@ -359,7 +356,7 @@ export async function isCustomer(telegramId: number): Promise<boolean> {
 /**
  * Проверка доступа к эндпоинту без middleware
  * Используется, если нужна более гибкая проверка внутри handler
- * 
+ *
  * Пример:
  * const telegramId = await getTelegramIdFromRequest(req);
  * if (!telegramId || !(await hasRequiredRole(telegramId, ['admin']))) {
@@ -381,7 +378,10 @@ export async function checkAccess(
 
   const hasRole = await hasRequiredRole(telegramId, allowedRoles);
   if (!hasRole) {
-    return { allowed: false, reason: `Недостаточно прав. Требуемые роли: ${allowedRoles.join(', ')}` };
+    return {
+      allowed: false,
+      reason: `Недостаточно прав. Требуемые роли: ${allowedRoles.join(', ')}`,
+    };
   }
 
   return { allowed: true };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTelegramWebApp } from '../../lib/telegram';
 
 interface Promotion {
   id: string;
@@ -20,7 +21,7 @@ export default function PromotionsPage() {
     type: 'percent',
     discount_value: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
   });
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function PromotionsPage() {
   const loadPromotions = async () => {
     try {
       const response = await fetch('/api/admin/promotions', {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -50,12 +51,18 @@ export default function PromotionsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Telegram-Id': user?.id.toString() || ''
+          'X-Telegram-Id': user?.id.toString() || '',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
       if (response.ok) {
-        setFormData({ name: '', type: 'percent', discount_value: '', start_date: '', end_date: '' });
+        setFormData({
+          name: '',
+          type: 'percent',
+          discount_value: '',
+          start_date: '',
+          end_date: '',
+        });
         setShowForm(false);
         loadPromotions();
       }
@@ -79,7 +86,10 @@ export default function PromotionsPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-cardBg rounded-lg border border-border p-6 mb-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-cardBg rounded-lg border border-border p-6 mb-6"
+        >
           <div className="space-y-4">
             <input
               type="text"
@@ -134,7 +144,9 @@ export default function PromotionsPage() {
           <div key={promo.id} className="bg-cardBg rounded-lg border border-border p-4">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-bold text-textPrimary">{promo.name}</h3>
-              <span className={`px-2 py-1 rounded text-xs ${promo.is_active ? 'bg-success' : 'bg-danger'} text-white`}>
+              <span
+                className={`px-2 py-1 rounded text-xs ${promo.is_active ? 'bg-success' : 'bg-danger'} text-white`}
+              >
                 {promo.is_active ? 'Активна' : 'Неактивна'}
               </span>
             </div>
@@ -142,7 +154,8 @@ export default function PromotionsPage() {
               Скидка: {promo.discount_value} {promo.type === 'percent' ? '%' : '₽'}
             </p>
             <p className="text-textSecondary text-sm">
-              {new Date(promo.start_date).toLocaleDateString('ru-RU')} - {new Date(promo.end_date).toLocaleDateString('ru-RU')}
+              {new Date(promo.start_date).toLocaleDateString('ru-RU')} -{' '}
+              {new Date(promo.end_date).toLocaleDateString('ru-RU')}
             </p>
           </div>
         ))}
@@ -150,4 +163,3 @@ export default function PromotionsPage() {
     </div>
   );
 }
-

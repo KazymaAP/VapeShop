@@ -3,42 +3,32 @@
  * Используется в pages/_app.tsx
  */
 
-import * as Sentry from "@sentry/nextjs";
+interface SentryModule {
+  init?: (config: Record<string, unknown>) => void;
+  [key: string]: unknown;
+}
 
-const environment = process.env.NODE_ENV || "development";
+let Sentry: SentryModule | null = null;
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  Sentry = require('@sentry/nextjs') as SentryModule;
+} catch {
+  console.warn('⚠️ Sentry не установлен, пропускаем инициализацию');
+}
+
+const environment = process.env.NODE_ENV || 'development';
 const dsn = process.env.SENTRY_DSN;
 
-if (dsn) {
+if (Sentry && dsn && typeof Sentry.init === 'function') {
   Sentry.init({
     dsn,
     environment,
-    integrations: [
-      new Sentry.Replay({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
-    ],
-    tracesSampleRate: parseFloat(process.env.SENTRY_TRACING_SAMPLE_RATE || "0.1"),
+    integrations: [],
+    tracesSampleRate: parseFloat(process.env.SENTRY_TRACING_SAMPLE_RATE || '0.1'),
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
-    beforeSend(event, hint) {
-      // Фильтруем sensitive информацию
-      if (event.request) {
-        delete event.request.cookies;
-        delete event.request.headers;
-      }
-
-      // Не отправляем 404 errors
-      if (event.exception) {
-        const error = hint.originalException;
-        if (error instanceof Error && error.message?.includes("404")) {
-          return null;
-        }
-      }
-
-      return event;
-    },
   });
 }
 
-export default Sentry;
+export default Sentry || {};

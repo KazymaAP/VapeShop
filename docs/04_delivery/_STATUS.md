@@ -9,6 +9,7 @@
 ## 📦 WHAT'S BEING CREATED
 
 ### Backend (600+ lines)
+
 - Database migration (pickup_points, addresses)
 - Admin APIs (CRUD for pickup points)
 - Customer APIs (CRUD for addresses)
@@ -16,12 +17,14 @@
 - Order integration (delivery fields)
 
 ### Frontend (400+ lines)
+
 - Cart component (delivery method selection)
 - Admin page (manage pickup points)
 - Profile page (manage addresses)
 - Optional: DeliverySelector component
 
 ### Documentation (48+ KB)
+
 - README.md (comprehensive guide)
 - IMPLEMENTATION_CHECKLIST.md (tracking)
 - EXAMPLES.md (use cases)

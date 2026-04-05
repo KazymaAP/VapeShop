@@ -13,6 +13,7 @@
 - **Аккаунт Telegram**: для создания бота ([BotFather](https://t.me/botfather))
 
 Проверьте установку:
+
 ```bash
 node --version    # должна быть v18.0.0 или выше
 npm --version     # должна быть 9.0.0 или выше
@@ -46,6 +47,7 @@ npm install
 ```
 
 Если получите ошибку с уязвимостями:
+
 ```bash
 npm audit fix --force
 ```
@@ -59,9 +61,11 @@ npm audit fix --force
 ### Вариант A: Локальная PostgreSQL (для разработки)
 
 #### На Windows:
+
 1. Установите [PostgreSQL](https://www.postgresql.org/download/windows/)
 2. Откройте PostgreSQL командную строку (pgAdmin или psql)
 3. Создайте базу данных:
+
 ```sql
 CREATE DATABASE vapeshop;
 CREATE USER vapeshop_user WITH PASSWORD 'your_secure_password_here';
@@ -70,6 +74,7 @@ GRANT ALL PRIVILEGES ON DATABASE vapeshop TO vapeshop_user;
 ```
 
 #### На macOS/Linux:
+
 ```bash
 # Если PostgreSQL ещё не запущена
 brew install postgresql
@@ -84,6 +89,7 @@ GRANT ALL PRIVILEGES ON DATABASE vapeshop TO vapeshop_user;
 ```
 
 4. Примените миграции БД:
+
 ```bash
 # Из папки VapeShop
 psql -U vapeshop_user -d vapeshop -f db/migrations/001_initial_schema.sql
@@ -103,6 +109,7 @@ psql -U vapeshop_user -d vapeshop -f db/migrations/001_initial_schema.sql
 ## 🔐 Шаг 4: Переменные окружения
 
 1. Скопируйте файл примера:
+
 ```bash
 cp .env.example .env.local
 ```
@@ -184,6 +191,7 @@ npm start
 ```
 
 Вы должны увидеть:
+
 ```
 > vape-shop-mini-app@1.0.0 start
 > next start
@@ -235,6 +243,7 @@ curl -X POST "https://api.telegram.org/botYOUR_TOKEN/setWebhook?url=YOUR_URL/api
 ```
 
 3. Проверьте, что вебхук установлен:
+
 ```bash
 curl -X GET "https://api.telegram.org/botYOUR_TOKEN/getWebhookInfo"
 ```
@@ -260,6 +269,7 @@ curl -X GET "https://api.telegram.org/botYOUR_TOKEN/getWebhookInfo"
 ### "Ошибка: не могу подключиться к БД"
 
 **Решение:**
+
 ```bash
 # 1. Проверьте, что PostgreSQL запущена
 # На Windows: откройте Services и найдите PostgreSQL
@@ -277,6 +287,7 @@ psql -h localhost -U vapeshop_user -d vapeshop
 ### "Вебхук не работает"
 
 **Решение:**
+
 ```bash
 # 1. Проверьте, что /api/bot доступен:
 curl -X GET http://localhost:3000/api/bot
@@ -294,6 +305,7 @@ curl -X GET "https://api.telegram.org/botYOUR_TOKEN/getWebhookInfo"
 ### "Не приходят уведомления от бота"
 
 **Решение:**
+
 ```bash
 # 1. Проверьте, что бот инициализирован:
 # В logs должно быть: "Bot instance set in notifications"
@@ -306,6 +318,7 @@ curl -X GET "https://api.telegram.org/botYOUR_TOKEN/getWebhookInfo"
 ### "Ошибка: port 3000 already in use"
 
 **Решение:**
+
 ```bash
 # На Windows (PowerShell):
 Get-Process -Name node | Stop-Process -Force
@@ -320,6 +333,7 @@ PORT=3001 npm run dev
 ### "npm install не работает"
 
 **Решение:**
+
 ```bash
 # Очистите кеш npm
 npm cache clean --force

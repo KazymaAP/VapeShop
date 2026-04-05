@@ -92,7 +92,17 @@ export default function AdminOrders() {
   };
 
   const exportCsv = () => {
-    const headers = ['ID', 'Клиент', 'Дата', 'Сумма', 'Статус', 'Доставка', 'Адрес', 'Промокод', 'Скидка'];
+    const headers = [
+      'ID',
+      'Клиент',
+      'Дата',
+      'Сумма',
+      'Статус',
+      'Доставка',
+      'Адрес',
+      'Промокод',
+      'Скидка',
+    ];
     const rows = orders.map((o) => [
       o.id.slice(0, 8),
       o.user_name || o.user_telegram_id,
@@ -157,7 +167,10 @@ export default function AdminOrders() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-20" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-20"
+              />
             ))}
           </div>
         ) : (
@@ -166,22 +179,44 @@ export default function AdminOrders() {
               <thead>
                 <tr className="border-b border-border" role="row">
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">ID</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Клиент</th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Клиент
+                  </th>
                   <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Дата</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Сумма</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Статус</th>
-                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">Действия</th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Сумма
+                  </th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Статус
+                  </th>
+                  <th className="p-4 text-left text-xs uppercase tracking-wider text-neon">
+                    Действия
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((order) => (
-                  <tr key={order.id} className="border-b border-border/50 hover:bg-bgDark/50" role="row">
-                    <td className="p-4 text-textPrimary font-mono text-sm">#{order.id.slice(0, 8)}</td>
-                    <td className="p-4 text-textPrimary">{order.user_name || order.user_telegram_id}</td>
-                    <td className="p-4 text-textSecondary text-sm">{new Date(order.created_at).toLocaleDateString('ru-RU')}</td>
-                    <td className="p-4 text-neon font-bold">{order.total?.toLocaleString('ru-RU')} ₽</td>
+                  <tr
+                    key={order.id}
+                    className="border-b border-border/50 hover:bg-bgDark/50"
+                    role="row"
+                  >
+                    <td className="p-4 text-textPrimary font-mono text-sm">
+                      #{order.id.slice(0, 8)}
+                    </td>
+                    <td className="p-4 text-textPrimary">
+                      {order.user_name || order.user_telegram_id}
+                    </td>
+                    <td className="p-4 text-textSecondary text-sm">
+                      {new Date(order.created_at).toLocaleDateString('ru-RU')}
+                    </td>
+                    <td className="p-4 text-neon font-bold">
+                      {order.total?.toLocaleString('ru-RU')} ₽
+                    </td>
                     <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-border text-textSecondary'}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-border text-textSecondary'}`}
+                      >
                         {statusLabels[order.status] || order.status}
                       </span>
                     </td>
@@ -232,46 +267,76 @@ export default function AdminOrders() {
 
         {/* Order Details Modal */}
         {selectedOrder && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)} role="presentation">
-            <div className="bg-cardBg border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="order-dialog-title">
+          <div
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedOrder(null)}
+            role="presentation"
+          >
+            <div
+              className="bg-cardBg border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="order-dialog-title"
+            >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold gradient-text" id="order-dialog-title">Заказ #{selectedOrder.id.slice(0, 8)}</h2>
-                  <button onClick={() => setSelectedOrder(null)} className="text-textSecondary hover:text-textPrimary" aria-label="Закрыть модальное окно">✕</button>
+                  <h2 className="text-xl font-bold gradient-text" id="order-dialog-title">
+                    Заказ #{selectedOrder.id.slice(0, 8)}
+                  </h2>
+                  <button
+                    onClick={() => setSelectedOrder(null)}
+                    className="text-textSecondary hover:text-textPrimary"
+                    aria-label="Закрыть модальное окно"
+                  >
+                    ✕
+                  </button>
                 </div>
 
                 <div className="space-y-4">
                   <div className="bg-bgDark rounded-xl p-4">
                     <p className="text-textSecondary text-xs mb-1">Клиент</p>
-                    <p className="text-textPrimary font-medium">{selectedOrder.user_name || selectedOrder.user_telegram_id}</p>
+                    <p className="text-textPrimary font-medium">
+                      {selectedOrder.user_name || selectedOrder.user_telegram_id}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-bgDark rounded-xl p-4">
                       <p className="text-textSecondary text-xs mb-1">Дата</p>
-                      <p className="text-textPrimary">{new Date(selectedOrder.created_at).toLocaleDateString('ru-RU')}</p>
+                      <p className="text-textPrimary">
+                        {new Date(selectedOrder.created_at).toLocaleDateString('ru-RU')}
+                      </p>
                     </div>
                     <div className="bg-bgDark rounded-xl p-4">
                       <p className="text-textSecondary text-xs mb-1">Сумма</p>
-                      <p className="text-neon font-bold">{selectedOrder.total?.toLocaleString('ru-RU')} ₽</p>
+                      <p className="text-neon font-bold">
+                        {selectedOrder.total?.toLocaleString('ru-RU')} ₽
+                      </p>
                     </div>
                   </div>
 
                   <div className="bg-bgDark rounded-xl p-4">
                     <p className="text-textSecondary text-xs mb-1">Статус</p>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[selectedOrder.status] || 'bg-border text-textSecondary'}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[selectedOrder.status] || 'bg-border text-textSecondary'}`}
+                    >
                       {statusLabels[selectedOrder.status] || selectedOrder.status}
                     </span>
                   </div>
 
                   <div className="bg-bgDark rounded-xl p-4">
                     <p className="text-textSecondary text-xs mb-1">Доставка</p>
-                    <p className="text-textPrimary">{selectedOrder.delivery_method === 'pickup' ? 'Самовывоз' : 'Курьер'}</p>
+                    <p className="text-textPrimary">
+                      {selectedOrder.delivery_method === 'pickup' ? 'Самовывоз' : 'Курьер'}
+                    </p>
                     {selectedOrder.delivery_method === 'courier' && selectedOrder.address && (
                       <p className="text-textSecondary text-sm mt-1">{selectedOrder.address}</p>
                     )}
                     {selectedOrder.delivery_date && (
-                      <p className="text-textSecondary text-sm mt-1">Дата: {new Date(selectedOrder.delivery_date).toLocaleDateString('ru-RU')}</p>
+                      <p className="text-textSecondary text-sm mt-1">
+                        Дата: {new Date(selectedOrder.delivery_date).toLocaleDateString('ru-RU')}
+                      </p>
                     )}
                   </div>
 
@@ -281,8 +346,12 @@ export default function AdminOrders() {
                       <div className="space-y-2">
                         {selectedOrder.items.map((item, idx) => (
                           <div key={idx} className="flex justify-between text-sm">
-                            <span className="text-textPrimary">{item.name} × {item.quantity}</span>
-                            <span className="text-neon">{(item.price * item.quantity).toLocaleString('ru-RU')} ₽</span>
+                            <span className="text-textPrimary">
+                              {item.name} × {item.quantity}
+                            </span>
+                            <span className="text-neon">
+                              {(item.price * item.quantity).toLocaleString('ru-RU')} ₽
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -292,8 +361,14 @@ export default function AdminOrders() {
                   {selectedOrder.discount > 0 && (
                     <div className="bg-bgDark rounded-xl p-4">
                       <p className="text-textSecondary text-xs mb-1">Скидка</p>
-                      <p className="text-success">−{selectedOrder.discount.toLocaleString('ru-RU')} ₽</p>
-                      {selectedOrder.promo_code && <p className="text-textSecondary text-xs mt-1">Промокод: {selectedOrder.promo_code}</p>}
+                      <p className="text-success">
+                        −{selectedOrder.discount.toLocaleString('ru-RU')} ₽
+                      </p>
+                      {selectedOrder.promo_code && (
+                        <p className="text-textSecondary text-xs mt-1">
+                          Промокод: {selectedOrder.promo_code}
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -321,9 +396,13 @@ export default function AdminOrders() {
                       <div className="space-y-2">
                         {selectedOrder.history.map((h, idx) => (
                           <div key={idx} className="flex items-center gap-2 text-sm">
-                            <span className="text-textSecondary text-xs">{new Date(h.created_at).toLocaleString('ru-RU')}</span>
+                            <span className="text-textSecondary text-xs">
+                              {new Date(h.created_at).toLocaleString('ru-RU')}
+                            </span>
                             <span className="text-textSecondary">→</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs ${statusColors[h.new_status] || 'bg-border text-textSecondary'}`}>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs ${statusColors[h.new_status] || 'bg-border text-textSecondary'}`}
+                            >
                               {statusLabels[h.new_status] || h.new_status}
                             </span>
                           </div>

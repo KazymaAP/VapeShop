@@ -78,7 +78,9 @@ export default function AdminSettings() {
   };
 
   const eventLabels: Record<string, string> = {};
-  defaultEvents.forEach((e) => { eventLabels[e.event_type] = e.label; });
+  defaultEvents.forEach((e) => {
+    eventLabels[e.event_type] = e.label;
+  });
 
   return (
     <div className="flex min-h-screen bg-bgDark">
@@ -89,7 +91,9 @@ export default function AdminSettings() {
         </div>
 
         {message && (
-          <div className={`mb-4 p-3 rounded-xl text-sm ${message.startsWith('Ошибка') ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}>
+          <div
+            className={`mb-4 p-3 rounded-xl text-sm ${message.startsWith('Ошибка') ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}
+          >
             {message}
           </div>
         )}
@@ -97,7 +101,10 @@ export default function AdminSettings() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16"
+              />
             ))}
           </div>
         ) : (
@@ -111,11 +118,18 @@ export default function AdminSettings() {
                   const isEnabled = setting !== undefined ? setting.is_enabled : true;
 
                   return (
-                    <div key={event.event_type} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
+                    <div
+                      key={event.event_type}
+                      className="flex items-center justify-between py-2 border-b border-border/30 last:border-0"
+                    >
                       <div>
                         <p className="text-textPrimary text-sm font-medium">{event.label}</p>
                         <p className="text-textSecondary text-xs">
-                          {event.role === 'buyer' ? 'Покупателю' : event.role === 'admin' ? 'Админу/Менеджеру' : 'Всем'}
+                          {event.role === 'buyer'
+                            ? 'Покупателю'
+                            : event.role === 'admin'
+                              ? 'Админу/Менеджеру'
+                              : 'Всем'}
                         </p>
                       </div>
                       <button
@@ -198,4 +212,3 @@ export default function AdminSettings() {
     </div>
   );
 }
-

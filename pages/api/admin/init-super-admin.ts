@@ -1,7 +1,7 @@
 /**
  * API для инициализации первого super_admin
  * POST /api/admin/init-super-admin
- * 
+ *
  * Используется для создания первого super_admin.
  * Требует TELEGRAM_SUPER_ADMIN_ID из переменных окружения для верификации.
  */
@@ -27,8 +27,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const envPassword = process.env.SUPER_ADMIN_INIT_PASSWORD;
 
     if (!envPassword || !password || password !== envPassword) {
-      return res.status(403).json({ 
-        error: 'Unauthorized. Требуется SUPER_ADMIN_INIT_PASSWORD.' 
+      return res.status(403).json({
+        error: 'Unauthorized. Требуется SUPER_ADMIN_INIT_PASSWORD.',
       });
     }
 
@@ -37,23 +37,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Проверяем, есть ли уже super_admin
-    const existingSuper = await query(
-      'SELECT telegram_id FROM users WHERE role = $1 LIMIT 1',
-      ['super_admin']
-    );
+    const existingSuper = await query('SELECT telegram_id FROM users WHERE role = $1 LIMIT 1', [
+      'super_admin',
+    ]);
 
     if (existingSuper.rows.length > 0) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Super admin already exists',
-        existing_id: existingSuper.rows[0].telegram_id
+        existing_id: existingSuper.rows[0].telegram_id,
       });
     }
 
     // Проверяем, есть ли пользователь
-    const user = await query(
-      'SELECT telegram_id, role FROM users WHERE telegram_id = $1',
-      [telegramId]
-    );
+    const user = await query('SELECT telegram_id, role FROM users WHERE telegram_id = $1', [
+      telegramId,
+    ]);
 
     if (user.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
@@ -69,11 +67,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     await query(
       `INSERT INTO admin_logs (user_telegram_id, action, details, created_at)
        VALUES ($1, $2, $3, NOW())`,
-      [currentUserId, 'SUPER_ADMIN_INIT', JSON.stringify({ 
-        previous_role: user.rows[0].role,
-        new_role: 'super_admin',
-        target_telegram_id: telegramId
-      })]
+      [
+        currentUserId,
+        'SUPER_ADMIN_INIT',
+        JSON.stringify({
+          previous_role: user.rows[0].role,
+          new_role: 'super_admin',
+          target_telegram_id: telegramId,
+        }),
+      ]
     ).catch(() => {});
 
     return res.status(200).json({
@@ -88,4 +90,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['super_admin', 'admin']);
-

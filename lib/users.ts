@@ -16,7 +16,14 @@ export async function createUser(data: {
   const res = await query(
     `INSERT INTO users (telegram_id, first_name, last_name, username, referral_code, referred_by)
      VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-    [data.telegram_id, data.first_name, data.last_name || null, data.username || null, data.referral_code || null, data.referred_by || null]
+    [
+      data.telegram_id,
+      data.first_name,
+      data.last_name || null,
+      data.username || null,
+      data.referral_code || null,
+      data.referred_by || null,
+    ]
   );
   return res.rows[0];
 }

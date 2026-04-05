@@ -6,10 +6,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Проверяем CRON_SECRET
   const cronSecret = req.headers['x-cron-secret'];
   if (cronSecret !== process.env.CRON_SECRET) {
@@ -53,7 +50,7 @@ export default async function handler(
     const response = await fetch('https://console.neon.tech/api/v2/projects/backup', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.NEON_API_KEY}`,
+        Authorization: `Bearer ${process.env.NEON_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -122,4 +119,3 @@ export default async function handler(
  *    const container = client.getContainerClient('backups');
  *    await container.uploadBlockBlob(`backup-${timestamp}.sql`, backupContent);
  */
-

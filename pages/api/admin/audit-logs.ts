@@ -19,7 +19,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       date_to,
       page = '1',
       limit = '50',
-      sort = '-created_at'
+      sort = '-created_at',
     } = req.query;
 
     // Валидация пагинации
@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     let whereClause = '1=1';
-    const params: (string | number | Date)[] = [];
+    const params: (string | number)[] = [];
     let paramCount = 1;
 
     if (user_id) {
@@ -55,13 +55,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (date_from) {
       whereClause += ` AND created_at >= $${paramCount}`;
-      params.push(new Date(String(date_from)));
+      params.push(new Date(String(date_from)).toISOString());
       paramCount++;
     }
 
     if (date_to) {
       whereClause += ` AND created_at <= $${paramCount}`;
-      params.push(new Date(String(date_to)));
+      params.push(new Date(String(date_to)).toISOString());
       paramCount++;
     }
 
@@ -73,10 +73,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     );
     const total = parseInt(countResult.rows[0].total);
 
-    const orderBy = sort === '-created_at' 
-      ? 'ORDER BY created_at DESC' 
-      : 'ORDER BY created_at ASC';
-    
+    const orderBy = sort === '-created_at' ? 'ORDER BY created_at DESC' : 'ORDER BY created_at ASC';
+
     const logsResult = await query(
       `SELECT * FROM audit_log WHERE ${whereClause} ${orderBy} LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
       [...params, limitNum, offset]
@@ -90,8 +88,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           page: pageNum,
           limit: limitNum,
           total,
-          totalPages: Math.ceil(total / limitNum)
-        }
+          totalPages: Math.ceil(total / limitNum),
+        },
       },
       timestamp: Date.now(),
     };
@@ -103,5 +101,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default requireAuth(rateLimit(handler, RATE_LIMIT_PRESETS.normal), ['super_admin', 'admin', 'manager']);
-
+export default requireAuth(rateLimit(handler, RATE_LIMIT_PRESETS.normal), [
+  'super_admin',
+  'admin',
+  'manager',
+]);

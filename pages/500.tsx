@@ -19,7 +19,8 @@ export default function ServerError() {
 
         {/* Описание */}
         <p className="text-gray-600 dark:text-gray-400 mb-8">
-          На сервере произошла ошибка. Наша команда уже работает над её решением. Пожалуйста, попробуйте позже. Код ошибки: 500
+          На сервере произошла ошибка. Наша команда уже работает над её решением. Пожалуйста,
+          попробуйте позже. Код ошибки: 500
         </p>
 
         {/* Кнопки */}
@@ -39,7 +40,9 @@ export default function ServerError() {
 
         {/* Что можно сделать */}
         <div className="mt-12 pt-8 border-t border-gray-300 dark:border-gray-700 text-left">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Что вы можете сделать:</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+            Что вы можете сделать:
+          </h3>
           <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <li>✓ Обновить страницу (F5 или Cmd+R)</li>
             <li>✓ Очистить кэш браузера</li>

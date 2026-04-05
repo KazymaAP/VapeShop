@@ -26,6 +26,7 @@
 Система управления доставкой (Phase P4) обеспечивает полный цикл управления доставкой товаров в VapeShop:
 
 ### Ключевые возможности:
+
 - ✅ **Пункты выдачи** - управление точками самовывоза (CRUD для админов)
 - ✅ **Адреса доставки** - сохранение и управление адресами клиентов
 - ✅ **Два способа доставки** - "Самовывоз" и "Доставка на адрес"
@@ -36,6 +37,7 @@
 - ✅ **Публичный API** - получение списка пунктов выдачи
 
 ### Кому это нужно:
+
 - 👨‍💼 **Администраторам** - управление пунктами выдачи
 - 👤 **Покупателям** - выбор способа доставки и адреса
 - 💻 **Разработчикам** - интеграция в свои системы
@@ -106,6 +108,7 @@
 ### 1. Слой базы данных (Database Layer)
 
 #### Таблица: `pickup_points`
+
 Хранит список пунктов выдачи товаров.
 
 ```sql
@@ -120,10 +123,12 @@ CREATE TABLE pickup_points (
 ```
 
 **Индексы:**
+
 - `idx_pickup_points_is_active` - быстрый поиск активных точек
 - `idx_pickup_points_created_at` - сортировка по дате
 
 #### Таблица: `addresses`
+
 Хранит адреса доставки пользователей.
 
 ```sql
@@ -140,10 +145,12 @@ CREATE TABLE addresses (
 ```
 
 **Индексы:**
+
 - `idx_addresses_user_telegram_id` - быстрый поиск адресов пользователя
 - `idx_addresses_is_default` - быстрый поиск адреса по умолчанию
 
 #### Таблица: `orders` (обновлена)
+
 Расширена для поддержки доставки.
 
 ```sql
@@ -165,14 +172,17 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ### 2. Admin APIs (Управление пунктами выдачи)
 
 #### GET /api/admin/pickup-points
+
 Получить все пункты выдачи с пагинацией.
 
 **Требует:** Admin role  
 **Query params:**
+
 - `page` (optional) - номер страницы (default: 1)
 - `limit` (optional) - элементов на странице (default: 20, max: 100)
 
 **Ответ (200):**
+
 ```json
 {
   "pickup_points": [
@@ -195,10 +205,12 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 #### POST /api/admin/pickup-points
+
 Создать новый пункт выдачи.
 
 **Требует:** Admin role  
 **Body:**
+
 ```json
 {
   "name": "Пункт выдачи - Восток",
@@ -207,6 +219,7 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 **Ответ (201):**
+
 ```json
 {
   "pickup_point": {
@@ -221,10 +234,12 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 #### PUT /api/admin/pickup-points
+
 Обновить пункт выдачи.
 
 **Требует:** Admin role  
 **Body:**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -235,6 +250,7 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 **Ответ (200):**
+
 ```json
 {
   "success": true
@@ -242,13 +258,16 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 #### DELETE /api/admin/pickup-points
+
 Удалить (soft delete) пункт выдачи.
 
 **Требует:** Admin role  
 **Query params:**
+
 - `id` (required) - UUID пункта выдачи
 
 **Ответ (200):**
+
 ```json
 {
   "success": true
@@ -260,13 +279,16 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ### 3. Customer APIs (Управление адресами пользователей)
 
 #### GET /api/addresses
+
 Получить все адреса пользователя.
 
 **Требует:** Authorization (User Telegram ID в заголовке)  
 **Query params:**
+
 - `telegram_id` (required) - ID Telegram пользователя
 
 **Ответ (200):**
+
 ```json
 {
   "addresses": [
@@ -283,10 +305,12 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 #### POST /api/addresses
+
 Добавить новый адрес.
 
 **Требует:** Authorization  
 **Body:**
+
 ```json
 {
   "telegram_id": 123456789,
@@ -296,6 +320,7 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 **Ответ (200):**
+
 ```json
 {
   "address": {
@@ -310,10 +335,12 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 #### PUT /api/addresses
+
 Обновить адрес или установить адрес по умолчанию.
 
 **Требует:** Authorization  
 **Body:**
+
 ```json
 {
   "id": "770e8400-e29b-41d4-a716-446655440002",
@@ -323,6 +350,7 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 **Ответ (200):**
+
 ```json
 {
   "success": true
@@ -330,13 +358,16 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 #### DELETE /api/addresses
+
 Удалить адрес.
 
 **Требует:** Authorization  
 **Query params:**
+
 - `id` (required) - UUID адреса
 
 **Ответ (200):**
+
 ```json
 {
   "success": true
@@ -348,10 +379,12 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ### 4. Public APIs (Публичные)
 
 #### GET /api/pickup-points
+
 Получить список активных пунктов выдачи (без аутентификации).
 
 **Требует:** Нет  
 **Ответ (200):**
+
 ```json
 {
   "pickup_points": [
@@ -372,10 +405,12 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ### 5. Order Integration (Интеграция с заказами)
 
 #### POST /api/orders (обновлен)
+
 Создать заказ с выбором способа доставки.
 
 **Требует:** Authorization  
 **Body (для самовывоза):**
+
 ```json
 {
   "telegram_id": 123456789,
@@ -390,12 +425,11 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 **Body (для доставки на адрес):**
+
 ```json
 {
   "telegram_id": 123456789,
-  "items": [
-    { "product_id": "prod-1", "quantity": 2 }
-  ],
+  "items": [{ "product_id": "prod-1", "quantity": 2 }],
   "delivery_method": "delivery",
   "address": "г. Москва, ул. Арбат, д. 15, кв. 42",
   "delivery_date": "2024-01-20"
@@ -403,6 +437,7 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ```
 
 **Ответ (201):**
+
 ```json
 {
   "order": {
@@ -423,9 +458,11 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE;
 ### 6. Frontend Components (React)
 
 #### Компонент: DeliverySelector (в корзине)
+
 Позволяет выбрать способ доставки.
 
 **Использование:**
+
 ```tsx
 import DeliverySelector from '@/components/DeliverySelector';
 
@@ -448,9 +485,11 @@ export function CartPage() {
 ```
 
 #### Компонент: PickupPointsList (список пунктов)
+
 Отображает доступные пункты выдачи.
 
 **Использование:**
+
 ```tsx
 import PickupPointsList from '@/components/PickupPointsList';
 
@@ -465,9 +504,11 @@ export function CheckoutPage() {
 ```
 
 #### Компонент: AddressManager (управление адресами)
+
 Компонент в профиле для управления адресами.
 
 **Использование:**
+
 ```tsx
 import AddressManager from '@/components/AddressManager';
 
@@ -482,9 +523,11 @@ export function ProfilePage() {
 ```
 
 #### Компонент: AdminPickupPointsPanel (админ-панель)
+
 Управление пунктами выдачи для админов.
 
 **Использование:**
+
 ```tsx
 import AdminPickupPointsPanel from '@/components/AdminPickupPointsPanel';
 
@@ -519,6 +562,7 @@ psql -h your-host -U your-user -d your-db -f db/migrations/004_delivery_manageme
 ```
 
 **Проверка:**
+
 ```sql
 -- Проверяем таблицы
 \dt pickup_points
@@ -587,6 +631,7 @@ export function DeliverySelector() {
 ```
 
 **Neon цвета:**
+
 - `text-neon-green` / `bg-neon-green`
 - `text-neon-pink` / `bg-neon-pink`
 - `text-neon-blue` / `bg-neon-blue`
@@ -755,44 +800,47 @@ async function addAddress(telegramId: number, address: string, isDefault: boolea
 
 ### Endpoint Summary
 
-| Method | URL | Auth | Цель |
-|--------|-----|------|------|
-| GET | `/api/admin/pickup-points` | Admin | Получить все пункты (админ) |
-| POST | `/api/admin/pickup-points` | Admin | Создать пункт |
-| PUT | `/api/admin/pickup-points` | Admin | Обновить пункт |
-| DELETE | `/api/admin/pickup-points?id=` | Admin | Удалить пункт |
-| GET | `/api/addresses?telegram_id=` | User | Получить адреса юзера |
-| POST | `/api/addresses` | User | Добавить адрес |
-| PUT | `/api/addresses` | User | Обновить адрес |
-| DELETE | `/api/addresses?id=` | User | Удалить адрес |
-| GET | `/api/pickup-points` | None | Получить активные пункты |
-| POST | `/api/orders` | User | Создать заказ (обновлено) |
+| Method | URL                            | Auth  | Цель                        |
+| ------ | ------------------------------ | ----- | --------------------------- |
+| GET    | `/api/admin/pickup-points`     | Admin | Получить все пункты (админ) |
+| POST   | `/api/admin/pickup-points`     | Admin | Создать пункт               |
+| PUT    | `/api/admin/pickup-points`     | Admin | Обновить пункт              |
+| DELETE | `/api/admin/pickup-points?id=` | Admin | Удалить пункт               |
+| GET    | `/api/addresses?telegram_id=`  | User  | Получить адреса юзера       |
+| POST   | `/api/addresses`               | User  | Добавить адрес              |
+| PUT    | `/api/addresses`               | User  | Обновить адрес              |
+| DELETE | `/api/addresses?id=`           | User  | Удалить адрес               |
+| GET    | `/api/pickup-points`           | None  | Получить активные пункты    |
+| POST   | `/api/orders`                  | User  | Создать заказ (обновлено)   |
 
 ### Коды ошибок
 
-| Код | Описание | Решение |
-|-----|---------|---------|
-| 200 | OK | Успешно |
-| 201 | Created | Ресурс создан |
-| 400 | Bad Request | Проверить параметры запроса |
-| 401 | Unauthorized | Отсутствует X-Telegram-Id |
-| 404 | Not Found | Ресурс не найден |
+| Код | Описание           | Решение                      |
+| --- | ------------------ | ---------------------------- |
+| 200 | OK                 | Успешно                      |
+| 201 | Created            | Ресурс создан                |
+| 400 | Bad Request        | Проверить параметры запроса  |
+| 401 | Unauthorized       | Отсутствует X-Telegram-Id    |
+| 404 | Not Found          | Ресурс не найден             |
 | 405 | Method Not Allowed | HTTP метод не поддерживается |
-| 500 | Server Error | Ошибка сервера |
+| 500 | Server Error       | Ошибка сервера               |
 
 ### Правила валидации
 
 #### pickup_points
+
 - `name` - обязателен, строка 1-255 символов
 - `address` - обязателен, строка 1-500 символов
 - `is_active` - boolean (по умолчанию true)
 
 #### addresses
+
 - `address` - обязателен, строка 1-500 символов
 - `is_default` - boolean (по умолчанию false)
 - Уникальность: один адрес для юзера может быть добавлен только 1 раз
 
 #### orders (delivery)
+
 - `delivery_method` - обязателен, значения: "pickup" или "delivery"
 - Если "pickup" → `pickup_point_id` обязателен
 - Если "delivery" → `address` обязателен
@@ -822,10 +870,11 @@ async function addAddress(telegramId: number, address: string, isDefault: boolea
 ```
 
 **SQL запрос для проверки:**
+
 ```sql
-SELECT * FROM orders 
-WHERE user_telegram_id = 123456789 
-AND delivery_method = 'pickup' 
+SELECT * FROM orders
+WHERE user_telegram_id = 123456789
+AND delivery_method = 'pickup'
 ORDER BY created_at DESC LIMIT 1;
 ```
 
@@ -888,16 +937,20 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 ### Проблема 1: "Ошибка загрузки пунктов выдачи"
 
 **Симптомы:**
+
 - При открытии список пунктов пуст или показывается ошибка
 - Статус 500 или 404
 
 **Решения:**
+
 1. Проверить миграцию выполнена:
+
    ```sql
    SELECT COUNT(*) FROM pickup_points;
    ```
 
 2. Убедиться, что is_active = true:
+
    ```sql
    SELECT * FROM pickup_points WHERE is_active = true;
    ```
@@ -911,10 +964,12 @@ curl -X POST http://localhost:3000/api/admin/pickup-points \
 ### Проблема 2: "Адрес уже существует"
 
 **Симптомы:**
+
 - При добавлении адреса - 400 ошибка "UNIQUE constraint violated"
 
 **Решение:**
 Ограничение UNIQUE предотвращает добавление одинаковых адресов одному юзеру:
+
 ```sql
 UNIQUE(user_telegram_id, address)
 ```
@@ -924,10 +979,13 @@ UNIQUE(user_telegram_id, address)
 ### Проблема 3: "Пункт выдачи не найден"
 
 **Симптомы:**
+
 - При обновлении/удалении - 404 ошибка
 
 **Решение:**
+
 1. Проверить ID пункта в БД:
+
    ```sql
    SELECT id, name FROM pickup_points WHERE id = 'your-id';
    ```
@@ -937,10 +995,12 @@ UNIQUE(user_telegram_id, address)
 ### Проблема 4: 401 Unauthorized
 
 **Симптомы:**
+
 - При любом запросе требующем auth
 
 **Решение:**
 Убедиться, что заголовок присутствует:
+
 ```bash
 -H "X-Telegram-Id: 123456789"
 ```
@@ -950,10 +1010,12 @@ UNIQUE(user_telegram_id, address)
 ### Проблема 5: Статус доставки не обновляется
 
 **Симптомы:**
+
 - Заказ создан, но delivery_method остаётся NULL
 
 **Решение:**
 Проверить API запрос при создании заказа:
+
 ```javascript
 // НЕПРАВИЛЬНО
 const order = await fetch('/api/orders', {
@@ -989,32 +1051,37 @@ const order = await fetch('/api/orders', {
 ### Production Deployment Steps
 
 1. **Backup базы данных:**
+
    ```bash
    pg_dump -h host -U user -d database > backup.sql
    ```
 
 2. **Выполнить миграцию:**
+
    ```sql
    -- На production базе выполнить 004_delivery_management.sql
    ```
 
 3. **Проверить индексы:**
+
    ```sql
-   SELECT * FROM pg_indexes 
+   SELECT * FROM pg_indexes
    WHERE tablename IN ('pickup_points', 'addresses', 'orders');
    ```
 
 4. **Запустить на production:**
+
    ```bash
    npm run build
    npm start
    ```
 
 5. **Протестировать endpoints:**
+
    ```bash
    # Public API
    curl https://prod.vape-shop.com/api/pickup-points
-   
+
    # Admin API (требует auth)
    curl -H "X-Telegram-Id: admin-id" \
         https://prod.vape-shop.com/api/admin/pickup-points
@@ -1044,4 +1111,3 @@ const order = await fetch('/api/orders', {
 **Версия:** 1.0  
 **Последнее обновление:** 2024  
 **Статус:** ✅ Production Ready
-

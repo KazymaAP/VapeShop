@@ -8,7 +8,7 @@ export default function ExportOrders() {
     date_to: '',
     status: '',
     min_amount: '',
-    max_amount: ''
+    max_amount: '',
   });
   const [exporting, setExporting] = useState(false);
 
@@ -24,7 +24,7 @@ export default function ExportOrders() {
       if (filters.max_amount) params.append('max_amount', filters.max_amount);
 
       const res = await fetch(`/api/admin/orders/export?${params}`);
-      
+
       if (!res.ok) {
         throw new Error(`API Error: ${res.status}`);
       }

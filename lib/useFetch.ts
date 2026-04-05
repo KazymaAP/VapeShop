@@ -8,78 +8,81 @@ import { useState, useCallback } from 'react';
 export interface UseFetchOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
-  body?: any;
+  body?: Record<string, unknown> | unknown;
   onError?: (error: Error) => void;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: unknown) => void;
 }
 
 export interface UseFetchState {
-  data: any;
+  data: unknown;
   error: Error | null;
   loading: boolean;
 }
 
-export function useFetch<T = any>(url: string, options?: UseFetchOptions) {
+export function useFetch<T = unknown>(url: string, options?: UseFetchOptions) {
   const [state, setState] = useState<UseFetchState>({
     data: null,
     error: null,
     loading: false,
   });
 
-  const fetch = useCallback(async (opts?: UseFetchOptions): Promise<T | null> => {
-    setState({ data: null, error: null, loading: true });
-    
-    const mergedOptions = { ...options, ...opts };
+  const fetch = useCallback(
+    async (opts?: UseFetchOptions): Promise<T | null> => {
+      setState({ data: null, error: null, loading: true });
 
-    try {
-      // url всегда строка в этом хуке
-      const response = await window.fetch(url, {
-        method: mergedOptions.method || 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...mergedOptions.headers,
-        },
-        body: mergedOptions.body ? JSON.stringify(mergedOptions.body) : undefined,
-      });
+      const mergedOptions = { ...options, ...opts };
 
-      // Проверяем статус ответа
-      if (!response.ok) {
-        let errorMessage = `HTTP Error: ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          // Если не можем распарсить JSON, используем по умолчанию
-        }
-        throw new Error(errorMessage);
-      }
-
-      // Пытаемся распарсить JSON
-      let data: T;
       try {
-        data = await response.json();
-      } catch {
-        throw new Error('Invalid JSON response');
+        // url всегда строка в этом хуке
+        const response = await window.fetch(url, {
+          method: mergedOptions.method || 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...mergedOptions.headers,
+          },
+          body: mergedOptions.body ? JSON.stringify(mergedOptions.body) : undefined,
+        });
+
+        // Проверяем статус ответа
+        if (!response.ok) {
+          let errorMessage = `HTTP Error: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch {
+            // Если не можем распарсить JSON, используем по умолчанию
+          }
+          throw new Error(errorMessage);
+        }
+
+        // Пытаемся распарсить JSON
+        let data: T;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error('Invalid JSON response');
+        }
+
+        setState({ data, error: null, loading: false });
+
+        if (mergedOptions.onSuccess) {
+          mergedOptions.onSuccess(data);
+        }
+
+        return data;
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        setState({ data: null, error, loading: false });
+
+        if (mergedOptions.onError) {
+          mergedOptions.onError(error);
+        }
+
+        return null;
       }
-
-      setState({ data, error: null, loading: false });
-
-      if (mergedOptions.onSuccess) {
-        mergedOptions.onSuccess(data);
-      }
-
-      return data;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      setState({ data: null, error, loading: false });
-
-      if (mergedOptions.onError) {
-        mergedOptions.onError(error);
-      }
-
-      return null;
-    }
-  }, [url, options]);
+    },
+    [url, options]
+  );
 
   return { ...state, fetch };
 }
@@ -87,7 +90,7 @@ export function useFetch<T = any>(url: string, options?: UseFetchOptions) {
 /**
  * Утилита для безопасного fetch без React
  */
-export async function safeFetch<T = any>(
+export async function safeFetch<T = unknown>(
   url: string,
   options?: UseFetchOptions
 ): Promise<{ data: T | null; error: Error | null }> {

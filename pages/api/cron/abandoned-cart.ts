@@ -4,11 +4,11 @@ import { notifyAbandonedCart } from '@/lib/notifications';
 
 /**
  * Cron API для отправки напоминаний о брошенных корзинах
- * 
+ *
  * Использование:
  * - Vercel Cron: Добавить в vercel.json: "crons": [{ "path": "/api/cron/abandoned-cart", "schedule": "0 * * * *" }]
  * - Self-hosted: curl https://yourapp.com/api/cron/abandoned-cart?token=YOUR_CRON_TOKEN
- * 
+ *
  * Что это делает:
  * 1. Находит корзины, где последнее обновление было более 2 часов назад
  * 2. Проверяет, что у пользователя нет активных заказов за последние 2 часа
@@ -96,14 +96,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         for (const item of items) {
           if (item.product_id) {
-            const productResult = await query(
-              `SELECT price FROM products WHERE id = $1`,
-              [item.product_id]
-            );
+            const productResult = await query(`SELECT price FROM products WHERE id = $1`, [
+              item.product_id,
+            ]);
 
             if (productResult.rows.length > 0) {
               const price = parseFloat(productResult.rows[0].price);
-              totalItems += (item.quantity || 1);
+              totalItems += item.quantity || 1;
               totalPrice += price * (item.quantity || 1);
             }
           }
@@ -128,11 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // 6. Отправляем напоминание
-        const notified_success = await notifyAbandonedCart(
-          telegramId,
-          totalItems,
-          totalPrice
-        );
+        const notified_success = await notifyAbandonedCart(telegramId, totalItems, totalPrice);
 
         if (notified_success) {
           notified++;
@@ -144,7 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         processed++;
 
         // Небольшая задержка между уведомлениями
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       } catch (err) {
         console.error(`Error processing cart for user ${cart.user_telegram_id}:`, err);
         processed++;
@@ -167,4 +162,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
-

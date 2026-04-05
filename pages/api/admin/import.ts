@@ -58,10 +58,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const name = row['Наименование'] || row['name'] || row['Название'] || '';
         const specification = row['Характеристика'] || row['specification'] || '';
         const stock = parseInt(row['КОЛИЧЕСТВО'] || row['stock'] || '0', 10);
-        const price1 = parseFloat((row['до 50.000 р'] || row['price_tier_1'] || '0').replace(/\s/g, ''));
-        const price2 = parseFloat((row['от 50.000 р'] || row['price_tier_2'] || '0').replace(/\s/g, ''));
-        const price3 = parseFloat((row['от 100.000 р'] || row['price_tier_3'] || '0').replace(/\s/g, ''));
-        const distPrice = parseFloat((row['ДИСТР.ЦЕНА'] || row['distributor_price'] || '0').replace(/\s/g, ''));
+        const price1 = parseFloat(
+          (row['до 50.000 р'] || row['price_tier_1'] || '0').replace(/\s/g, '')
+        );
+        const price2 = parseFloat(
+          (row['от 50.000 р'] || row['price_tier_2'] || '0').replace(/\s/g, '')
+        );
+        const price3 = parseFloat(
+          (row['от 100.000 р'] || row['price_tier_3'] || '0').replace(/\s/g, '')
+        );
+        const distPrice = parseFloat(
+          (row['ДИСТР.ЦЕНА'] || row['distributor_price'] || '0').replace(/\s/g, '')
+        );
 
         if (!name) {
           skipped++;
@@ -80,10 +88,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
 
         // ⚠️ КРИТИЧНО: проверяем на дубликаты и обновляем цену вместо вставки
-        const existingRes = await query(
-          'SELECT id FROM price_import WHERE name = $1 LIMIT 1',
-          [name]
-        );
+        const existingRes = await query('SELECT id FROM price_import WHERE name = $1 LIMIT 1', [
+          name,
+        ]);
 
         if (existingRes.rows.length > 0) {
           // Товар уже существует, обновляем цену
@@ -113,12 +120,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await query(
         `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
          VALUES ($1, $2, $3, $4)`,
-        [adminTelegramId, 'CSV_IMPORT', 'price_import', JSON.stringify({ imported, updated, skipped, total_lines: lines.length - 1 })]
+        [
+          adminTelegramId,
+          'CSV_IMPORT',
+          'price_import',
+          JSON.stringify({ imported, updated, skipped, total_lines: lines.length - 1 }),
+        ]
       ).catch(() => {});
 
       res.status(200).json({
         message: `Импорт завершён: ${imported} товаров добавлено, ${updated} обновлено, ${skipped} пропущено`,
-        statistics: { imported, updated, skipped }
+        statistics: { imported, updated, skipped },
       });
     } catch (txErr) {
       // Откатываем транзакцию при ошибке
@@ -132,4 +144,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default rateLimit(requireAuth(handler, ['admin']), RATE_LIMIT_PRESETS.strict);
-

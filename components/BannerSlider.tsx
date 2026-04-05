@@ -40,13 +40,9 @@ export function BannerSlider({
   const sliderRef = useRef<HTMLDivElement>(null);
   const autoPlayIntervalRef = useRef<NodeJS.Timeout>();
 
-  if (banners.length === 0) {
-    return null;
-  }
-
   // Auto-play
   useEffect(() => {
-    if (!autoPlay || banners.length <= 1) return;
+    if (banners.length === 0 || !autoPlay || banners.length <= 1) return;
 
     autoPlayIntervalRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % banners.length);
@@ -58,6 +54,10 @@ export function BannerSlider({
       }
     };
   }, [autoPlay, autoPlayDuration, banners.length]);
+
+  if (banners.length === 0) {
+    return null;
+  }
 
   // Сброс auto-play при взаимодействии
   const resetAutoPlay = () => {
@@ -112,8 +112,6 @@ export function BannerSlider({
     }
   };
 
-  const _currentBanner = banners[currentIndex];
-
   return (
     <div className={clsx('relative w-full overflow-hidden rounded-lg', className)}>
       {/* Слайды */}
@@ -142,9 +140,7 @@ export function BannerSlider({
               />
               {/* Оверлей с текстом */}
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent flex flex-col justify-end p-6 md:p-12">
-                <h3 className="text-2xl md:text-4xl font-bold text-white mb-2">
-                  {banner.title}
-                </h3>
+                <h3 className="text-2xl md:text-4xl font-bold text-white mb-2">{banner.title}</h3>
                 {banner.description && (
                   <p className="text-gray-200 text-sm md:text-base max-w-md">
                     {banner.description}
@@ -165,13 +161,13 @@ export function BannerSlider({
             className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/30 hover:bg-white/50 text-white rounded-full p-2 transition"
             aria-label="Previous slide"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
 
@@ -181,12 +177,7 @@ export function BannerSlider({
             className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/30 hover:bg-white/50 text-white rounded-full p-2 transition"
             aria-label="Next slide"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -202,9 +193,7 @@ export function BannerSlider({
               onClick={() => goToSlide(index)}
               className={clsx(
                 'w-2 h-2 rounded-full transition',
-                index === currentIndex
-                  ? 'bg-white w-8'
-                  : 'bg-white/50 hover:bg-white/75'
+                index === currentIndex ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/75'
               )}
               aria-label={`Go to slide ${index + 1}`}
             />

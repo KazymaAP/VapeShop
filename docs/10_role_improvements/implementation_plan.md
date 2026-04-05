@@ -3,7 +3,7 @@
 **Версия:** 1.0  
 **Дата:** 2026-04-03  
 **Объём:** 4 спринта x 1 неделя = 4 недели  
-**Общее время:** 60-70 часов разработки  
+**Общее время:** 60-70 часов разработки
 
 ---
 
@@ -14,9 +14,11 @@
 ### Задачи Sprint 1
 
 #### 1.1 Миграция БД (День 1 утро, 2-3 часа)
+
 **Файл:** `db/migrations/010_role_improvements_part1.sql`
 
 Создать таблицы:
+
 ```sql
 -- 1. audit_log (логирование всех действий)
 CREATE TABLE audit_log (
@@ -90,9 +92,11 @@ ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS notify_on_discount BOOLEAN DEFAULT
 **Status:** TODO
 
 #### 1.2 Обновить lib/auth.ts (День 1 утро-вечер, 1 час)
+
 **Файл:** `lib/auth.ts`
 
 Добавить функции:
+
 ```typescript
 // Новые роли
 export type UserRole = 'super_admin' | 'admin' | 'manager' | 'support' | 'courier' | 'customer';
@@ -105,7 +109,9 @@ export async function isSuperAdmin(telegramId: string): Promise<boolean> {
 
 // Проверка support
 export async function isSupport(telegramId: string): Promise<boolean> {
-  const user = await db.query('SELECT is_support_agent FROM users WHERE telegram_id = $1', [telegramId]);
+  const user = await db.query('SELECT is_support_agent FROM users WHERE telegram_id = $1', [
+    telegramId,
+  ]);
   return user.rows[0]?.is_support_agent === true;
 }
 
@@ -119,6 +125,7 @@ export async function isCourier(telegramId: string): Promise<boolean> {
 **Status:** TODO
 
 #### 1.3 API: Audit Logs (День 1 вечер, 1.5 часа)
+
 **Файл:** `pages/api/admin/audit-logs.ts`
 
 ```typescript
@@ -130,6 +137,7 @@ export async function isCourier(telegramId: string): Promise<boolean> {
 **Status:** TODO
 
 #### 1.4 API: RBAC (управление ролями) (День 1 вечер - День 2 утро, 3-4 часа)
+
 **Файл:** `pages/api/admin/rbac.ts`
 
 ```typescript
@@ -151,6 +159,7 @@ interface Role {
 **Status:** TODO
 
 #### 1.5 API: Массовое редактирование товаров (День 2, 2 часа)
+
 **Файл:** `pages/api/admin/products/bulk-update.ts`
 
 ```typescript
@@ -170,6 +179,7 @@ interface Role {
 **Status:** TODO
 
 #### 1.6 API: Дашборд с графиками (День 2, 2-3 часа)
+
 **Файл:** `pages/api/admin/dashboard-advanced.ts`
 
 ```typescript
@@ -188,6 +198,7 @@ interface Role {
 **Status:** TODO
 
 #### 1.7 API: Экспорт в Excel (День 2, 2 часа)
+
 **Файл:** `pages/api/admin/orders/export.ts`
 
 ```typescript
@@ -199,9 +210,11 @@ interface Role {
 **Status:** TODO
 
 #### 1.8 UI: Дашборд суперадмина (День 2-3, 3-4 часа)
+
 **Файл:** `pages/admin/super/index.tsx`
 
 Компоненты:
+
 - Таблица администраторов (с возможностью добавить/удалить)
 - Таблица audit_log с фильтрами
 - Графики из recharts (выручка, заказы, товары)
@@ -210,9 +223,11 @@ interface Role {
 **Status:** TODO
 
 #### 1.9 UI: Управление ролями (День 3, 2-3 часа)
+
 **Файл:** `pages/admin/super/roles.tsx`
 
 Компоненты:
+
 - Таблица ролей
 - Модальное окно создания/редактирования роли
 - Чекбоксы для прав (permissions)
@@ -228,9 +243,11 @@ interface Role {
 ### Задачи Sprint 2
 
 #### 2.1 Миграция БД (1 час)
+
 **Файл:** `db/migrations/010_role_improvements_part2.sql`
 
 Таблицы:
+
 ```sql
 -- 1. manager_notes_history
 CREATE TABLE manager_notes_history (
@@ -281,6 +298,7 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.2 API: Комментарии к заказам (2 часа)
+
 **Файл:** `pages/api/orders/[id]/notes.ts`
 
 ```typescript
@@ -293,6 +311,7 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.3 API: Реферральная система (2-3 часа)
+
 **Файл:** `pages/api/user/referral.ts`
 
 ```typescript
@@ -309,6 +328,7 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.4 API: Отложенная корзина (1.5 часа)
+
 **Файл:** `pages/api/cart/saved.ts`
 
 ```typescript
@@ -321,6 +341,7 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.5 API: Сравнение товаров (1.5 часа)
+
 **Файл:** `pages/api/products/compare.ts`
 
 ```typescript
@@ -332,6 +353,7 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.6 API: Трекинг заказа (1.5 часа)
+
 **Файл:** `pages/api/orders/[id]/tracking.ts`
 
 ```typescript
@@ -350,9 +372,11 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.7 UI: Профиль покупателя - вкладки (2-3 часа)
+
 **Файл:** `pages/profile.tsx` (обновить)
 
 Добавить вкладки:
+
 - Мои заказы (существует, расширить с трекингом)
 - Избранное (существует)
 - Отложенное (NEW) – saved_for_later
@@ -363,9 +387,11 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.8 UI: Страница сравнения (1.5 часа)
+
 **Файл:** `pages/compare.tsx`
 
 Компоненты:
+
 - Таблица характеристик товаров
 - Кнопка "Удалить из сравнения"
 - Кнопка "Добавить все в корзину"
@@ -373,9 +399,11 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.9 UI: Трекинг заказа (2-3 часа)
+
 **Файл:** `pages/tracking/[orderId].tsx`
 
 Компоненты:
+
 - Timeline с статусами
 - Карта курьера (если courier)
 - Информация о самовывозе (если pickup)
@@ -384,9 +412,11 @@ CREATE TABLE template_responses (
 **Status:** TODO
 
 #### 2.10 UI: Расширенный канбан менеджера (2-3 часа)
+
 **Файл:** `pages/admin/kanban.tsx` (обновить)
 
 Улучшения:
+
 - Карточка заказа: номер, сумма, кол-во товаров, дата, статус оплаты
 - Кнопка "Связаться с клиентом" → открыть чат/Telegram
 - История изменений при наведении
@@ -403,9 +433,11 @@ CREATE TABLE template_responses (
 ### Задачи Sprint 3
 
 #### 3.1 Миграция БД (1 час)
+
 **Файл:** `db/migrations/010_role_improvements_part3.sql`
 
 Таблицы:
+
 ```sql
 -- 1. courier_performance
 CREATE TABLE courier_performance (
@@ -471,6 +503,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 3.2 API: Список заказов для курьера (1 час)
+
 **Файл:** `pages/api/courier/deliveries.ts`
 
 ```typescript
@@ -483,6 +516,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 3.3 API: Отметка о доставке с фото (2-3 часа)
+
 **Файл:** `pages/api/courier/deliveries/[id]/complete.ts`
 
 ```typescript
@@ -496,6 +530,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 3.4 API: Поиск клиента (1 час)
+
 **Файл:** `pages/api/support/search-customer.ts`
 
 ```typescript
@@ -506,6 +541,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 3.5 API: Support tickets (1.5 часа)
+
 **Файл:** `pages/api/support/tickets.ts`
 
 ```typescript
@@ -517,9 +553,11 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 3.6 UI: Курьер - список доставок (2-3 часа)
+
 **Файл:** `pages/courier/deliveries.tsx`
 
 Компоненты:
+
 - Список заказов на день (карточки с адресом, контактом)
 - Карта с маршрутом
 - Кнопка "Начать" / "Завершить"
@@ -528,9 +566,11 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 3.7 UI: Курьер - отметка доставки (2 часа)
+
 **Файл:** `pages/courier/deliveries/[id]/complete.tsx`
 
 Компоненты:
+
 - Загрузка фото (камера или галерея)
 - Поле для подписи (Canvas)
 - Поле для заметок
@@ -539,9 +579,11 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 3.8 UI: Саппорт - поиск клиента (1.5 часа)
+
 **Файл:** `pages/support/search.tsx`
 
 Компоненты:
+
 - Input для поиска (по телефону или telegram_id)
 - Карточка клиента с его заказами
 - Кнопка "Открыть обращение"
@@ -549,9 +591,11 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 3.9 UI: Саппорт - управление обращениями (2-3 часа)
+
 **Файл:** `pages/support/tickets.tsx`
 
 Компоненты:
+
 - Таблица/список обращений
 - Модальное окно с историей переписки
 - Поле для ответа
@@ -568,7 +612,8 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 ### Задачи Sprint 4
 
 #### 4.1 Адаптивный дизайн (3-4 часа)
-**Файлы:** все pages/admin/*, pages/
+
+**Файлы:** все pages/admin/\*, pages/
 
 - Проверить на мобильном (375px, 768px, 1024px)
 - Переделать таблицы на мобильных в карточки
@@ -577,6 +622,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.2 Переключатель темы (1 час)
+
 **Файл:** `components/ThemeToggle.tsx` (NEW)
 
 - Toggle в navbar
@@ -586,6 +632,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.3 SEO оптимизация (1-2 часа)
+
 **Файл:** `lib/seo.ts` (NEW)
 
 - Meta tags на все страницы
@@ -595,6 +642,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.4 Аналитика (2 часа)
+
 **Файл:** `lib/analytics.ts` (NEW)
 
 - Интеграция с Amplitude или Google Analytics
@@ -604,6 +652,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.5 A/B тестирование (2-3 часа)
+
 **Файл:** `lib/ab-testing.ts` (NEW)
 
 - Простая система для показа разных версий главной
@@ -613,6 +662,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.6 Telegram Premium интеграция (1-2 часа)
+
 **Файл:** `lib/telegram-premium.ts` (NEW)
 
 - Проверка isPremium в useTelegramWebApp()
@@ -622,6 +672,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.7 Геймификация (2-3 часа)
+
 **Файлы:** `lib/gamification.ts`, `pages/profile.tsx`
 
 - Уровни пользователя (bronze, silver, gold, platinum)
@@ -631,6 +682,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.8 WebSocket интеграция для чата (3-4 часа)
+
 **Файлы:** `lib/websocket.ts`, `pages/admin/chat.tsx`, `pages/courier/chat.tsx`
 
 - Настроить socket.io сервер на Vercel (или альтернатива)
@@ -640,6 +692,7 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.9 Дизайн улучшения (2-3 часа)
+
 **Файлы:** все компоненты
 
 - Новые иконки (Lucide React)
@@ -650,7 +703,8 @@ CREATE INDEX idx_chat_messages_users ON chat_messages(from_user_id, to_user_id);
 **Status:** TODO
 
 #### 4.10 Документация и тестирование (2-3 часа)
-**Файлы:** docs/10_role_improvements/*
+
+**Файлы:** docs/10_role_improvements/\*
 
 - Инструкция по тестированию каждой роли
 - Тестовые сценарии
@@ -693,6 +747,7 @@ Sprint 4 (Общие улучшения)
 ## 🚀 РЕКОМЕНДУЕМАЯ SCHEDULE
 
 ### Неделя 1 (Sprint 1)
+
 - **Пн утро:** Миграция 010, обновление lib/auth.ts
 - **Пн день:** API для audit_log, rbac
 - **Пн вечер - Вт утро:** API для bulk-update, dashboard, export
@@ -701,6 +756,7 @@ Sprint 4 (Общие улучшения)
 - **Ср день-вечер:** Баг-фиксы, documentation
 
 ### Неделя 2 (Sprint 2)
+
 - **Пн утро:** Миграция часть 2, API для комментариев, реферралов
 - **Пн день:** API для saved_for_later, compare, tracking
 - **Пн вечер - Вт утро:** UI профиля, сравнения, трекинга
@@ -709,6 +765,7 @@ Sprint 4 (Общие улучшения)
 - **Ср день:** Documentation
 
 ### Неделя 3 (Sprint 3)
+
 - **Пн утро:** Миграция часть 3, API для курьеров
 - **Пн день:** API для саппорта, chat_messages
 - **Пн вечер - Вт утро:** UI курьера (список, завершение)
@@ -717,6 +774,7 @@ Sprint 4 (Общие улучшения)
 - **Ср день:** Documentation
 
 ### Неделя 4 (Sprint 4)
+
 - **Пн утро:** Адаптивный дизайн, переключатель темы
 - **Пн день:** SEO, аналитика, A/B тестирование
 - **Пн вечер - Вт утро:** Telegram Premium, геймификация
@@ -730,6 +788,7 @@ Sprint 4 (Общие улучшения)
 ## ✅ КОНТРОЛЬНЫЙ ЛИСТ СПРИНТОВ
 
 ### Sprint 1
+
 - [ ] Миграция 010 применена
 - [ ] lib/auth.ts обновлена (новые роли)
 - [ ] Все 6 API эндпоинтов работают
@@ -739,6 +798,7 @@ Sprint 4 (Общие улучшения)
 - [ ] Documentation
 
 ### Sprint 2
+
 - [ ] Миграция часть 2 применена
 - [ ] API для менеджера работают
 - [ ] API для покупателя работают
@@ -748,6 +808,7 @@ Sprint 4 (Общие улучшения)
 - [ ] Documentation
 
 ### Sprint 3
+
 - [ ] Миграция часть 3 применена
 - [ ] API для курьера работают
 - [ ] API для саппорта работают
@@ -758,6 +819,7 @@ Sprint 4 (Общие улучшения)
 - [ ] Documentation
 
 ### Sprint 4
+
 - [ ] Адаптивный дизайн проверен
 - [ ] Тема переключается
 - [ ] SEO оптимизирована
@@ -773,11 +835,13 @@ Sprint 4 (Общие улучшения)
 ## 📦 ФИНАЛЬНЫЙ СПИСОК ФАЙЛОВ
 
 **Новые миграции:**
+
 - `db/migrations/010_role_improvements_part1.sql`
 - `db/migrations/010_role_improvements_part2.sql`
 - `db/migrations/010_role_improvements_part3.sql`
 
 **Обновленные файлы:**
+
 - `lib/auth.ts`
 - `lib/notifications.ts`
 - `pages/profile.tsx`
@@ -785,6 +849,7 @@ Sprint 4 (Общие улучшения)
 - `package.json`
 
 **Новые API (~40+ эндпоинтов):**
+
 - `pages/api/admin/audit-logs.ts`
 - `pages/api/admin/rbac.ts`
 - `pages/api/admin/products/bulk-update.ts`
@@ -801,6 +866,7 @@ Sprint 4 (Общие улучшения)
 - И ещё ~25 эндпоинтов
 
 **Новые UI страницы (~15+ страниц):**
+
 - `pages/admin/super/*.tsx`
 - `pages/compare.tsx`
 - `pages/tracking/[orderId].tsx`
@@ -809,9 +875,11 @@ Sprint 4 (Общие улучшения)
 - И обновленные: profile.tsx, admin/kanban.tsx
 
 **Новые компоненты (~20+ компонентов):**
+
 - Все компоненты для каждой страницы
 
 **Новые утилиты:**
+
 - `lib/websocket.ts`
 - `lib/analytics.ts`
 - `lib/ab-testing.ts`
@@ -821,6 +889,7 @@ Sprint 4 (Общие улучшения)
 - И остальные
 
 **Документация:**
+
 - `docs/10_role_improvements/analysis.md` ✅
 - `docs/10_role_improvements/implementation_plan.md` ✅
 - `docs/10_role_improvements/testing_guide.md` (TODO)

@@ -11,10 +11,7 @@ import { ApiResponse } from '@/types/api';
 import { getBot } from '@/lib/notifications';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
   if (req.method === 'GET') {
     return handleGet(req, res);
   } else if (req.method === 'POST') {
@@ -48,7 +45,6 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       count: result.rows.length,
       threshold,
     });
-
   } catch (err) {
     console.error('GET /api/admin/low-stock error:', err);
     res.status(500).json({ error: 'Failed to fetch low stock items' });
@@ -82,7 +78,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       // Отправляем уведомления
       for (const admin of admins.rows) {
         const message = `🚨 Низкий остаток товаров:\n\n${products.rows
-          .map(p => `• ${p.name}: ${p.stock} шт.`)
+          .map((p) => `• ${p.name}: ${p.stock} шт.`)
           .join('\n')}\n\nПроверьте инвентарь.`;
 
         try {
@@ -93,10 +89,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Обновляем флаг stock_alert_sent
-      await query(
-        `UPDATE products SET stock_alert_sent = true WHERE id = ANY($1::uuid[])`,
-        [productIds]
-      );
+      await query(`UPDATE products SET stock_alert_sent = true WHERE id = ANY($1::uuid[])`, [
+        productIds,
+      ]);
 
       // Логируем
       await query(
@@ -109,12 +104,10 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
         message: `Notifications sent to ${admins.rows.length} admins`,
         productsNotified: productIds.length,
       });
-
     } catch (err) {
       console.error('Bot notification error:', err);
       return res.status(500).json({ error: 'Failed to send notifications' });
     }
-
   } catch (err) {
     console.error('POST /api/admin/low-stock error:', err);
     res.status(500).json({ error: 'Failed to process low stock notification' });

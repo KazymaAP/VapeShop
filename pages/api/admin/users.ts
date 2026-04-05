@@ -37,7 +37,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       if (typeof is_blocked === 'boolean') {
-        await query('UPDATE users SET is_blocked = $1 WHERE telegram_id = $2', [is_blocked, telegram_id]);
+        await query('UPDATE users SET is_blocked = $1 WHERE telegram_id = $2', [
+          is_blocked,
+          telegram_id,
+        ]);
       }
 
       res.status(200).json({ success: true });
@@ -50,4 +53,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin']);
-

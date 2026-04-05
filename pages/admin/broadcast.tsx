@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
+import { useTelegramWebApp } from '../../lib/telegram';
 
 export async function getServerSideProps() {
   return { props: {} };
 }
 
 export default function AdminBroadcast() {
+  const { user } = useTelegramWebApp();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
@@ -61,7 +63,9 @@ export default function AdminBroadcast() {
           </button>
 
           {result && (
-            <div className={`p-4 rounded-xl text-sm ${result.failed === -1 ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}>
+            <div
+              className={`p-4 rounded-xl text-sm ${result.failed === -1 ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'}`}
+            >
               {result.failed === -1
                 ? 'Ошибка при отправке'
                 : `Рассылка завершена: ${result.sent} отправлено, ${result.failed} ошибок`}
@@ -72,4 +76,3 @@ export default function AdminBroadcast() {
     </div>
   );
 }
-

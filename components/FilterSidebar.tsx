@@ -155,10 +155,7 @@ export function FilterSidebar({ onFilterChange, className }: FilterSidebarProps)
             </h4>
             <div className="space-y-2">
               {categories.map((category) => (
-                <label
-                  key={category.id}
-                  className="flex items-center gap-2 cursor-pointer group"
-                >
+                <label key={category.id} className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="radio"
                     name="category"
@@ -194,10 +191,7 @@ export function FilterSidebar({ onFilterChange, className }: FilterSidebarProps)
             </h4>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {brands.map((brand) => (
-                <label
-                  key={brand.id}
-                  className="flex items-center gap-2 cursor-pointer group"
-                >
+                <label key={brand.id} className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="checkbox"
                     value={brand.id}

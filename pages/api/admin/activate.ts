@@ -58,15 +58,17 @@ function validateActivateRequest(body: unknown): {
   }
 
   // Категория: либо category_id, либо new_category_name
-  const hasCategory = (req.category_id && String(req.category_id).trim()) || 
-                      (req.new_category_name && String(req.new_category_name).trim());
+  const hasCategory =
+    (req.category_id && String(req.category_id).trim()) ||
+    (req.new_category_name && String(req.new_category_name).trim());
   if (!hasCategory) {
     return { valid: false, error: 'Выберите категорию или введите новую' };
   }
 
   // Бренд: либо brand_id, либо new_brand_name
-  const hasBrand = (req.brand_id && String(req.brand_id).trim()) || 
-                   (req.new_brand_name && String(req.new_brand_name).trim());
+  const hasBrand =
+    (req.brand_id && String(req.brand_id).trim()) ||
+    (req.new_brand_name && String(req.new_brand_name).trim());
   if (!hasBrand) {
     return { valid: false, error: 'Выберите бренд или введите новый' };
   }
@@ -98,7 +100,10 @@ function validateActivateRequest(body: unknown): {
   });
 
   if (!validIds) {
-    return { valid: false, error: 'Все элементы price_import_ids должны быть числами или строками' };
+    return {
+      valid: false,
+      error: 'Все элементы price_import_ids должны быть числами или строками',
+    };
   }
 
   return {
@@ -123,9 +128,7 @@ function validateActivateRequest(body: unknown): {
  * @param priceImportId ID в таблице price_import
  * @returns Данные товара или null
  */
-async function getPriceImportData(
-  priceImportId: string
-): Promise<{
+async function getPriceImportData(priceImportId: string): Promise<{
   id: string;
   name: string;
   specification: string;
@@ -186,7 +189,10 @@ async function findExistingProduct(name: string, specification: string): Promise
  * @param newCategoryName Имя новой категории
  * @returns ID категории
  */
-async function getOrCreateCategory(categoryId: string | null, newCategoryName: string | null): Promise<string | null> {
+async function getOrCreateCategory(
+  categoryId: string | null,
+  newCategoryName: string | null
+): Promise<string | null> {
   try {
     if (categoryId) {
       return categoryId;
@@ -197,10 +203,9 @@ async function getOrCreateCategory(categoryId: string | null, newCategoryName: s
     }
 
     // Проверяем, существует ли уже категория с таким именем
-    const existing = await query(
-      'SELECT id FROM categories WHERE LOWER(name) = LOWER($1)',
-      [newCategoryName.trim()]
-    );
+    const existing = await query('SELECT id FROM categories WHERE LOWER(name) = LOWER($1)', [
+      newCategoryName.trim(),
+    ]);
 
     if (existing.rows.length > 0) {
       return existing.rows[0].id;
@@ -225,7 +230,10 @@ async function getOrCreateCategory(categoryId: string | null, newCategoryName: s
  * @param newBrandName Имя нового бренда
  * @returns ID бренда
  */
-async function getOrCreateBrand(brandId: string | null, newBrandName: string | null): Promise<string | null> {
+async function getOrCreateBrand(
+  brandId: string | null,
+  newBrandName: string | null
+): Promise<string | null> {
   try {
     if (brandId) {
       return brandId;
@@ -236,20 +244,18 @@ async function getOrCreateBrand(brandId: string | null, newBrandName: string | n
     }
 
     // Проверяем, существует ли уже бренд с таким именем
-    const existing = await query(
-      'SELECT id FROM brands WHERE LOWER(name) = LOWER($1)',
-      [newBrandName.trim()]
-    );
+    const existing = await query('SELECT id FROM brands WHERE LOWER(name) = LOWER($1)', [
+      newBrandName.trim(),
+    ]);
 
     if (existing.rows.length > 0) {
       return existing.rows[0].id;
     }
 
     // Создаём новый бренд
-    const result = await query(
-      'INSERT INTO brands (name) VALUES ($1) RETURNING id',
-      [newBrandName.trim()]
-    );
+    const result = await query('INSERT INTO brands (name) VALUES ($1) RETURNING id', [
+      newBrandName.trim(),
+    ]);
 
     return result.rows[0].id;
   } catch (err) {
@@ -499,4 +505,3 @@ async function handler(
 }
 
 export default requireAuth(handler, ['admin']);
-

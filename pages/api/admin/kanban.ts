@@ -30,10 +30,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       // Группируем по статусам в памяти приложения
-      const statuses = ['pending', 'confirmed', 'in_progress', 'ready_for_pickup', 'on_delivery', 'completed'];
+      const statuses = [
+        'pending',
+        'confirmed',
+        'in_progress',
+        'ready_for_pickup',
+        'on_delivery',
+        'completed',
+      ];
       const orders: Record<string, Array<Record<string, unknown>>> = {};
-      
-      statuses.forEach(status => {
+
+      statuses.forEach((status) => {
         orders[status] = [];
       });
 
@@ -68,6 +75,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['manager', 'admin', 'super_admin']);
-
-
-

@@ -10,30 +10,30 @@
 
 ### ✅ Backend компоненты (100%)
 
-| Компонент | Файл | Строк | Статус |
-|-----------|------|-------|--------|
-| Система уведомлений | `lib/notifications.ts` | 330 | ✅ |
-| SQL миграция | `db/migrations/003_notification_settings.sql` | 80 | ✅ |
-| API статуса заказа | `pages/api/orders/[id]/status.ts` | 110 | ✅ |
-| Cron брошенных корзин | `pages/api/cron/abandoned-cart.ts` | 160 | ✅ |
-| Admin API уведомлений | `pages/api/admin/settings/notifications.ts` | 130 | ✅ |
+| Компонент             | Файл                                          | Строк | Статус |
+| --------------------- | --------------------------------------------- | ----- | ------ |
+| Система уведомлений   | `lib/notifications.ts`                        | 330   | ✅     |
+| SQL миграция          | `db/migrations/003_notification_settings.sql` | 80    | ✅     |
+| API статуса заказа    | `pages/api/orders/[id]/status.ts`             | 110   | ✅     |
+| Cron брошенных корзин | `pages/api/cron/abandoned-cart.ts`            | 160   | ✅     |
+| Admin API уведомлений | `pages/api/admin/settings/notifications.ts`   | 130   | ✅     |
 
 **Итого:** ~810 строк production-ready кода
 
 ### ✅ Frontend компоненты (100%)
 
-| Компонент | Файл | Строк | Статус |
-|-----------|------|-------|--------|
-| Админ-панель уведомлений | `pages/admin/settings/notifications.tsx` | 280 | ✅ |
+| Компонент                | Файл                                     | Строк | Статус |
+| ------------------------ | ---------------------------------------- | ----- | ------ |
+| Админ-панель уведомлений | `pages/admin/settings/notifications.tsx` | 280   | ✅     |
 
 ### ✅ Документация (100%)
 
-| Документ | Размер | Статус |
-|----------|--------|--------|
-| README.md | 12.2 KB | ✅ |
-| IMPLEMENTATION_CHECKLIST.md | 7.0 KB | ✅ |
-| COPY_PASTE_TEMPLATES.md | 7.2 KB | ✅ |
-| SUMMARY.md | этот файл | ✅ |
+| Документ                    | Размер    | Статус |
+| --------------------------- | --------- | ------ |
+| README.md                   | 12.2 KB   | ✅     |
+| IMPLEMENTATION_CHECKLIST.md | 7.0 KB    | ✅     |
+| COPY_PASTE_TEMPLATES.md     | 7.2 KB    | ✅     |
+| SUMMARY.md                  | этот файл | ✅     |
 
 **Всего:** ~26 KB документации
 
@@ -65,13 +65,13 @@
 
 ### API endpoints
 
-| Метод | Путь | Описание |
-|-------|------|---------|
-| GET | `/api/admin/settings/notifications` | Получить все настройки и статистику |
-| POST | `/api/admin/settings/notifications` | Обновить несколько настроек |
-| PUT | `/api/admin/settings/notifications` | Обновить одну настройку |
-| PATCH | `/api/orders/[id]/status` | Изменить статус и отправить уведомление |
-| GET | `/api/cron/abandoned-cart` | Запустить cron вручную (для тестирования) |
+| Метод | Путь                                | Описание                                  |
+| ----- | ----------------------------------- | ----------------------------------------- |
+| GET   | `/api/admin/settings/notifications` | Получить все настройки и статистику       |
+| POST  | `/api/admin/settings/notifications` | Обновить несколько настроек               |
+| PUT   | `/api/admin/settings/notifications` | Обновить одну настройку                   |
+| PATCH | `/api/orders/[id]/status`           | Изменить статус и отправить уведомление   |
+| GET   | `/api/cron/abandoned-cart`          | Запустить cron вручную (для тестирования) |
 
 ### Таблицы БД
 
@@ -202,9 +202,9 @@ import { notifyAdminsNewOrder } from 'lib/notifications';
 // Отправить уведомление админам
 await notifyAdminsNewOrder(
   orderId,
-  totalPrice,      // в звёздах
-  username,        // имя покупателя
-  itemsCount       // кол-во товаров
+  totalPrice, // в звёздах
+  username, // имя покупателя
+  itemsCount // кол-во товаров
 );
 ```
 
@@ -310,13 +310,13 @@ WHERE abandoned_at >= NOW() - INTERVAL '24 hours';
 
 ## 📞 Быстрые ссылки
 
-| Нужно | Где найти |
-|------|-----------|
-| Понять как это работает | `docs/03_notifications/README.md` |
-| Скопировать готовый код | `docs/03_notifications/COPY_PASTE_TEMPLATES.md` |
-| Проверить прогресс | `docs/03_notifications/IMPLEMENTATION_CHECKLIST.md` |
-| Главный модуль | `lib/notifications.ts` |
-| Админ-панель | `pages/admin/settings/notifications.tsx` |
+| Нужно                   | Где найти                                           |
+| ----------------------- | --------------------------------------------------- |
+| Понять как это работает | `docs/03_notifications/README.md`                   |
+| Скопировать готовый код | `docs/03_notifications/COPY_PASTE_TEMPLATES.md`     |
+| Проверить прогресс      | `docs/03_notifications/IMPLEMENTATION_CHECKLIST.md` |
+| Главный модуль          | `lib/notifications.ts`                              |
+| Админ-панель            | `pages/admin/settings/notifications.tsx`            |
 
 ---
 
@@ -325,6 +325,7 @@ WHERE abandoned_at >= NOW() - INTERVAL '24 hours';
 ✅ Система уведомлений **полностью готова** к использованию.
 
 **Следующие шаги:**
+
 1. Выполнить SQL миграцию
 2. Добавить 2 строки в bot.ts
 3. Добавить 2 функции в orders.ts

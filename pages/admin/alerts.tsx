@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTelegramWebApp } from '@/lib/telegram';
 
 interface AlertItem {
   name: string;
@@ -18,26 +19,26 @@ export default function AlertsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadAlerts = async () => {
+      try {
+        const response = await fetch('/api/admin/alerts', {
+          headers: { 'X-Telegram-Id': user?.id.toString() || '' },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setAlerts(data.data || []);
+        }
+      } catch (err) {
+        console.error('Failed to load alerts:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadAlerts();
     const interval = setInterval(loadAlerts, 30000);
     return () => clearInterval(interval);
-  }, [loadAlerts]);
-
-  const loadAlerts = async () => {
-    try {
-      const response = await fetch('/api/admin/alerts', {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAlerts(data.data || []);
-      }
-    } catch (err) {
-      console.error('Failed to load alerts:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user?.id]);
 
   if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
 
@@ -68,7 +69,9 @@ export default function AlertsPage() {
               {alert.items && (
                 <ul className="mt-2 text-sm opacity-90">
                   {alert.items.map((item, i: number) => (
-                    <li key={i}>• {item.name} ({item.stock} шт)</li>
+                    <li key={i}>
+                      • {item.name} ({item.stock} шт)
+                    </li>
                   ))}
                 </ul>
               )}
@@ -79,5 +82,3 @@ export default function AlertsPage() {
     </div>
   );
 }
-
-

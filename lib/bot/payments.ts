@@ -102,7 +102,7 @@ export async function handlePaymentSuccess(ctx: Context) {
       `INSERT INTO payment_logs (telegram_id, order_id, telegram_payment_charge_id, amount_received, currency, status, processed_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
       [telegramId, orderId, chargeId, totalAmount, 'XTR', 'success']
-    ).catch(err => console.error('Failed to log payment:', err));
+    ).catch((err) => console.error('Failed to log payment:', err));
 
     const order = orderCheckRes.rows[0];
     const total = parseFloat(order.total);
@@ -110,12 +110,12 @@ export async function handlePaymentSuccess(ctx: Context) {
     // Отправляем уведомление пользователю
     await ctx.reply(
       `✅ Спасибо! Ваш заказ оплачен\n\n` +
-      `📦 Заказ #${orderId.slice(0, 8).toUpperCase()}\n` +
-      `💰 Сумма: ${totalAmount / 100} ⭐️\n` +
-      `📍 Способ доставки: ${order.delivery_method === 'pickup' ? 'Самовывоз' : 'Курьер'}\n\n` +
-      `🔐 Код доставки: <code>${code6digit}</code>\n` +
-      `⏰ Действителен 24 часа\n\n` +
-      `Ожидайте готовности вашего заказа!`,
+        `📦 Заказ #${orderId.slice(0, 8).toUpperCase()}\n` +
+        `💰 Сумма: ${totalAmount / 100} ⭐️\n` +
+        `📍 Способ доставки: ${order.delivery_method === 'pickup' ? 'Самовывоз' : 'Курьер'}\n\n` +
+        `🔐 Код доставки: <code>${code6digit}</code>\n` +
+        `⏰ Действителен 24 часа\n\n` +
+        `Ожидайте готовности вашего заказа!`,
       {
         parse_mode: 'HTML',
         reply_markup: {
@@ -128,7 +128,9 @@ export async function handlePaymentSuccess(ctx: Context) {
     );
 
     // Логируем успешный платёж
-    console.log(`[PAYMENT SUCCESS] Order #${orderId.slice(0, 8).toUpperCase()} paid by user ${telegramId}`);
+    console.log(
+      `[PAYMENT SUCCESS] Order #${orderId.slice(0, 8).toUpperCase()} paid by user ${telegramId}`
+    );
 
     // Отправляем уведомление админам
     const adminIds = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(Number);
@@ -138,14 +140,19 @@ export async function handlePaymentSuccess(ctx: Context) {
           await ctx.api.sendMessage(
             adminId,
             `💰 Новая оплата!\n\n` +
-            `📦 Заказ #${orderId.slice(0, 8).toUpperCase()}\n` +
-            `👤 Пользователь: ${ctx.from?.first_name} (@${ctx.from?.username || 'N/A'})\n` +
-            `💵 Сумма: ${totalAmount / 100} ⭐️\n` +
-            `📦 Код доставки: ${code6digit}`,
+              `📦 Заказ #${orderId.slice(0, 8).toUpperCase()}\n` +
+              `👤 Пользователь: ${ctx.from?.first_name} (@${ctx.from?.username || 'N/A'})\n` +
+              `💵 Сумма: ${totalAmount / 100} ⭐️\n` +
+              `📦 Код доставки: ${code6digit}`,
             {
               reply_markup: {
                 inline_keyboard: [
-                  [{ text: 'Открыть админ-панель', web_app: { url: `${process.env.WEBAPP_URL}/admin/orders` || '' } }],
+                  [
+                    {
+                      text: 'Открыть админ-панель',
+                      web_app: { url: `${process.env.WEBAPP_URL}/admin/orders` || '' },
+                    },
+                  ],
                 ],
               },
             }
@@ -157,10 +164,9 @@ export async function handlePaymentSuccess(ctx: Context) {
     }
 
     // Обновляем реферальные бонусы
-    const userRes = await query(
-      'SELECT referred_by FROM users WHERE telegram_id = $1',
-      [telegramId]
-    );
+    const userRes = await query('SELECT referred_by FROM users WHERE telegram_id = $1', [
+      telegramId,
+    ]);
 
     if (userRes.rows.length > 0 && userRes.rows[0].referred_by) {
       const referredBy = userRes.rows[0].referred_by;
@@ -173,10 +179,10 @@ export async function handlePaymentSuccess(ctx: Context) {
           [referredBy, bonusAmount, orderId]
         );
 
-        await query(
-          `UPDATE users SET bonus_balance = bonus_balance + $1 WHERE telegram_id = $2`,
-          [bonusAmount, referredBy]
-        );
+        await query(`UPDATE users SET bonus_balance = bonus_balance + $1 WHERE telegram_id = $2`, [
+          bonusAmount,
+          referredBy,
+        ]);
 
         console.log(`[REFERRAL] User ${referredBy} received ${bonusAmount} bonus for referral`);
       } catch (refErr) {
@@ -185,6 +191,8 @@ export async function handlePaymentSuccess(ctx: Context) {
     }
   } catch (err) {
     console.error('Payment success handler error:', err);
-    await ctx.reply('❌ Произошла ошибка при обработке платежа. Пожалуйста, свяжитесь с поддержкой.');
+    await ctx.reply(
+      '❌ Произошла ошибка при обработке платежа. Пожалуйста, свяжитесь с поддержкой.'
+    );
   }
 }

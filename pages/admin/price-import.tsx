@@ -32,7 +32,7 @@ export async function getServerSideProps() {
 
 /**
  * AdminPriceImport - страница просмотра импортированных товаров
- * 
+ *
  * Отображает все импортированные товары с фильтрацией по статусу активации,
  * поиском и возможностью удаления неактивированных товаров.
  */
@@ -93,7 +93,7 @@ export default function AdminPriceImport() {
         const data = await res.json();
         throw new Error(data.message || 'Ошибка при удалении');
       }
-      setItems(items.filter(item => item.id !== id));
+      setItems(items.filter((item) => item.id !== id));
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       setDeleteError(error.message || 'Ошибка при удалении товара');
@@ -128,12 +128,8 @@ export default function AdminPriceImport() {
       <main className="flex-1 ml-0 md:ml-64 p-4 md:p-6">
         {/* Header */}
         <div className="mb-6 mt-10 md:mt-0">
-          <h1 className="text-2xl md:text-3xl font-bold gradient-text">
-            Импортированные товары
-          </h1>
-          <p className="text-textSecondary text-sm mt-1">
-            Всего: {totalCount} товаров
-          </p>
+          <h1 className="text-2xl md:text-3xl font-bold gradient-text">Импортированные товары</h1>
+          <p className="text-textSecondary text-sm mt-1">Всего: {totalCount} товаров</p>
         </div>
 
         {error && (
@@ -163,11 +159,7 @@ export default function AdminPriceImport() {
                   : 'bg-cardBg border border-border text-textPrimary hover:border-neon/50'
               }`}
             >
-              {f === 'all'
-                ? 'Все'
-                : f === 'active'
-                ? 'Активные'
-                : 'Неактивные'}
+              {f === 'all' ? 'Все' : f === 'active' ? 'Активные' : 'Неактивные'}
             </button>
           ))}
         </div>
@@ -187,16 +179,17 @@ export default function AdminPriceImport() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16" />
+              <div
+                key={i}
+                className="bg-cardBg border border-border rounded-2xl p-4 skeleton h-16"
+              />
             ))}
           </div>
         ) : items.length === 0 ? (
           <div className="bg-cardBg border border-border rounded-2xl p-12 text-center">
             <p className="text-textSecondary mb-2">Товаров не найдено</p>
             <p className="text-textSecondary/60 text-sm">
-              {search
-                ? 'Измените критерии поиска'
-                : 'Импортируйте товары в разделе "Импорт CSV"'}
+              {search ? 'Измените критерии поиска' : 'Импортируйте товары в разделе "Импорт CSV"'}
             </p>
           </div>
         ) : (
@@ -252,15 +245,9 @@ export default function AdminPriceImport() {
                       </td>
                       <td className="p-4">
                         <div className="text-xs text-neon font-mono space-y-1">
-                          <div>
-                            {item.tier1_price.toLocaleString('ru-RU')}
-                          </div>
-                          <div>
-                            {item.tier2_price.toLocaleString('ru-RU')}
-                          </div>
-                          <div>
-                            {item.tier3_price.toLocaleString('ru-RU')}
-                          </div>
+                          <div>{item.tier1_price.toLocaleString('ru-RU')}</div>
+                          <div>{item.tier2_price.toLocaleString('ru-RU')}</div>
+                          <div>{item.tier3_price.toLocaleString('ru-RU')}</div>
                         </div>
                       </td>
                       <td className="p-4">
@@ -277,9 +264,7 @@ export default function AdminPriceImport() {
                           {item.quantity} шт
                         </span>
                       </td>
-                      <td className="p-4">
-                        {statusBadge(item.is_activated)}
-                      </td>
+                      <td className="p-4">{statusBadge(item.is_activated)}</td>
                       <td className="p-4">
                         {!item.is_activated && (
                           <button

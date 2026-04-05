@@ -26,7 +26,7 @@ export default function BalancePage() {
   const loadBalance = async () => {
     try {
       const response = await fetch('/api/user/balance', {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -63,13 +63,19 @@ export default function BalancePage() {
       <h3 className="font-bold text-textPrimary mb-4">История</h3>
       <div className="space-y-3">
         {balanceData.history.map((entry) => (
-          <div key={entry.id} className="bg-cardBg rounded-lg border border-border p-3 flex justify-between items-center">
+          <div
+            key={entry.id}
+            className="bg-cardBg rounded-lg border border-border p-3 flex justify-between items-center"
+          >
             <div>
               <p className="font-semibold text-textPrimary">{entry.description}</p>
-              <p className="text-textSecondary text-sm">{new Date(entry.created_at).toLocaleDateString('ru-RU')}</p>
+              <p className="text-textSecondary text-sm">
+                {new Date(entry.created_at).toLocaleDateString('ru-RU')}
+              </p>
             </div>
             <p className={`font-bold ${getTypeColor(entry.type)}`}>
-              {entry.type.includes('refund') || entry.type.includes('cashback') ? '+' : '-'}{entry.amount} ₽
+              {entry.type.includes('refund') || entry.type.includes('cashback') ? '+' : '-'}
+              {entry.amount} ₽
             </p>
           </div>
         ))}

@@ -8,15 +8,15 @@ interface SkeletonProps {
   className?: string;
 }
 
-export function Skeleton({ 
-  width = '100%', 
-  height = '20px', 
-  count = 1, 
+export function Skeleton({
+  width = '100%',
+  height = '20px',
+  count = 1,
   circle = false,
-  className = '' 
+  className = '',
 }: SkeletonProps) {
   const skeletons = Array(count).fill(0);
-  
+
   return (
     <>
       {skeletons.map((_, i) => (
@@ -32,7 +32,7 @@ export function Skeleton({
             width,
             height,
             backgroundSize: '200% 100%',
-            animation: 'shimmer 2s infinite'
+            animation: 'shimmer 2s infinite',
           }}
         />
       ))}

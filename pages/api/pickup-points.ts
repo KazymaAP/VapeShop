@@ -5,7 +5,9 @@ import { buildUpdateSet } from '@/lib/sqlBuilder';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const result = await query('SELECT * FROM pickup_points WHERE is_active = true ORDER BY name');
+      const result = await query(
+        'SELECT * FROM pickup_points WHERE is_active = true ORDER BY name'
+      );
       res.status(200).json({ pickup_points: result.rows });
     } catch {
       res.status(500).json({ error: 'Ошибка загрузки точек самовывоза' });
@@ -50,4 +52,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
-

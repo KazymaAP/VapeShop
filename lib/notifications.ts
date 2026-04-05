@@ -3,7 +3,7 @@ import { query } from './db';
 
 /**
  * Система уведомлений для VapeShop
- * 
+ *
  * Функционал:
  * - Отправка уведомлений через Telegram
  * - Управление настройками уведомлений
@@ -70,7 +70,7 @@ export async function getNotificationTargetRole(eventType: string): Promise<stri
 
 /**
  * Отправляет уведомление конкретному пользователю
- * 
+ *
  * @param telegramId ID пользователя в Telegram
  * @param text Текст сообщения
  * @param extra Дополнительные параметры (reply_markup, parse_mode и т.д.)
@@ -80,7 +80,7 @@ export async function getNotificationTargetRole(eventType: string): Promise<stri
 export async function sendNotification(
   telegramId: number,
   text: string,
-  extra?: any,
+  extra?: Record<string, unknown>,
   eventType?: string
 ): Promise<boolean> {
   try {
@@ -101,7 +101,7 @@ export async function sendNotification(
         `INSERT INTO notification_history (user_telegram_id, event_type, message_text, status)
          VALUES ($1, $2, $3, $4)`,
         [telegramId, eventType, text, 'sent']
-      ).catch(err => console.error('Logging notification error:', err));
+      ).catch((err) => console.error('Logging notification error:', err));
     }
 
     return true;
@@ -114,7 +114,7 @@ export async function sendNotification(
         `INSERT INTO notification_history (user_telegram_id, event_type, message_text, status, error_message)
          VALUES ($1, $2, $3, $4, $5)`,
         [telegramId, eventType, text, 'failed', String(err)]
-      ).catch(logErr => console.error('Logging error notification error:', logErr));
+      ).catch((logErr) => console.error('Logging error notification error:', logErr));
     }
 
     return false;
@@ -123,7 +123,7 @@ export async function sendNotification(
 
 /**
  * Отправляет уведомление всем пользователям с определённой ролью
- * 
+ *
  * @param role Роль пользователей (admin, manager, seller, buyer)
  * @param text Текст сообщения
  * @param extra Дополнительные параметры
@@ -133,7 +133,7 @@ export async function sendNotification(
 export async function broadcastNotification(
   role: string,
   text: string,
-  extra?: any,
+  extra?: Record<string, unknown>,
   eventType?: string
 ): Promise<{ sent: number; failed: number }> {
   try {
@@ -148,12 +148,7 @@ export async function broadcastNotification(
 
     // Отправляем каждому
     for (const row of result.rows) {
-      const success = await sendNotification(
-        row.telegram_id,
-        text,
-        extra,
-        eventType
-      );
+      const success = await sendNotification(row.telegram_id, text, extra, eventType);
 
       if (success) {
         sent++;
@@ -162,7 +157,7 @@ export async function broadcastNotification(
       }
 
       // Добавляем небольшую задержку чтобы не заспамить Telegram
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     console.log(`Broadcast complete: sent=${sent}, failed=${failed}`);
@@ -189,7 +184,8 @@ export async function notifyAdminsNewOrder(
     }
 
     const shortId = orderId.substring(0, 8).toUpperCase();
-    const text = `🆕 <b>Новый заказ #${shortId}</b>\n\n` +
+    const text =
+      `🆕 <b>Новый заказ #${shortId}</b>\n\n` +
       `👤 От: @${username}\n` +
       `💰 Сумма: ${totalPrice} ⭐️\n` +
       `📦 Товаров: ${itemsCount} шт.\n\n` +
@@ -201,7 +197,12 @@ export async function notifyAdminsNewOrder(
       {
         reply_markup: {
           inline_keyboard: [
-            [{ text: '📋 Просмотреть заказ', web_app: { url: `${process.env.WEBAPP_URL}/admin/orders` } }],
+            [
+              {
+                text: '📋 Просмотреть заказ',
+                web_app: { url: `${process.env.WEBAPP_URL}/admin/orders` },
+              },
+            ],
           ],
         },
       },
@@ -229,7 +230,8 @@ export async function notifyBuyerOrderCreated(
     }
 
     const shortId = orderId.substring(0, 8).toUpperCase();
-    const text = `✅ <b>Заказ #${shortId} оплачен</b>\n\n` +
+    const text =
+      `✅ <b>Заказ #${shortId} оплачен</b>\n\n` +
       `Спасибо за покупку! 🎉\n` +
       `💰 Сумма: ${totalPrice} ⭐️\n\n` +
       `Ваш заказ принят в обработку и вскоре будет подтверждён.\n` +
@@ -241,7 +243,12 @@ export async function notifyBuyerOrderCreated(
       {
         reply_markup: {
           inline_keyboard: [
-            [{ text: '📋 Мой заказ', web_app: { url: `${process.env.WEBAPP_URL}/orders/${orderId}` } }],
+            [
+              {
+                text: '📋 Мой заказ',
+                web_app: { url: `${process.env.WEBAPP_URL}/orders/${orderId}` },
+              },
+            ],
           ],
         },
       },
@@ -273,27 +280,31 @@ export async function notifyBuyerOrderStatus(
 
     switch (newStatus) {
       case 'confirmed':
-        text = `📦 <b>Заказ #${shortId} подтверждён</b>\n\n` +
+        text =
+          `📦 <b>Заказ #${shortId} подтверждён</b>\n\n` +
           `Спасибо! Ваш заказ начал обработку.\n` +
           `Мы свяжемся с вами для уточнения деталей доставки.`;
         break;
 
       case 'readyship':
         eventType = 'order_ready_ship';
-        text = `🚀 <b>Заказ #${shortId} готов к выдаче</b>\n\n` +
+        text =
+          `🚀 <b>Заказ #${shortId} готов к выдаче</b>\n\n` +
           `Ваш заказ подготовлен и ждёт передачи курьеру.\n\n` +
           `🔐 <b>Ваш код подтверждения:</b> <code>${code6digit || 'N/A'}</code>\n\n` +
           `Передайте этот код курьеру при получении.`;
         break;
 
       case 'shipped':
-        text = `🚚 <b>Заказ #${shortId} передан курьеру</b>\n\n` +
+        text =
+          `🚚 <b>Заказ #${shortId} передан курьеру</b>\n\n` +
           `Ваш заказ в пути! 📍\n` +
           `Курьер свяжется с вами для уточнения времени доставки.`;
         break;
 
       case 'done':
-        text = `✅ <b>Заказ #${shortId} выполнен</b>\n\n` +
+        text =
+          `✅ <b>Заказ #${shortId} выполнен</b>\n\n` +
           `Спасибо за покупку! 🎉\n\n` +
           `Оставьте отзыв, чтобы помочь нам улучшиться.\n` +
           `Ваше мнение очень важно!`;
@@ -309,7 +320,12 @@ export async function notifyBuyerOrderStatus(
       {
         reply_markup: {
           inline_keyboard: [
-            [{ text: '📋 Мой заказ', web_app: { url: `${process.env.WEBAPP_URL}/orders/${orderId}` } }],
+            [
+              {
+                text: '📋 Мой заказ',
+                web_app: { url: `${process.env.WEBAPP_URL}/orders/${orderId}` },
+              },
+            ],
           ],
         },
       },
@@ -334,7 +350,8 @@ export async function notifyAbandonedCart(
       return false;
     }
 
-    const text = `💔 <b>У вас остались товары в корзине</b>\n\n` +
+    const text =
+      `💔 <b>У вас остались товары в корзине</b>\n\n` +
       `📦 Товаров: ${itemsCount} шт.\n` +
       `💰 Сумма: ${totalPrice} ⭐️\n\n` +
       `Не потеряйте идеальную покупку! Оформите заказ прямо сейчас.`;
@@ -359,7 +376,7 @@ export async function notifyAbandonedCart(
          SET reminder_sent = true, reminder_sent_at = NOW()
          WHERE user_telegram_id = $1`,
         [telegramId]
-      ).catch(err => console.error('Update abandoned cart error:', err));
+      ).catch((err) => console.error('Update abandoned cart error:', err));
     }
 
     return success;
@@ -372,15 +389,13 @@ export async function notifyAbandonedCart(
 /**
  * Получает статистику уведомлений
  */
-export async function getNotificationStats(
-  daysBack: number = 7
-): Promise<{
+export async function getNotificationStats(daysBack: number = 7): Promise<{
   total_sent: number;
   total_failed: number;
   by_event: Array<{ event_type: string; count: number }>;
 }> {
   try {
-    const since = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
+    const since = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString();
 
     // Всего отправлено
     const totalResult = await query(

@@ -3,6 +3,7 @@
 ## Фаза 1: Подготовка базы данных (30 мин)
 
 ### 1.1 Миграция БД
+
 - [ ] Прочитайте `db/migrations/002_telegram_stars_payment.sql`
 - [ ] Выполните миграцию в Neon:
   ```bash
@@ -10,13 +11,14 @@
   ```
 - [ ] Проверьте, что таблица `orders` имеет все поля:
   ```sql
-  SELECT column_name, data_type FROM information_schema.columns 
-  WHERE table_name = 'orders' 
+  SELECT column_name, data_type FROM information_schema.columns
+  WHERE table_name = 'orders'
   ORDER BY ordinal_position;
   ```
 - [ ] Убедитесь, что созданы индексы и триггеры
 
 ### 1.2 Проверка существующих таблиц
+
 - [ ] В таблице `orders` есть поле `status` (VARCHAR)
 - [ ] В таблице `orders` есть поле `paid_at` (TIMESTAMP)
 - [ ] В таблице `orders` есть поле `code_6digit` (INT)
@@ -32,6 +34,7 @@
 ### 2.1 Обновление API эндпоинтов
 
 #### ✅ Файл: `pages/api/orders.ts`
+
 - [ ] Замените содержимое на реализацию из моих изменений
 - [ ] Проверьте, что импортирует `Bot` из `grammy`
 - [ ] Убедитесь, что используется `bot.api.sendInvoice()` (не `createInvoiceLink`)
@@ -43,6 +46,7 @@
   - `prices`: [{ label: "Итого", amount: total }]
 
 #### ✅ Новый файл: `pages/api/orders/verify-code.ts`
+
 - [ ] Создайте этот файл (он сейчас отсутствует)
 - [ ] Скопируйте содержимое из моей реализации
 - [ ] Проверьте, что обработчик POST работает корректно
@@ -52,6 +56,7 @@
   - Статус заказа (только 'new')
 
 #### ✅ Файл: `pages/api/bot.ts`
+
 - [ ] Замените содержимое на реализацию из моих изменений
 - [ ] Добавьте обработчик для callback `cancel_order:`
 - [ ] Проверьте, что импортирует `query` из `lib/db`
@@ -60,6 +65,7 @@
 ### 2.2 Обновление обработчиков платежей
 
 #### ✅ Файл: `lib/bot/payments.ts`
+
 - [ ] Замените содержимое на реализацию из моих изменений
 - [ ] Проверьте функцию `handlePreCheckout`:
   - Проверяет статус заказа ('pending')
@@ -74,6 +80,7 @@
 ### 2.3 Создание утилит
 
 #### ✅ Новый файл: `lib/utils/payments.ts`
+
 - [ ] Создайте этот файл
 - [ ] Скопируйте содержимое из моей реализации
 - [ ] Проверьте функции:
@@ -85,6 +92,7 @@
 ### 2.4 Обновление фронтенда
 
 #### ⚠️ Файл: `pages/cart.tsx` (требует ручного обновления)
+
 - [ ] **НЕ ЗАМЕНЯЙТЕ** весь файл, а **ОБЪЕДИНИТЕ** с существующим:
   1. Импортируйте `createOrderWithPayment` из `lib/utils/payments`
   2. Добавьте функцию `applyPromoCode()`
@@ -100,6 +108,7 @@
 ## Фаза 3: Конфигурация Telegram Bot (20 мин)
 
 ### 3.1 Проверка переменных окружения
+
 - [ ] В `.env.local` установлены:
   - `TELEGRAM_BOT_TOKEN` (формат: `123456:ABC...`)
   - `WEBAPP_URL` (например: `https://your-app.vercel.app`)
@@ -108,6 +117,7 @@
 ### 3.2 Настройка бота в Telegram
 
 #### Убедитесь, что в Telegram BotFather:
+
 - [ ] Команда `/start` зарегистрирована
 - [ ] Команда `/orders` зарегистрирована
 - [ ] Для платежей звёздами дополнительно:
@@ -120,6 +130,7 @@
 ### 3.3 Webhook конфигурация
 
 #### Установка webhook на production:
+
 ```bash
 curl -X POST \
   https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook \
@@ -128,11 +139,13 @@ curl -X POST \
 ```
 
 #### Проверка webhook:
+
 ```bash
 curl https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo
 ```
 
 #### Для локального тестирования (используйте ngrok):
+
 ```bash
 # Установите ngrok: https://ngrok.com/download
 ngrok http 3000
@@ -151,6 +164,7 @@ curl -X POST \
 ### 4.1 Локальное тестирование
 
 #### На локальной машине:
+
 ```bash
 # Запустите dev сервер
 npm run dev
@@ -164,6 +178,7 @@ ngrok http 3000
 ```
 
 #### Тестовые сценарии:
+
 1. **Создание заказа**
    - [ ] Добавьте товары в корзину
    - [ ] Заполните форму доставки
@@ -194,9 +209,9 @@ ngrok http 3000
 
 ```sql
 -- Список всех заказов с платежами
-SELECT id, user_telegram_id, status, total, paid_at, code_6digit, code_expires_at, created_at 
-FROM orders 
-ORDER BY created_at DESC 
+SELECT id, user_telegram_id, status, total, paid_at, code_6digit, code_expires_at, created_at
+FROM orders
+ORDER BY created_at DESC
 LIMIT 20;
 
 -- Заказы, ожидающие оплаты
@@ -215,10 +230,12 @@ SELECT * FROM payment_logs ORDER BY created_at DESC LIMIT 10;
 ### 4.3 Проверка логов
 
 #### В консоли:
+
 - [ ] При создании заказа видны логи в `/api/orders`
 - [ ] При платеже видны логи в `/lib/bot/payments.ts`
 
 #### В Telegram:
+
 - [ ] Получаете сообщение с инвойсом
 - [ ] После оплаты получаете сообщение с кодом
 - [ ] Админы получают уведомление о платеже
@@ -267,6 +284,7 @@ curl -X POST \
 **Причина:** Неправильная версия grammy или API не поддерживает метод.
 
 **Решение:**
+
 ```bash
 npm install grammy@latest
 ```
@@ -276,6 +294,7 @@ npm install grammy@latest
 **Причина:** Переменная окружения `NEON_DATABASE_URL` не установлена или неверна.
 
 **Решение:**
+
 - Проверьте `.env.local`
 - Переподключитесь к Neon и скопируйте строку подключения заново
 
@@ -284,6 +303,7 @@ npm install grammy@latest
 **Причина:** Payload в инвойсе не совпадает с order.id.
 
 **Решение:**
+
 - В `/api/orders.ts` убедитесь, что `payload` это `order.id` (UUID)
 - В `lib/bot/payments.ts` убедитесь, что `payment.invoice_payload` это именно order.id
 
@@ -292,6 +312,7 @@ npm install grammy@latest
 **Причина:** URL вебхука неверен или сервер не доступен.
 
 **Решение:**
+
 - Проверьте, что URL правильный: `https://ваш-домен.com/api/bot`
 - Проверьте, что сервер работает
 - Переустановите webhook
@@ -301,6 +322,7 @@ npm install grammy@latest
 **Причина:** Неправильно установлено время истечения в БД.
 
 **Решение:**
+
 - Проверьте, что `code_expires_at` вычисляется как `NOW() + interval '24 hours'`
 - Убедитесь, что часовой пояс БД установлен корректно
 
@@ -308,20 +330,20 @@ npm install grammy@latest
 
 ## 📊 Проверочная таблица
 
-| Шаг | Статус | Дата | Примечание |
-|-----|--------|------|-----------|
-| Миграция БД | ☐ | | |
-| Обновление `/api/orders.ts` | ☐ | | |
-| Создание `/api/orders/verify-code.ts` | ☐ | | |
-| Обновление `/api/bot.ts` | ☐ | | |
-| Обновление `/lib/bot/payments.ts` | ☐ | | |
-| Создание `/lib/utils/payments.ts` | ☐ | | |
-| Обновление `pages/cart.tsx` | ☐ | | |
-| Конфигурация Telegram Bot | ☐ | | |
-| Установка webhook | ☐ | | |
-| Локальное тестирование | ☐ | | |
-| Production deployment | ☐ | | |
-| Финальная проверка | ☐ | | |
+| Шаг                                   | Статус | Дата | Примечание |
+| ------------------------------------- | ------ | ---- | ---------- |
+| Миграция БД                           | ☐      |      |            |
+| Обновление `/api/orders.ts`           | ☐      |      |            |
+| Создание `/api/orders/verify-code.ts` | ☐      |      |            |
+| Обновление `/api/bot.ts`              | ☐      |      |            |
+| Обновление `/lib/bot/payments.ts`     | ☐      |      |            |
+| Создание `/lib/utils/payments.ts`     | ☐      |      |            |
+| Обновление `pages/cart.tsx`           | ☐      |      |            |
+| Конфигурация Telegram Bot             | ☐      |      |            |
+| Установка webhook                     | ☐      |      |            |
+| Локальное тестирование                | ☐      |      |            |
+| Production deployment                 | ☐      |      |            |
+| Финальная проверка                    | ☐      |      |            |
 
 ---
 
@@ -331,7 +353,7 @@ npm install grammy@latest
 
 1. Проверьте логи в консоли (npm run dev)
 2. Проверьте логи в Telegram Bot API (getWebhookInfo)
-3. Проверьте логи в БД (SELECT * FROM payment_logs)
+3. Проверьте логи в БД (SELECT \* FROM payment_logs)
 4. Используйте ngrok для локального отладки
 5. Включите debug режим в grammy (для development)
 

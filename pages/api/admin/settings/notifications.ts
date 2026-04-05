@@ -12,7 +12,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
          ORDER BY event_type ASC`
       );
 
-      const settings = result.rows.map(row => ({
+      const settings = result.rows.map((row) => ({
         id: row.id,
         event_type: row.event_type,
         is_enabled: row.is_enabled,
@@ -31,9 +31,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const stats = {
         total_sent: parseInt(statsResult.rows[0]?.total_sent || 0),
         total_failed: parseInt(statsResult.rows[0]?.total_failed || 0),
-        success_rate: statsResult.rows[0]?.total_sent > 0
-          ? ((statsResult.rows[0]?.total_sent - statsResult.rows[0]?.total_failed) / statsResult.rows[0]?.total_sent * 100).toFixed(1)
-          : 0,
+        success_rate:
+          statsResult.rows[0]?.total_sent > 0
+            ? (
+                ((statsResult.rows[0]?.total_sent - statsResult.rows[0]?.total_failed) /
+                  statsResult.rows[0]?.total_sent) *
+                100
+              ).toFixed(1)
+            : 0,
       };
 
       res.status(200).json({ settings, stats });
@@ -74,7 +79,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await query(
         `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
         [telegramId, 'update_notification_settings', JSON.stringify({ updated_count: updated })]
-      ).catch(err => console.error('Logging error:', err));
+      ).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({
         success: true,
@@ -101,11 +106,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
              updated_at = NOW()
          WHERE event_type = $3
          RETURNING *`,
-        [
-          is_enabled !== undefined ? is_enabled : null,
-          target_role || null,
-          event_type,
-        ]
+        [is_enabled !== undefined ? is_enabled : null, target_role || null, event_type]
       );
 
       if (result.rows.length === 0) {
@@ -116,13 +117,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const telegramId = getTelegramId(req);
       await query(
         `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [telegramId, 'update_notification_setting', JSON.stringify({
-          event_type,
-          old_enabled: result.rows[0].is_enabled,
-          new_enabled: is_enabled,
-          target_role,
-        })]
-      ).catch(err => console.error('Logging error:', err));
+        [
+          telegramId,
+          'update_notification_setting',
+          JSON.stringify({
+            event_type,
+            old_enabled: result.rows[0].is_enabled,
+            new_enabled: is_enabled,
+            target_role,
+          }),
+        ]
+      ).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({
         success: true,
@@ -139,4 +144,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 // Защита: только админы
 export default requireAuth(handler, ['admin']);
-

@@ -18,26 +18,31 @@ interface BreadcrumbProps {
   separatorClassName?: string;
 }
 
-export function Breadcrumb({ items = [], className = '', separatorClassName = '' }: BreadcrumbProps) {
+export function Breadcrumb({
+  items = [],
+  className = '',
+  separatorClassName = '',
+}: BreadcrumbProps) {
   const router = useRouter();
 
   // Если items не переданы, генерируем из URL
-  const breadcrumbs: BreadcrumbItem[] = items.length > 0 ? items : generateBreadcrumbs(router.pathname);
+  const breadcrumbs: BreadcrumbItem[] =
+    items.length > 0 ? items : generateBreadcrumbs(router.pathname);
 
   return (
     <nav
       aria-label="Breadcrumb"
-      className={clsx('flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 overflow-x-auto', className)}
+      className={clsx(
+        'flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 overflow-x-auto',
+        className
+      )}
     >
       {breadcrumbs.map((item, index) => (
         <div key={item.href} className="flex items-center gap-2 whitespace-nowrap">
           {/* Сепаратор */}
           {index > 0 && (
             <span
-              className={clsx(
-                'text-gray-400 dark:text-gray-500 select-none',
-                separatorClassName
-              )}
+              className={clsx('text-gray-400 dark:text-gray-500 select-none', separatorClassName)}
               aria-hidden="true"
             >
               →
@@ -111,9 +116,7 @@ export function BreadcrumbWithIcons({
  * Функция для автоматического генерирования breadcrumbs из URL
  */
 function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
-  const breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Главная', href: '/' },
-  ];
+  const breadcrumbs: BreadcrumbItem[] = [{ label: 'Главная', href: '/' }];
 
   if (pathname === '/') {
     return breadcrumbs;

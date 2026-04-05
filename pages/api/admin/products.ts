@@ -8,10 +8,29 @@ import { ApiResponse } from '../../../types/api';
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
-      const { name, specification, price, stock, brand_id, category_id, is_new, is_hit, promotion, image_url } = req.body;
+      const {
+        name,
+        specification,
+        price,
+        stock,
+        brand_id,
+        category_id,
+        is_new,
+        is_hit,
+        promotion,
+        image_url,
+      } = req.body;
 
       // Валидация
-      const errors = validateProduct({ name, specification, price, stock, category_id, brand_id, image_url });
+      const errors = validateProduct({
+        name,
+        specification,
+        price,
+        stock,
+        category_id,
+        brand_id,
+        image_url,
+      });
       if (errors.length > 0) {
         return res.status(400).json({ error: 'Validation failed', details: errors });
       }
@@ -21,14 +40,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const result = await query(
         `INSERT INTO products (name, specification, price, stock, brand_id, category_id, is_new, is_hit, promotion, image_url, is_active, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-        [name, specification || null, price, stock, brand_id || null, category_id || null, is_new || false, is_hit || false, promotion || false, image_url || null, true, adminTelegramId]
+        [
+          name,
+          specification || null,
+          price,
+          stock,
+          brand_id || null,
+          category_id || null,
+          is_new || false,
+          is_hit || false,
+          promotion || false,
+          image_url || null,
+          true,
+          adminTelegramId,
+        ]
       );
 
       // Логируем
       await query(
         `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
          VALUES ($1, $2, $3, $4)`,
-        [adminTelegramId, 'CREATE_PRODUCT', 'products', JSON.stringify({ product_id: result.rows[0].id, name })]
+        [
+          adminTelegramId,
+          'CREATE_PRODUCT',
+          'products',
+          JSON.stringify({ product_id: result.rows[0].id, name }),
+        ]
       ).catch(() => {});
 
       const response: ApiResponse = {
@@ -40,7 +77,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(201).json(response);
     } catch (err) {
       console.error('Product creation error:', err);
-      res.status(500).json({ error: 'Ошибка создания товара', success: false, timestamp: Date.now() });
+      res
+        .status(500)
+        .json({ error: 'Ошибка создания товара', success: false, timestamp: Date.now() });
     }
   } else if (req.method === 'PUT') {
     try {
@@ -69,8 +108,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       let idx = 1;
 
       // Список допустимых полей для обновления
-      const allowedFields = ['name', 'specification', 'price', 'stock', 'brand_id', 'category_id', 'is_active', 'is_new', 'is_hit', 'promotion', 'image_url'];
-      allowedFields.forEach(field => {
+      const allowedFields = [
+        'name',
+        'specification',
+        'price',
+        'stock',
+        'brand_id',
+        'category_id',
+        'is_active',
+        'is_new',
+        'is_hit',
+        'promotion',
+        'image_url',
+      ];
+      allowedFields.forEach((field) => {
         if (updateData[field] !== undefined) {
           fields.push(`${field} = $${idx++}`);
           values.push(updateData[field]);
@@ -97,7 +148,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Логируем изменения
       const changes: Record<string, { old: unknown; new: unknown }> = {};
-      allowedFields.forEach(field => {
+      allowedFields.forEach((field) => {
         if (updateData[field] !== undefined && old[field] !== updateData[field]) {
           changes[field] = { old: old[field], new: updateData[field] };
         }
@@ -114,7 +165,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         await query(
           `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
            VALUES ($1, $2, $3, $4)`,
-          [adminTelegramId, 'UPDATE_PRODUCT', 'products', JSON.stringify({ product_id: id, changes })]
+          [
+            adminTelegramId,
+            'UPDATE_PRODUCT',
+            'products',
+            JSON.stringify({ product_id: id, changes }),
+          ]
         ).catch(() => {});
       }
 
@@ -127,7 +183,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(200).json(response);
     } catch (err) {
       console.error('Product update error:', err);
-      res.status(500).json({ error: 'Ошибка обновления товара', success: false, timestamp: Date.now() });
+      res
+        .status(500)
+        .json({ error: 'Ошибка обновления товара', success: false, timestamp: Date.now() });
     }
   } else if (req.method === 'GET') {
     try {
@@ -154,12 +212,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       if (category_id) {
-        whereClause += whereClause ? ` AND p.category_id = $${params.length + 1}` : `WHERE p.category_id = $${params.length + 1}`;
+        whereClause += whereClause
+          ? ` AND p.category_id = $${params.length + 1}`
+          : `WHERE p.category_id = $${params.length + 1}`;
         params.push(parseInt(String(category_id)));
       }
 
       if (brand_id) {
-        whereClause += whereClause ? ` AND p.brand_id = $${params.length + 1}` : `WHERE p.brand_id = $${params.length + 1}`;
+        whereClause += whereClause
+          ? ` AND p.brand_id = $${params.length + 1}`
+          : `WHERE p.brand_id = $${params.length + 1}`;
         params.push(parseInt(String(brand_id)));
       }
 
@@ -199,7 +261,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(200).json(response);
     } catch (err) {
       console.error('Product list error:', err);
-      res.status(500).json({ error: 'Ошибка загрузки товаров', success: false, timestamp: Date.now() });
+      res
+        .status(500)
+        .json({ error: 'Ошибка загрузки товаров', success: false, timestamp: Date.now() });
     }
   } else if (req.method === 'DELETE') {
     try {
@@ -239,4 +303,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(rateLimit(handler, RATE_LIMIT_PRESETS.normal), ['admin']);
-

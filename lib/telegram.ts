@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 
 declare global {
   interface Window {
@@ -75,7 +75,11 @@ export function useTelegramWebApp() {
     }
   }, []);
 
-  return { webapp: typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined, user, isReady };
+  return {
+    webapp: typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined,
+    user,
+    isReady,
+  };
 }
 
 export function useMainButton(text: string, onClick: () => void, visible = true) {

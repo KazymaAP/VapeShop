@@ -12,7 +12,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } else if (req.method === 'POST') {
     try {
-      const { code, discount_type, discount_value, valid_from, valid_until, min_order_amount, max_uses } = req.body;
+      const {
+        code,
+        discount_type,
+        discount_value,
+        valid_from,
+        valid_until,
+        min_order_amount,
+        max_uses,
+      } = req.body;
       if (!code || !discount_type || discount_value === undefined) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
@@ -20,7 +28,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await query(
         `INSERT INTO promocodes (code, discount_type, discount_value, valid_from, valid_until, min_order_amount, max_uses)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [code.toUpperCase(), discount_type, discount_value, valid_from || null, valid_until || null, min_order_amount || 0, max_uses || null]
+        [
+          code.toUpperCase(),
+          discount_type,
+          discount_value,
+          valid_from || null,
+          valid_until || null,
+          min_order_amount || 0,
+          max_uses || null,
+        ]
       );
       res.status(200).json({ promocode: result.rows[0] });
     } catch {
@@ -28,7 +44,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } else if (req.method === 'PUT') {
     try {
-      const { code, discount_type, discount_value, valid_from, valid_until, min_order_amount, max_uses } = req.body;
+      const {
+        code,
+        discount_type,
+        discount_value,
+        valid_from,
+        valid_until,
+        min_order_amount,
+        max_uses,
+      } = req.body;
       if (!code) return res.status(400).json({ error: 'code required' });
 
       // 🔒 Безопасное построение SET clause с белым списком полей
@@ -64,4 +88,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
-

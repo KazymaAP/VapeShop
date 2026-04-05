@@ -55,14 +55,23 @@ export default function AdminImport() {
           <h3 className="text-lg font-semibold text-textPrimary mb-4">Загрузка прайс-листа</h3>
 
           <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${
               dragOver ? 'border-neon bg-neon/5' : 'border-border'
             }`}
           >
-            <svg className="w-12 h-12 mx-auto text-neon opacity-70 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg
+              className="w-12 h-12 mx-auto text-neon opacity-70 mb-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
@@ -81,7 +90,8 @@ export default function AdminImport() {
               />
             </label>
             <p className="text-textSecondary text-xs mt-3">
-              Колонки: Наименование, Характеристика, КОЛИЧЕСТВО, до 50.000 р, от 50.000 р, от 100.000 р, ДИСТР.ЦЕНА
+              Колонки: Наименование, Характеристика, КОЛИЧЕСТВО, до 50.000 р, от 50.000 р, от
+              100.000 р, ДИСТР.ЦЕНА
             </p>
           </div>
 
@@ -93,9 +103,13 @@ export default function AdminImport() {
           )}
 
           {message && (
-            <div className={`mt-4 p-3 rounded-xl text-sm ${
-              message.startsWith('Ошибка') ? 'bg-danger/20 text-danger' : 'bg-success/20 text-success'
-            }`}>
+            <div
+              className={`mt-4 p-3 rounded-xl text-sm ${
+                message.startsWith('Ошибка')
+                  ? 'bg-danger/20 text-danger'
+                  : 'bg-success/20 text-success'
+              }`}
+            >
               {message}
             </div>
           )}

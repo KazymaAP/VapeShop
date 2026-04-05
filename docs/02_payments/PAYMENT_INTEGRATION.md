@@ -36,15 +36,15 @@ Bot получает successful_payment callback
 
 ## Статусы заказа
 
-| Статус | Описание | Может быть отменён? |
-|--------|---------|------------------|
-| `pending` | Ожидание оплаты | ✅ Да (покупатель) |
-| `new` | Оплачен, ожидает комплектации | ✅ Да (админ) |
-| `confirmed` | Подтвержден менеджером | ✅ Да (админ) |
-| `readyship` | Готов к отправке | ⚠️ Нет |
-| `shipped` | Отправлен | ❌ Нет |
-| `done` | Завершён (код проверен) | ❌ Нет |
-| `cancelled` | Отменён | ❌ Нет (финальный) |
+| Статус      | Описание                      | Может быть отменён? |
+| ----------- | ----------------------------- | ------------------- |
+| `pending`   | Ожидание оплаты               | ✅ Да (покупатель)  |
+| `new`       | Оплачен, ожидает комплектации | ✅ Да (админ)       |
+| `confirmed` | Подтвержден менеджером        | ✅ Да (админ)       |
+| `readyship` | Готов к отправке              | ⚠️ Нет              |
+| `shipped`   | Отправлен                     | ❌ Нет              |
+| `done`      | Завершён (код проверен)       | ❌ Нет              |
+| `cancelled` | Отменён                       | ❌ Нет (финальный)  |
 
 ## Файлы в системе
 
@@ -55,6 +55,7 @@ Bot получает successful_payment callback
 **POST /api/orders**
 
 Request:
+
 ```json
 {
   "telegram_id": 123456789,
@@ -75,6 +76,7 @@ Request:
 ```
 
 Response (успех):
+
 ```json
 {
   "order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -84,6 +86,7 @@ Response (успех):
 ```
 
 Response (ошибка):
+
 ```json
 {
   "error": "Missing required fields"
@@ -91,6 +94,7 @@ Response (ошибка):
 ```
 
 **Что происходит:**
+
 1. Валидирует данные заказа
 2. Создаёт заказ в БД со статусом `pending`
 3. Добавляет товары в таблицу `order_items`
@@ -104,6 +108,7 @@ Response (ошибка):
 **POST /api/orders/verify-code**
 
 Request:
+
 ```json
 {
   "order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -112,6 +117,7 @@ Request:
 ```
 
 Response (успех):
+
 ```json
 {
   "success": true,
@@ -127,6 +133,7 @@ Response (успех):
 ```
 
 Response (ошибка):
+
 ```json
 {
   "success": false,
@@ -135,6 +142,7 @@ Response (ошибка):
 ```
 
 **Что происходит:**
+
 1. Валидирует формат кода (6-значное число)
 2. Находит заказ по ID
 3. Проверяет, что код совпадает
@@ -152,6 +160,7 @@ Response (ошибка):
 Срабатывает при попытке пользователя оплатить инвойс.
 
 **Что делает:**
+
 - Проверяет, что заказ существует и находится в статусе `pending`
 - Если проверка успешна, подтверждает возможность оплаты
 - Если ошибка, отклоняет платёж с сообщением об ошибке
@@ -161,6 +170,7 @@ Response (ошибка):
 Срабатывает после успешной оплаты инвойса.
 
 **Что делает:**
+
 1. Извлекает информацию о платеже (order_id, сумма)
 2. Проверяет, что заказ ещё не оплачен
 3. Генерирует 6-значный код (100000-999999)
@@ -176,15 +186,7 @@ Response (ошибка):
 
 ```typescript
 // Создание заказа
-await createOrderWithPayment(
-  telegram_id,
-  items,
-  'courier',
-  '2026-04-03',
-  'Адрес',
-  'SPRING20',
-  5
-);
+await createOrderWithPayment(telegram_id, items, 'courier', '2026-04-03', 'Адрес', 'SPRING20', 5);
 
 // Проверка кода
 await verifyDeliveryCode(order_id, 123456);
@@ -221,6 +223,7 @@ psql postgresql://user:password@host/vapeshop < db/migrations/002_telegram_stars
 ```
 
 Убедитесь, что таблица `orders` имеет все необходимые поля:
+
 - `status` (VARCHAR)
 - `paid_at` (TIMESTAMP)
 - `code_6digit` (INT)
@@ -231,6 +234,7 @@ psql postgresql://user:password@host/vapeshop < db/migrations/002_telegram_stars
 Убедитесь, что у бота есть права на отправку инвойсов.
 
 В Telegram BotFather выполните:
+
 ```
 /setpaymentprovider
 ```
@@ -315,15 +319,15 @@ const handleVerifyCode = async () => {
 
 return (
   <div>
-    <input 
-      type="text" 
-      placeholder="ID заказа" 
+    <input
+      type="text"
+      placeholder="ID заказа"
       value={orderId}
       onChange={(e) => setOrderId(e.target.value)}
     />
-    <input 
-      type="text" 
-      placeholder="6-значный код" 
+    <input
+      type="text"
+      placeholder="6-значный код"
       value={code}
       onChange={(e) => setCode(e.target.value)}
     />
@@ -369,7 +373,8 @@ SELECT id, status, paid_at, code_6digit, code_expires_at FROM orders ORDER BY cr
 
 ### Ошибка: "Заказ не найден или уже оплачен"
 
-**Причина:** 
+**Причина:**
+
 - Заказ удалён или не существует
 - Заказ уже оплачен (статус не `pending`)
 - Неверный user_telegram_id
@@ -436,6 +441,7 @@ curl -X POST \
 ### Реферальные бонусы
 
 Если пользователь пришёл по реферальной ссылке (`referred_by` не NULL), то:
+
 - 10% от суммы заказа начисляется рефереру в виде бонусов
 - Бонусы складываются в `bonus_balance` пользователя
 - Бонусы можно использовать при следующей покупке (требует доработки в корзине)
@@ -461,6 +467,7 @@ DELETE /api/orders/:id?telegram_id=123456789
 ```
 
 При отмене:
+
 1. Статус меняется на `cancelled`
 2. Товары возвращаются на склад
 3. Пользователю отправляется подтверждение в боте

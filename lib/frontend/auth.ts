@@ -6,9 +6,9 @@
 /**
  * Возвращает заголовки с информацией о пользователе для API запросов
  * Извлекает Telegram ID из Telegram WebApp API
- * 
+ *
  * Используется в админке для защиты API эндпоинтов
- * 
+ *
  * Пример использования:
  * const headers = getTelegramIdHeader();
  * const res = await fetch('/api/admin/products', {
@@ -20,7 +20,7 @@
 export function getTelegramIdHeader(): Record<string, string> {
   try {
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    
+
     if (!user || !user.id) {
       console.warn('getTelegramIdHeader: Telegram user not found');
       return {};
@@ -37,10 +37,10 @@ export function getTelegramIdHeader(): Record<string, string> {
 
 /**
  * Возвращает заголовки с initData для авторизации через Telegram WebApp
- * 
+ *
  * Используется для будущей верификации подписи на бэкенде
  * (когда перейдём на полную верификацию HMAC-SHA256)
- * 
+ *
  * Пример использования:
  * const headers = getInitDataHeader();
  * const res = await fetch('/api/orders', {
@@ -52,14 +52,14 @@ export function getTelegramIdHeader(): Record<string, string> {
 export function getInitDataHeader(): Record<string, string> {
   try {
     const initData = window.Telegram?.WebApp?.initData;
-    
+
     if (!initData) {
       console.warn('getInitDataHeader: Telegram initData not found');
       return {};
     }
 
     return {
-      'Authorization': `Bearer ${initData}`,
+      Authorization: `Bearer ${initData}`,
     };
   } catch (err) {
     console.error('getInitDataHeader error:', err);
@@ -105,21 +105,18 @@ export function isInTelegramApp(): boolean {
 
 /**
  * Обёртка для fetch с автоматическим добавлением заголовков Telegram ID
- * 
+ *
  * Используется вместо обычного fetch для автоматической отправки ID
- * 
+ *
  * Пример:
  * const res = await fetchWithAuth('/api/admin/products', {
  *   method: 'POST',
  *   body: JSON.stringify(data)
  * });
  */
-export async function fetchWithAuth(
-  url: string,
-  options: RequestInit = {}
-): Promise<Response> {
+export async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
   const headers = new Headers(options.headers || {});
-  
+
   // Добавляем заголовок с Telegram ID
   const telegramHeaders = getTelegramIdHeader();
   Object.entries(telegramHeaders).forEach(([key, value]) => {
@@ -134,7 +131,7 @@ export async function fetchWithAuth(
 
 /**
  * Версия fetchWithAuth, которая также обрабатывает ошибки авторизации
- * 
+ *
  * Пример:
  * const data = await fetchWithAuthAndHandle('/api/admin/products', {
  *   method: 'GET',
@@ -146,12 +143,12 @@ export async function fetchWithAuthAndHandle(
   url: string,
   options: {
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-    body?: any;
+    body?: unknown;
     onUnauthorized?: () => void;
     onForbidden?: () => void;
-    onError?: (err: any) => void;
+    onError?: (err: unknown) => void;
   } = {}
-): Promise<any> {
+): Promise<unknown> {
   try {
     const fetchOptions: RequestInit = {
       method: options.method || 'GET',

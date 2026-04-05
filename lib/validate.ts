@@ -46,7 +46,10 @@ export function validateProduct(data: ProductData): ValidationError[] {
     if (typeof data.specification !== 'string') {
       errors.push({ field: 'specification', message: 'Характеристики должны быть строкой' });
     } else if (data.specification.length > 5000) {
-      errors.push({ field: 'specification', message: 'Характеристики не должны превышать 5000 символов' });
+      errors.push({
+        field: 'specification',
+        message: 'Характеристики не должны превышать 5000 символов',
+      });
     }
   }
 
@@ -117,13 +120,26 @@ export function validateOrder(data: OrderData): ValidationError[] {
     } else {
       data.items.forEach((item, index) => {
         if (typeof item.product_id !== 'number' || !Number.isInteger(item.product_id)) {
-          errors.push({ field: `items[${index}].product_id`, message: 'ID товара должно быть целым числом' });
+          errors.push({
+            field: `items[${index}].product_id`,
+            message: 'ID товара должно быть целым числом',
+          });
         }
-        if (typeof item.quantity !== 'number' || !Number.isInteger(item.quantity) || item.quantity < 1) {
-          errors.push({ field: `items[${index}].quantity`, message: 'Количество должно быть положительным целым числом' });
+        if (
+          typeof item.quantity !== 'number' ||
+          !Number.isInteger(item.quantity) ||
+          item.quantity < 1
+        ) {
+          errors.push({
+            field: `items[${index}].quantity`,
+            message: 'Количество должно быть положительным целым числом',
+          });
         }
         if (item.quantity > 100) {
-          errors.push({ field: `items[${index}].quantity`, message: 'Максимальное количество товара в заказе — 100' });
+          errors.push({
+            field: `items[${index}].quantity`,
+            message: 'Максимальное количество товара в заказе — 100',
+          });
         }
       });
     }
@@ -142,7 +158,10 @@ export function validateOrder(data: OrderData): ValidationError[] {
   if (data.delivery_type !== undefined) {
     const validTypes = ['delivery', 'self_pickup', 'locker'];
     if (!validTypes.includes(data.delivery_type)) {
-      errors.push({ field: 'delivery_type', message: `Тип доставки должен быть одним из: ${validTypes.join(', ')}` });
+      errors.push({
+        field: 'delivery_type',
+        message: `Тип доставки должен быть одним из: ${validTypes.join(', ')}`,
+      });
     }
   }
 
@@ -207,7 +226,10 @@ export function validateAddress(data: AddressData): ValidationError[] {
 
   if (data.postal_code !== undefined) {
     if (typeof data.postal_code !== 'string' || data.postal_code.trim().length < 3) {
-      errors.push({ field: 'postal_code', message: 'Почтовый индекс должен быть не менее 3 символов' });
+      errors.push({
+        field: 'postal_code',
+        message: 'Почтовый индекс должен быть не менее 3 символов',
+      });
     }
   }
 
@@ -238,18 +260,18 @@ function isValidUrl(url: string): boolean {
   }
 }
 
-export function validatePagination(page?: any, limit?: any): ValidationError[] {
+export function validatePagination(page?: unknown, limit?: unknown): ValidationError[] {
   const errors: ValidationError[] = [];
 
   if (page !== undefined) {
-    const pageNum = parseInt(page);
+    const pageNum = parseInt(String(page));
     if (isNaN(pageNum) || pageNum < 1) {
       errors.push({ field: 'page', message: 'Номер страницы должен быть числом ≥ 1' });
     }
   }
 
   if (limit !== undefined) {
-    const limitNum = parseInt(limit);
+    const limitNum = parseInt(String(limit));
     if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
       errors.push({ field: 'limit', message: 'Лимит должен быть от 1 до 100' });
     }

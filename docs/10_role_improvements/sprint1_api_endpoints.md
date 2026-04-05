@@ -9,10 +9,12 @@
 ## 🔐 ЭНДПОИНТ: Управление логами (Super-Admin)
 
 ### GET /api/admin/audit-logs
+
 **Требуемая роль:** `super_admin`  
 **Описание:** Получить логи действий всех пользователей с фильтрацией и пагинацией
 
 **Query параметры:**
+
 ```
 user_id?: number        // Фильтр по пользователю
 action?: string         // Фильтр по действию (create, update, delete)
@@ -25,6 +27,7 @@ sort?: string           // 'created_at' или '-created_at'
 ```
 
 **Успешный ответ (200):**
+
 ```json
 {
   "data": [
@@ -55,89 +58,104 @@ sort?: string           // 'created_at' или '-created_at'
 ```
 
 **Ошибки:**
+
 - `401`: Unauthorized (не авторизован)
 - `403`: Forbidden (недостаточно прав, требуется super_admin)
 - `500`: Internal Server Error
 
 **Реализация (файл `pages/api/admin/audit-logs.ts`):**
+
 ```typescript
 import { NextApiRequest, NextApiResponse } from 'next';
 import { requireAuth, getTelegramId } from '../../lib/auth';
 import { query } from '../../lib/db';
 
-export default requireAuth(async (req, res) => {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  try {
-    const {
-      user_id, action, target_type, date_from, date_to,
-      page = 1, limit = 50, sort = '-created_at'
-    } = req.query;
-
-    // Построить WHERE условия
-    let whereClause = '1=1';
-    const params: any[] = [];
-    let paramCount = 1;
-
-    if (user_id) {
-      whereClause += ` AND user_id = $${paramCount}`;
-      params.push(parseInt(user_id as string));
-      paramCount++;
+export default requireAuth(
+  async (req, res) => {
+    if (req.method !== 'GET') {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    if (action) {
-      whereClause += ` AND action = $${paramCount}`;
-      params.push(action);
-      paramCount++;
-    }
+    try {
+      const {
+        user_id,
+        action,
+        target_type,
+        date_from,
+        date_to,
+        page = 1,
+        limit = 50,
+        sort = '-created_at',
+      } = req.query;
 
-    if (target_type) {
-      whereClause += ` AND target_type = $${paramCount}`;
-      params.push(target_type);
-      paramCount++;
-    }
+      // Построить WHERE условия
+      let whereClause = '1=1';
+      const params: any[] = [];
+      let paramCount = 1;
 
-    if (date_from) {
-      whereClause += ` AND created_at >= $${paramCount}`;
-      params.push(new Date(date_from as string));
-      paramCount++;
-    }
-
-    if (date_to) {
-      whereClause += ` AND created_at <= $${paramCount}`;
-      params.push(new Date(date_to as string));
-      paramCount++;
-    }
-
-    const offset = ((parseInt(page as string) || 1) - 1) * (parseInt(limit as string) || 50);
-
-    // Получить общее количество
-    const countResult = await query(`SELECT COUNT(*) as total FROM audit_log WHERE ${whereClause}`, params);
-    const total = countResult.rows[0].total;
-
-    // Получить логи
-    const orderBy = sort === '-created_at' ? 'ORDER BY created_at DESC' : 'ORDER BY created_at ASC';
-    const logsResult = await query(
-      `SELECT * FROM audit_log WHERE ${whereClause} ${orderBy} LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
-      [...params, parseInt(limit as string) || 50, offset]
-    );
-
-    res.status(200).json({
-      data: logsResult.rows,
-      pagination: {
-        page: parseInt(page as string) || 1,
-        limit: parseInt(limit as string) || 50,
-        total,
-        pages: Math.ceil(total / (parseInt(limit as string) || 50))
+      if (user_id) {
+        whereClause += ` AND user_id = $${paramCount}`;
+        params.push(parseInt(user_id as string));
+        paramCount++;
       }
-    });
-  } catch (err) {
-    console.error('audit-logs error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-}, ['super_admin']);
+
+      if (action) {
+        whereClause += ` AND action = $${paramCount}`;
+        params.push(action);
+        paramCount++;
+      }
+
+      if (target_type) {
+        whereClause += ` AND target_type = $${paramCount}`;
+        params.push(target_type);
+        paramCount++;
+      }
+
+      if (date_from) {
+        whereClause += ` AND created_at >= $${paramCount}`;
+        params.push(new Date(date_from as string));
+        paramCount++;
+      }
+
+      if (date_to) {
+        whereClause += ` AND created_at <= $${paramCount}`;
+        params.push(new Date(date_to as string));
+        paramCount++;
+      }
+
+      const offset = ((parseInt(page as string) || 1) - 1) * (parseInt(limit as string) || 50);
+
+      // Получить общее количество
+      const countResult = await query(
+        `SELECT COUNT(*) as total FROM audit_log WHERE ${whereClause}`,
+        params
+      );
+      const total = countResult.rows[0].total;
+
+      // Получить логи
+      const orderBy =
+        sort === '-created_at' ? 'ORDER BY created_at DESC' : 'ORDER BY created_at ASC';
+      const logsResult = await query(
+        `SELECT * FROM audit_log WHERE ${whereClause} ${orderBy} LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
+        [...params, parseInt(limit as string) || 50, offset]
+      );
+
+      res.status(200).json({
+        data: logsResult.rows,
+        pagination: {
+          page: parseInt(page as string) || 1,
+          limit: parseInt(limit as string) || 50,
+          total,
+          pages: Math.ceil(total / (parseInt(limit as string) || 50)),
+        },
+      });
+    } catch (err) {
+      console.error('audit-logs error:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
+  ['super_admin']
+);
 ```
 
 ---
@@ -145,10 +163,12 @@ export default requireAuth(async (req, res) => {
 ## 🔐 ЭНДПОИНТЫ: Управление ролями (RBAC) — Super-Admin
 
 ### GET /api/admin/rbac
+
 **Требуемая роль:** `super_admin`  
 **Описание:** Получить все роли и их разрешения
 
 **Успешный ответ (200):**
+
 ```json
 {
   "roles": [
@@ -158,10 +178,17 @@ export default requireAuth(async (req, res) => {
       "description": "Super Administrator - Full access",
       "is_system_role": true,
       "permissions": [
-        "users:read", "users:write", "users:delete",
-        "products:read", "products:write", "products:delete",
-        "audit:read", "audit:export",
-        "roles:read", "roles:write", "roles:delete"
+        "users:read",
+        "users:write",
+        "users:delete",
+        "products:read",
+        "products:write",
+        "products:delete",
+        "audit:read",
+        "audit:export",
+        "roles:read",
+        "roles:write",
+        "roles:delete"
       ]
     },
     {
@@ -175,10 +202,12 @@ export default requireAuth(async (req, res) => {
 ```
 
 ### POST /api/admin/rbac
+
 **Требуемая роль:** `super_admin`  
 **Описание:** Создать новую роль
 
 **Body:**
+
 ```json
 {
   "name": "content_manager",
@@ -188,10 +217,12 @@ export default requireAuth(async (req, res) => {
 ```
 
 ### PUT /api/admin/rbac/[role_id]
+
 **Требуемая роль:** `super_admin`  
 **Описание:** Обновить роль и её разрешения
 
 **Body:**
+
 ```json
 {
   "description": "Обновленное описание",
@@ -200,6 +231,7 @@ export default requireAuth(async (req, res) => {
 ```
 
 ### DELETE /api/admin/rbac/[role_id]
+
 **Требуемая роль:** `super_admin`  
 **Описание:** Удалить роль (только если she не system_role)
 
@@ -208,10 +240,12 @@ export default requireAuth(async (req, res) => {
 ## 📊 ЭНДПОИНТ: Продвинутый дашборд (Admin)
 
 ### GET /api/admin/dashboard-advanced
+
 **Требуемая роль:** `admin`, `super_admin`  
 **Описание:** Получить статистику и графики для дашборда
 
 **Query параметры:**
+
 ```
 period?: string       // 'day', 'week', 'month', 'year'
 date_from?: string    // ISO 8601
@@ -219,6 +253,7 @@ date_to?: string      // ISO 8601
 ```
 
 **Успешный ответ (200):**
+
 ```json
 {
   "summary": {
@@ -256,20 +291,22 @@ date_to?: string      // ISO 8601
 ## 🏷️ ЭНДПОИНТЫ: Массовое редактирование товаров (Admin)
 
 ### POST /api/admin/products/bulk-update
+
 **Требуемая роль:** `admin`, `super_admin`  
 **Описание:** Массово обновить товары
 
 **Body:**
+
 ```json
 {
   "product_ids": [123, 456, 789],
   "updates": {
-    "price_action": "multiply",  // 'multiply', 'percent_increase', 'percent_decrease', 'set'
-    "price_value": 1.1,          // 1.1 = +10%, 0.95 = -5%, 500 = установить
-    "discount_percent": 15,       // 0-100
+    "price_action": "multiply", // 'multiply', 'percent_increase', 'percent_decrease', 'set'
+    "price_value": 1.1, // 1.1 = +10%, 0.95 = -5%, 500 = установить
+    "discount_percent": 15, // 0-100
     "category_id": 1,
     "brand_id": 10,
-    "status": "active",            // 'active', 'hit', 'new', 'disabled'
+    "status": "active", // 'active', 'hit', 'new', 'disabled'
     "is_hit": true,
     "is_new": false
   }
@@ -277,6 +314,7 @@ date_to?: string      // ISO 8601
 ```
 
 **Ответ (200):**
+
 ```json
 {
   "success": true,
@@ -290,10 +328,12 @@ date_to?: string      // ISO 8601
 ## 📥 ЭНДПОИНТ: Экспорт заказов (Admin)
 
 ### GET /api/admin/orders/export
+
 **Требуемая роль:** `admin`, `super_admin`  
 **Описание:** Экспортировать заказы в Excel, CSV или PDF
 
 **Query параметры:**
+
 ```
 format: string       // 'xlsx', 'csv', 'pdf'
 fields: string[]     // Выбранные поля (order_id, customer, total, status, date)
@@ -305,10 +345,12 @@ max_amount?: number
 ```
 
 **Ответ:**
+
 - Бинарные данные файла (Content-Type: application/vnd.ms-excel)
 - Имя файла: `orders_2024-04-03.xlsx`
 
 **Реализация использует:**
+
 - `exceljs` — для Excel-файлов
 - `papaparse` — для CSV
 
@@ -317,10 +359,12 @@ max_amount?: number
 ## 🎁 ДОПОЛНИТЕЛЬНЫЕ ЭНДПОИНТЫ SPRINT 1
 
 ### POST /api/admin/gift-certificates
+
 **Требуемая роль:** `admin`, `super_admin`  
 **Описание:** Создать подарочный сертификат
 
 **Body:**
+
 ```json
 {
   "amount": 5000,
@@ -331,14 +375,17 @@ max_amount?: number
 ```
 
 ### GET /api/admin/promotions
+
 **Требуемая роль:** `admin`, `super_admin`  
 **Описание:** Список всех акций
 
 ### POST /api/admin/promotions
+
 **Требуемая роль:** `admin`, `super_admin`  
 **Описание:** Создать новую акцию
 
 **Body:**
+
 ```json
 {
   "name": "Spring Sale",
@@ -377,6 +424,7 @@ pages/api/admin/
 ## 🔑 ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ
 
 Добавить в `.env.local`:
+
 ```
 # Admin features
 ENABLE_AUDIT_LOG=true
@@ -390,6 +438,7 @@ ENABLE_GIFT_CERTIFICATES=true
 ## 📦 NPM ПАКЕТЫ
 
 Для Sprint 1 нужны:
+
 ```bash
 npm install exceljs recharts
 ```

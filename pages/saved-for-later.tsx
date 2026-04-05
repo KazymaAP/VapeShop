@@ -22,7 +22,7 @@ export default function SavedForLaterPage() {
   const loadSavedItems = async () => {
     try {
       const response = await fetch('/api/cart/saved', {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -41,11 +41,11 @@ export default function SavedForLaterPage() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'X-Telegram-Id': user?.id.toString() || ''
+          'X-Telegram-Id': user?.id.toString() || '',
         },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id }),
       });
-      setItems(items.filter(item => item.id !== id));
+      setItems(items.filter((item) => item.id !== id));
     } catch (err) {
       console.error('Failed to remove item:', err);
     }
@@ -57,9 +57,9 @@ export default function SavedForLaterPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Telegram-Id': user?.id.toString() || ''
+          'X-Telegram-Id': user?.id.toString() || '',
         },
-        body: JSON.stringify({ productId, quantity: 1 })
+        body: JSON.stringify({ productId, quantity: 1 }),
       });
       loadSavedItems();
     } catch (err) {

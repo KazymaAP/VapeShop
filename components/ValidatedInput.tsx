@@ -40,25 +40,24 @@ export function ValidatedInput({
   const [errors, setErrors] = useState<ValidationRule[]>([]);
 
   // Валидация при изменении
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    onChange(newValue);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = e.target.value;
+      onChange(newValue);
 
-    // Проверяем правила валидации
-    const newErrors = rules.filter(rule => !rule.validate(newValue));
-    setErrors(newErrors);
-  }, [onChange, rules]);
+      // Проверяем правила валидации
+      const newErrors = rules.filter((rule) => !rule.validate(newValue));
+      setErrors(newErrors);
+    },
+    [onChange, rules]
+  );
 
   // Проверка required
   const isValid = !required || value.trim().length > 0;
   const hasErrors = errors.length > 0;
   const isTouched = touched;
 
-  const statusClass = !isTouched
-    ? ''
-    : isValid && !hasErrors
-    ? 'border-success'
-    : 'border-danger';
+  const statusClass = !isTouched ? '' : isValid && !hasErrors ? 'border-success' : 'border-danger';
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -72,9 +71,7 @@ export function ValidatedInput({
       <div className="relative">
         {/* Иконка слева */}
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary">
-            {icon}
-          </div>
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary">{icon}</div>
         )}
 
         <input
@@ -106,10 +103,14 @@ export function ValidatedInput({
         <div id={`${label}-error`} className="space-y-1">
           {errors.map((error, idx) => (
             <div key={idx} className={`text-sm flex items-start gap-2`}>
-              <span className={`text-${error.type === 'error' ? 'danger' : error.type === 'warning' ? 'warning' : 'success'} mt-0.5`}>
+              <span
+                className={`text-${error.type === 'error' ? 'danger' : error.type === 'warning' ? 'warning' : 'success'} mt-0.5`}
+              >
                 {error.type === 'error' ? '✕' : error.type === 'warning' ? '⚠' : '✓'}
               </span>
-              <span className={`text-${error.type === 'error' ? 'danger' : error.type === 'warning' ? 'warning' : 'success'}`}>
+              <span
+                className={`text-${error.type === 'error' ? 'danger' : error.type === 'warning' ? 'warning' : 'success'}`}
+              >
                 {error.message}
               </span>
             </div>
@@ -118,9 +119,7 @@ export function ValidatedInput({
       )}
 
       {/* Подсказка */}
-      {helperText && !hasErrors && (
-        <p className="text-xs text-textSecondary">{helperText}</p>
-      )}
+      {helperText && !hasErrors && <p className="text-xs text-textSecondary">{helperText}</p>}
     </div>
   );
 }
@@ -132,13 +131,13 @@ export const Validators = {
     message: 'Введите корректный email',
     type: 'error' as const,
   },
-  
+
   phone: {
     validate: (value: string) => /^[\d\s\-\+\(\)]{10,}$/.test(value),
     message: 'Введите корректный номер телефона',
     type: 'error' as const,
   },
-  
+
   minLength: (min: number) => ({
     validate: (value: string) => value.length >= min,
     message: `Минимум ${min} символов`,
@@ -202,14 +201,21 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthProps) {
 
   const strength = calculateStrength();
   const strengthText = ['Слабый', 'Слабый', 'Средний', 'Средний', 'Сильный', 'Сильный'];
-  const strengthColor = ['bg-danger', 'bg-danger', 'bg-warning', 'bg-warning', 'bg-success', 'bg-success'];
+  const strengthColor = [
+    'bg-danger',
+    'bg-danger',
+    'bg-warning',
+    'bg-warning',
+    'bg-success',
+    'bg-success',
+  ];
 
   if (password.length === 0) return null;
 
   return (
     <div className="space-y-2">
       <div className="flex gap-1">
-        {[0, 1, 2, 3, 4, 5].map(i => (
+        {[0, 1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
             className={`h-1.5 flex-1 rounded ${i < strength ? strengthColor[strength - 1] : 'bg-border'}`}

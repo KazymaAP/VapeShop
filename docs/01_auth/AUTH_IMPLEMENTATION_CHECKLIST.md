@@ -22,6 +22,7 @@
 ## 📋 Фаза 2: Защита Админских API (В ПРОЦЕССЕ)
 
 ### Готовые
+
 - [x] `/api/admin/products.ts` - Защищён `requireAuth(handler, ['admin'])`
   - [x] Добавлены импорты
   - [x] Переименована функция handler (не export default)
@@ -29,12 +30,12 @@
   - [x] Добавлено логирование в admin_logs
 
 ### TODO - Нужно применить requireAuth
+
 - [ ] `/api/admin/orders.ts` - Применить `requireAuth(handler, ['admin', 'manager'])`
   - [ ] Добавить импорт `{ requireAuth, getTelegramId } from '../../../lib/auth'`
   - [ ] Заменить `export default async function handler` на `async function handler`
   - [ ] Добавить в конце: `export default requireAuth(handler, ['admin', 'manager']);`
   - [ ] Добавить логирование: `const telegramId = getTelegramId(req);` + INSERT в admin_logs
-  
 - [ ] `/api/admin/users.ts` - Применить `requireAuth(handler, ['admin'])`
   - [ ] (Тот же процесс, что выше, но с `['admin']`)
 
@@ -90,6 +91,7 @@
 ## 🗄️ Фаза 4: База Данных (TODO)
 
 - [ ] Создать таблицу `admin_logs` для логирования действий:
+
 ```sql
 CREATE TABLE admin_logs (
   id SERIAL PRIMARY KEY,
@@ -135,6 +137,7 @@ CREATE TABLE admin_logs (
 ## 📚 Документация
 
 ### Созданные файлы
+
 - [x] `AUTH_SYSTEM_SUMMARY.md` - Полный обзор системы аутентификации
 - [x] `ADMIN_API_AUTH_GUIDE.md` - Как защищать админские эндпоинты
 - [x] `ADMIN_API_ORDERS_EXAMPLE.md` - Пример полной защиты /api/admin/orders.ts
@@ -212,6 +215,7 @@ const response = await fetchWithAuth('/api/admin/products', {
 ## ✨ Что дальше
 
 После завершения всех фаз система будет:
+
 - ✓ Защищена от несанкционированного доступа
 - ✓ Логировать все действия администраторов
 - ✓ Позволять разные уровни доступа по ролям

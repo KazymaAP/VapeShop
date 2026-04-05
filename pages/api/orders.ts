@@ -17,16 +17,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // 🔒 ВАЛИДАЦИЯ: Проверяем входные данные
     const validation = validateOrderBody(req.body);
     if (!validation.valid) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation failed',
-        details: validation.errors 
+        details: validation.errors,
       });
     }
 
     // 🔒 Получаем текущего пользователя и проверяем, что он создаёт заказ от себя
     // CSRF защита проверяется в middleware
     const currentTelegramId = await getTelegramIdFromRequest(req);
-    
+
     if (!currentTelegramId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -37,7 +37,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(403).json({ error: 'Ваш аккаунт заблокирован. Обратитесь в поддержку.' });
     }
 
-    const { telegram_id, items, delivery_method, delivery_date, address, promo_code, discount } = req.body;
+    const { telegram_id, items, delivery_method, delivery_date, address, promo_code, discount } =
+      req.body;
 
     if (!telegram_id || !items || items.length === 0) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -60,17 +61,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Проверяем достаточность количества товаров
-    const productMap = new Map(productsRes.rows.map(p => [p.id, p]));
+    const productMap = new Map(productsRes.rows.map((p) => [p.id, p]));
     for (const item of items) {
       const product = productMap.get(item.product_id);
       if (!product || product.stock < item.quantity) {
-        return res.status(400).json({ 
-          error: `Insufficient stock for product ${item.product_id}. Available: ${product?.stock || 0}` 
+        return res.status(400).json({
+          error: `Insufficient stock for product ${item.product_id}. Available: ${product?.stock || 0}`,
         });
       }
     }
 
-    const total = items.reduce((sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity, 0) - (discount || 0);
+    const total =
+      items.reduce(
+        (sum: number, item: { price: number; quantity: number }) =>
+          sum + item.price * item.quantity,
+        0
+      ) - (discount || 0);
 
     if (total < 0) {
       return res.status(400).json({ error: 'Total price cannot be negative' });
@@ -83,7 +89,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const orderRes = await client.query(
         `INSERT INTO orders (user_telegram_id, status, total, delivery_method, delivery_date, address, promo_code, discount)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-        [telegram_id, 'new', total, delivery_method, delivery_date, address, promo_code, discount || 0]
+        [
+          telegram_id,
+          'new',
+          total,
+          delivery_method,
+          delivery_date,
+          address,
+          promo_code,
+          discount || 0,
+        ]
       );
 
       const createdOrder = orderRes.rows[0];
@@ -95,7 +110,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           [createdOrder.id, item.product_id, item.quantity, item.price]
         );
 
-        await client.query('UPDATE products SET stock = stock - $1 WHERE id = $2', [item.quantity, item.product_id]);
+        await client.query('UPDATE products SET stock = stock - $1 WHERE id = $2', [
+          item.quantity,
+          item.product_id,
+        ]);
       }
 
       // Очищаем корзину
@@ -109,7 +127,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     await query(
       `INSERT INTO admin_logs (user_telegram_id, action, details, created_at)
        VALUES ($1, $2, $3, NOW())`,
-      [adminTelegramId, 'CREATE_ORDER', JSON.stringify({ order_id: order.id, total, items_count: items.length })]
+      [
+        adminTelegramId,
+        'CREATE_ORDER',
+        JSON.stringify({ order_id: order.id, total, items_count: items.length }),
+      ]
     ).catch(() => {});
 
     // Отправляем уведомление пользователю через бота
@@ -117,17 +139,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await bot.api.sendMessage(
         telegram_id,
         `✅ Заказ создан!\n\n` +
-        `Номер заказа: #${order.id.slice(0, 8)}\n` +
-        `Сумма: ${total.toLocaleString('ru-RU')} ₽\n` +
-        `Способ доставки: ${delivery_method}\n\n` +
-        `💳 Для оплаты нажмите кнопку ниже`,
+          `Номер заказа: #${order.id.slice(0, 8)}\n` +
+          `Сумма: ${total.toLocaleString('ru-RU')} ₽\n` +
+          `Способ доставки: ${delivery_method}\n\n` +
+          `💳 Для оплаты нажмите кнопку ниже`,
         {
           reply_markup: {
             inline_keyboard: [
               [{ text: '💳 Оплатить Telegram Stars', callback_data: `pay_order:${order.id}` }],
               [{ text: '📋 Мои заказы', url: `${process.env.WEBAPP_URL || ''}/orders` }],
-            ]
-          }
+            ],
+          },
         }
       );
     } catch (err) {
@@ -139,7 +161,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       order_id: order.id,
       total,
       status: 'pending_payment',
-      message: 'Заказ создан. Ожидается оплата через Telegram Stars'
+      message: 'Заказ создан. Ожидается оплата через Telegram Stars',
     });
   } catch (err) {
     console.error('Order creation error:', err);
@@ -147,4 +169,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default rateLimit(withCSRFProtection(requireAuth(handler, ['buyer', 'customer'])), RATE_LIMIT_PRESETS.order);
+export default rateLimit(
+  withCSRFProtection(requireAuth(handler, ['buyer', 'customer'])),
+  RATE_LIMIT_PRESETS.order
+);

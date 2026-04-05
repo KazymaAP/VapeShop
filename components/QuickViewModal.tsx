@@ -47,9 +47,9 @@ export function QuickViewModal({
     }
   };
 
-  const defaultImage = product.image_url || '/images/product-placeholder.png';
+  const defaultImage = product.images?.[0] || '/images/product-placeholder.png';
   const rating = product.rating || 0;
-  const ratingCount = product.rating_count || 0;
+  const ratingCount = product.reviews_count || 0;
 
   return (
     <>
@@ -69,7 +69,7 @@ export function QuickViewModal({
       >
         <div
           className="bg-cardBg rounded-lg border border-border max-w-2xl w-full"
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Заголовок */}
           <div className="flex items-center justify-between p-4 border-b border-border">
@@ -91,12 +91,7 @@ export function QuickViewModal({
               {/* Изображение */}
               <div className="bg-bgDark rounded-lg overflow-hidden">
                 <div className="relative w-full aspect-square">
-                  <Image
-                    src={defaultImage}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={defaultImage} alt={product.name} fill className="object-cover" />
                 </div>
               </div>
 
@@ -104,14 +99,8 @@ export function QuickViewModal({
               <div className="flex flex-col justify-between">
                 {/* Название и категория */}
                 <div>
-                  <h3 className="text-2xl font-bold text-textPrimary mb-2">
-                    {product.name}
-                  </h3>
-                  {product.category && (
-                    <p className="text-sm text-textSecondary mb-4">
-                      {product.category}
-                    </p>
-                  )}
+                  <h3 className="text-2xl font-bold text-textPrimary mb-2">{product.name}</h3>
+                  {/* Категория не включена в API ответ, используйте category_id если нужно */}
 
                   {/* Рейтинг */}
                   {rating > 0 && (
@@ -127,11 +116,7 @@ export function QuickViewModal({
                   )}
 
                   {/* Описание */}
-                  {product.description && (
-                    <p className="text-textSecondary mb-4 line-clamp-3">
-                      {product.description}
-                    </p>
-                  )}
+                  {/* Описание не включено в ProductResponse, используйте specification */}
                 </div>
 
                 {/* Цена и действия */}
@@ -141,19 +126,10 @@ export function QuickViewModal({
                     <span className="text-3xl font-bold text-neon">
                       {product.price.toLocaleString('ru-RU')} ₽
                     </span>
-                    {product.original_price && product.original_price > product.price && (
-                      <span className="text-lg text-textSecondary line-through">
-                        {product.original_price.toLocaleString('ru-RU')} ₽
-                      </span>
-                    )}
                   </div>
 
                   {/* Скидка */}
-                  {product.discount_percent && product.discount_percent > 0 && (
-                    <div className="inline-block bg-danger/20 text-danger px-3 py-1 rounded text-sm">
-                      -{product.discount_percent}%
-                    </div>
-                  )}
+                  {/* Скидка процентов не включена в ProductResponse */}
 
                   {/* Количество */}
                   <div className="flex items-center gap-4">
@@ -174,7 +150,7 @@ export function QuickViewModal({
                         min="1"
                         max={product.stock || 99}
                         value={quantity}
-                        onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                         className="w-12 text-center bg-transparent border-none outline-none"
                       />
                       <button
@@ -198,11 +174,7 @@ export function QuickViewModal({
                           : 'bg-neon text-bgDark hover:shadow-neon disabled:opacity-50'
                       }`}
                     >
-                      {addedSuccess
-                        ? '✓ Добавлено'
-                        : isAdding
-                        ? 'Добавляю...'
-                        : 'В корзину'}
+                      {addedSuccess ? '✓ Добавлено' : isAdding ? 'Добавляю...' : 'В корзину'}
                     </button>
 
                     {onViewDetails && (
@@ -220,14 +192,8 @@ export function QuickViewModal({
 
                   {/* Stock indicator */}
                   {product.stock !== undefined && (
-                    <p className={`text-sm ${
-                      product.stock > 0
-                        ? 'text-success'
-                        : 'text-danger'
-                    }`}>
-                      {product.stock > 0
-                        ? `В наличии: ${product.stock} шт.`
-                        : 'Нет в наличии'}
+                    <p className={`text-sm ${product.stock > 0 ? 'text-success' : 'text-danger'}`}>
+                      {product.stock > 0 ? `В наличии: ${product.stock} шт.` : 'Нет в наличии'}
                     </p>
                   )}
                 </div>

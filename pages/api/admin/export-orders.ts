@@ -8,10 +8,7 @@ import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import ExcelJS from 'exceljs';
 
-const handler = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -104,7 +101,9 @@ const handler = async (
 
     // Добавляем данные
     result.rows.forEach((order: Record<string, unknown>) => {
-      const itemsText = (order.items as Array<{product_name: string; quantity: number; subtotal: number}>)
+      const itemsText = (
+        order.items as Array<{ product_name: string; quantity: number; subtotal: number }>
+      )
         .map((item) => `${item.product_name} x${item.quantity} (${item.subtotal}₽)`)
         .join('\n');
 
@@ -122,7 +121,7 @@ const handler = async (
     });
 
     // Автоширина для некоторых колонок
-    worksheet.columns.forEach(col => {
+    worksheet.columns.forEach((col) => {
       if (col.key !== 'items') {
         col.alignment = { horizontal: 'center', vertical: 'center' };
       }
@@ -144,7 +143,10 @@ const handler = async (
     // Отправляем файл
     const filename = `orders_${new Date().toISOString().split('T')[0]}.xlsx`;
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
     await workbook.xlsx.write(res);
@@ -154,14 +156,16 @@ const handler = async (
     await query(
       `INSERT INTO audit_log (user_telegram_id, action, details)
        VALUES ($1, 'export_orders', $2)`,
-      [telegram_id, JSON.stringify({ count: result.rows.length, filters: { startDate, endDate, status } })]
+      [
+        telegram_id,
+        JSON.stringify({ count: result.rows.length, filters: { startDate, endDate, status } }),
+      ]
     );
-
   } catch (err) {
     console.error('Export orders error:', err);
     res.status(500).json({ error: 'Failed to export orders' });
   }
-}
+};
 
 export default requireAuth(handler, ['admin', 'manager']);
 

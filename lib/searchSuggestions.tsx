@@ -13,7 +13,7 @@ export class SearchHistory {
     if (!query.trim()) return;
 
     const history = this.getAll();
-    const filtered = history.filter(item => item.toLowerCase() !== query.toLowerCase());
+    const filtered = history.filter((item) => item.toLowerCase() !== query.toLowerCase());
     const updated = [query, ...filtered].slice(0, MAX_HISTORY_ITEMS);
 
     try {
@@ -27,7 +27,7 @@ export class SearchHistory {
     try {
       const data = localStorage.getItem(SEARCH_HISTORY_KEY);
       return data ? JSON.parse(data) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   }
@@ -42,7 +42,7 @@ export class SearchHistory {
 
   static remove(query: string) {
     const history = this.getAll();
-    const filtered = history.filter(item => item !== query);
+    const filtered = history.filter((item) => item !== query);
     try {
       localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(filtered));
     } catch (e) {
@@ -63,7 +63,7 @@ interface Suggestion {
   icon?: string;
 }
 
-export function useSearchSuggestions(query: string, products: any[] = []) {
+export function useSearchSuggestions(query: string, products: Record<string, unknown>[] = []) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
@@ -72,11 +72,11 @@ export function useSearchSuggestions(query: string, products: any[] = []) {
       // Показываем историю если input пуст
       const history = SearchHistory.getAll();
       setSuggestions(
-        history.map(item => ({
+        history.map((item) => ({
           type: 'history' as const,
           label: item,
           value: item,
-          icon: '🕐'
+          icon: '🕐',
         }))
       );
       return;
@@ -89,25 +89,28 @@ export function useSearchSuggestions(query: string, products: any[] = []) {
 
       // Фильтруем товары
       const productSuggestions = products
-        .filter(p => p.name?.toLowerCase().includes(lower))
+        .filter((p) => {
+          const name = p.name as string | undefined;
+          return name && name.toLowerCase().includes(lower);
+        })
         .slice(0, 5)
-        .map(p => ({
+        .map((p) => ({
           type: 'product' as const,
-          label: p.name,
-          value: p.id,
-          icon: '📦'
+          label: String(p.name),
+          value: String(p.id),
+          icon: '📦',
         }));
 
       // История (отфильтрованная по query)
       const history = SearchHistory.getAll();
       const historySuggestions = history
-        .filter(item => item.toLowerCase().includes(lower))
+        .filter((item) => item.toLowerCase().includes(lower))
         .slice(0, 3)
-        .map(item => ({
+        .map((item) => ({
           type: 'history' as const,
           label: item,
           value: item,
-          icon: '🕐'
+          icon: '🕐',
         }));
 
       setSuggestions([...historySuggestions, ...productSuggestions]);
@@ -131,7 +134,7 @@ interface SearchSuggestionsProps {
 export function SearchSuggestions({
   suggestions,
   onSelect,
-  onRemoveHistory
+  onRemoveHistory,
 }: SearchSuggestionsProps) {
   if (suggestions.length === 0) return null;
 

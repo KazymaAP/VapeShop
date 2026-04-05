@@ -15,7 +15,7 @@ export default function SupportTicketPage() {
   const loadTicket = async () => {
     try {
       const response = await fetch(`/api/support/tickets/${ticketId}`, {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -34,9 +34,9 @@ export default function SupportTicketPage() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'X-Telegram-Id': user?.id.toString() || ''
+          'X-Telegram-Id': user?.id.toString() || '',
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ status: newStatus }),
       });
       loadTicket();
     } catch (err) {
@@ -45,7 +45,8 @@ export default function SupportTicketPage() {
   };
 
   if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
-  if (!ticket) return <div className="text-center py-8 text-textSecondary">Обращение не найдено</div>;
+  if (!ticket)
+    return <div className="text-center py-8 text-textSecondary">Обращение не найдено</div>;
 
   return (
     <div className="min-h-screen bg-bgDark p-4">
@@ -55,7 +56,7 @@ export default function SupportTicketPage() {
       <div className="bg-cardBg rounded-lg border border-border p-4 mb-6">
         <h2 className="font-bold text-textPrimary mb-3">{ticket.subject}</h2>
         <p className="text-textSecondary mb-4">{ticket.description}</p>
-        
+
         <div className="grid grid-cols-2 gap-4 text-sm mb-4">
           <div>
             <p className="text-textSecondary">Статус:</p>
@@ -71,7 +72,9 @@ export default function SupportTicketPage() {
           </div>
           <div>
             <p className="text-textSecondary">Дата:</p>
-            <p className="text-textPrimary font-semibold">{new Date(ticket.created_at).toLocaleDateString('ru-RU')}</p>
+            <p className="text-textPrimary font-semibold">
+              {new Date(ticket.created_at).toLocaleDateString('ru-RU')}
+            </p>
           </div>
         </div>
 

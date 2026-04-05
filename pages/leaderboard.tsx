@@ -49,13 +49,20 @@ export default function LeaderboardPage() {
 
       <div className="space-y-3">
         {entries.map((entry, idx) => (
-          <div key={entry.id} className="bg-cardBg rounded-lg border border-border p-4 flex items-center gap-4">
+          <div
+            key={entry.id}
+            className="bg-cardBg rounded-lg border border-border p-4 flex items-center gap-4"
+          >
             <div className={`text-3xl font-bold w-12 text-center ${getRankColor(idx + 1)}`}>
               {idx + 1}
             </div>
             <div className="flex-1">
-              <p className="font-bold text-textPrimary">{entry.first_name} {entry.last_name || ''}</p>
-              <p className="text-textSecondary text-sm">Уровень {entry.level} • Заказов: {entry.orders_count}</p>
+              <p className="font-bold text-textPrimary">
+                {entry.first_name} {entry.last_name || ''}
+              </p>
+              <p className="text-textSecondary text-sm">
+                Уровень {entry.level} • Заказов: {entry.orders_count}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-neon font-bold">⭐ {entry.level}</p>

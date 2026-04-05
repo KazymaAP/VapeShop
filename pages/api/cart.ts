@@ -19,7 +19,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // КРИТИЧЕСКАЯ ЗАЩИТА: Проверяем, что пользователь запрашивает только свою корзину
       if (Number(telegram_id) !== currentTelegramId) {
-        return res.status(403).json({ error: 'Forbidden: cannot access another user\'s cart' });
+        return res.status(403).json({ error: "Forbidden: cannot access another user's cart" });
       }
 
       const result = await query(
@@ -58,15 +58,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(400).json({ error: 'Invalid quantity' });
       }
 
-      const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [telegram_id]);
+      const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [
+        telegram_id,
+      ]);
 
       if (cartRes.rows.length === 0) {
         await query(
           'INSERT INTO carts (user_telegram_id, items, updated_at) VALUES ($1, $2, NOW())',
           [telegram_id, JSON.stringify([{ product_id, quantity }])]
         );
-      } else { const items = cartRes.rows[0].items || [];
-        const existingIdx = items.findIndex((item: { product_id: string }) => item.product_id === product_id);
+      } else {
+        const items = cartRes.rows[0].items || [];
+        const existingIdx = items.findIndex(
+          (item: { product_id: string }) => item.product_id === product_id
+        );
 
         if (existingIdx >= 0) {
           items[existingIdx].quantity += quantity;
@@ -74,10 +79,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           items.push({ product_id, quantity });
         }
 
-        await query(
-          'UPDATE carts SET items = $1, updated_at = NOW() WHERE user_telegram_id = $2',
-          [JSON.stringify(items), telegram_id]
-        );
+        await query('UPDATE carts SET items = $1, updated_at = NOW() WHERE user_telegram_id = $2', [
+          JSON.stringify(items),
+          telegram_id,
+        ]);
       }
 
       res.status(200).json({ success: true });
@@ -98,7 +103,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(400).json({ error: 'Invalid quantity' });
       }
 
-      const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [telegram_id]);
+      const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [
+        telegram_id,
+      ]);
       if (cartRes.rows.length === 0) return res.status(404).json({ error: 'Cart not found' });
 
       const items = cartRes.rows[0].items || [];
@@ -112,10 +119,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
       }
 
-      await query(
-        'UPDATE carts SET items = $1, updated_at = NOW() WHERE user_telegram_id = $2',
-        [JSON.stringify(items), telegram_id]
-      );
+      await query('UPDATE carts SET items = $1, updated_at = NOW() WHERE user_telegram_id = $2', [
+        JSON.stringify(items),
+        telegram_id,
+      ]);
 
       res.status(200).json({ success: true });
     } catch {
@@ -135,16 +142,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(200).json({ success: true });
       }
 
-      const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [telegram_id]);
+      const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [
+        telegram_id,
+      ]);
       if (cartRes.rows.length === 0) return res.status(404).json({ error: 'Cart not found' });
 
       let items = cartRes.rows[0].items || [];
       items = items.filter((item: { product_id: string }) => item.product_id !== product_id);
 
-      await query(
-        'UPDATE carts SET items = $1, updated_at = NOW() WHERE user_telegram_id = $2',
-        [JSON.stringify(items), telegram_id]
-      );
+      await query('UPDATE carts SET items = $1, updated_at = NOW() WHERE user_telegram_id = $2', [
+        JSON.stringify(items),
+        telegram_id,
+      ]);
 
       res.status(200).json({ success: true });
     } catch {
@@ -156,6 +165,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default rateLimit(handler, RATE_LIMIT_PRESETS.normal);
-
-
-

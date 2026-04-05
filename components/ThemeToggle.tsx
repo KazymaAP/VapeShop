@@ -10,7 +10,7 @@ export default function ThemeToggle({ onToggle }: ThemeToggleProps) {
   const handleToggle = () => {
     const newIsDark = !isDark;
     setIsDark(newIsDark);
-    
+
     if (newIsDark) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');

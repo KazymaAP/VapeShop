@@ -46,14 +46,16 @@ export const TABLE_RESPONSIVE = 'overflow-x-auto -mx-4 md:mx-0';
  * На мобильной: во всю высоту с закруглением сверху
  * На планшете+: по центру с ограниченной шириной
  */
-export const MODAL_RESPONSIVE = 'fixed inset-0 bg-black/50 z-40 flex items-end md:items-center justify-center';
+export const MODAL_RESPONSIVE =
+  'fixed inset-0 bg-black/50 z-40 flex items-end md:items-center justify-center';
 
 /**
  * Класс для контента модального окна
  * На мобильной: во всю ширину, максимум 90vh
  * На планшете+: 96 ширины (w-96)
  */
-export const MODAL_CONTENT_RESPONSIVE = 'bg-white dark:bg-gray-900 rounded-t-lg md:rounded-lg w-full md:w-96 p-6 max-h-[90vh] overflow-y-auto shadow-lg';
+export const MODAL_CONTENT_RESPONSIVE =
+  'bg-white dark:bg-gray-900 rounded-t-lg md:rounded-lg w-full md:w-96 p-6 max-h-[90vh] overflow-y-auto shadow-lg';
 
 /**
  * Класс для боковой панели
@@ -68,7 +70,8 @@ export const SIDEBAR_RESPONSIVE = 'hidden md:block';
  * Планшет (640px+): 3 колонки
  * Десктоп (1024px+): 4 колонки
  */
-export const PRODUCTS_GRID_RESPONSIVE = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4';
+export const PRODUCTS_GRID_RESPONSIVE =
+  'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4';
 
 /**
  * CSS для адаптивного контейнера

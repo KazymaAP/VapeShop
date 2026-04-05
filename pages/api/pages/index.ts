@@ -48,7 +48,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const [setClause, values, nextIdx] = buildUpdateSet('pages', updates);
       values.push(slug);
 
-      await query(`UPDATE pages SET ${setClause}, updated_at = NOW() WHERE slug = $${nextIdx}`, values);
+      await query(
+        `UPDATE pages SET ${setClause}, updated_at = NOW() WHERE slug = $${nextIdx}`,
+        values
+      );
       res.status(200).json({ success: true });
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
@@ -69,4 +72,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
-

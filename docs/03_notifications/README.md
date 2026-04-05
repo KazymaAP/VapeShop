@@ -24,6 +24,7 @@
 ## 🎯 Обзор
 
 Система уведомлений VapeShop обеспечивает:
+
 - ✅ Отправку сообщений через Telegram Bot API
 - ✅ Управление типами уведомлений (включение/отключение)
 - ✅ Логирование всех отправленных сообщений
@@ -54,9 +55,11 @@
 ## 🔧 Компоненты
 
 ### 1. lib/notifications.ts (11.8 KB)
+
 Основной модуль уведомлений
 
 **Экспортируемые функции:**
+
 - `sendNotification(telegramId, text, extra?, eventType?)` - отправить сообщение одному пользователю
 - `broadcastNotification(role, text, extra?, eventType?)` - отправить сообщение всем с ролью
 - `notifyAdminsNewOrder(orderId, totalPrice, username, itemsCount)` - новый заказ
@@ -66,9 +69,11 @@
 - `getNotificationStats(daysBack?)` - статистика
 
 ### 2. db/migrations/003_notification_settings.sql
+
 SQL миграция для создания таблиц
 
 **Таблицы:**
+
 - `notification_settings` - настройки типов уведомлений
 - `notification_history` - логи отправленных сообщений
 - `abandoned_carts` - отслеживание брошенных корзин
@@ -76,21 +81,27 @@ SQL миграция для создания таблиц
 ### 3. API Endpoints
 
 #### GET /api/admin/settings/notifications
+
 Получить все настройки и статистику
 
 #### POST /api/admin/settings/notifications
+
 Сохранить обновления для нескольких настроек
 
 #### PUT /api/admin/settings/notifications
+
 Обновить одну конкретную настройку
 
 #### PATCH /api/orders/[id]/status
+
 Изменить статус заказа и отправить уведомление
 
 #### GET /api/cron/abandoned-cart
+
 Cron задача для напоминаний о брошенных корзинах
 
 ### 4. React компонент
+
 `pages/admin/settings/notifications.tsx` - интерфейс для управления
 
 ---
@@ -98,6 +109,7 @@ Cron задача для напоминаний о брошенных корзи
 ## 📬 Типы уведомлений
 
 ### 1. order_new_admin
+
 **Когда:** После оплаты заказа  
 **Кому:** Всем админам  
 **Текст:** 🆕 Новый заказ #{ID}...  
@@ -111,15 +123,18 @@ Cron задача для напоминаний о брошенных корзи
 ```
 
 ### 2. order_status_changed_buyer
+
 **Когда:** Статус заказа изменился на 'confirmed', 'readyship', 'shipped' или 'done'  
 **Кому:** Покупателю  
 **Примеры:**
+
 - 📦 Заказ #550e8400 подтверждён
 - 🚀 Заказ #550e8400 готов к выдаче. Код: 123456
 - 🚚 Заказ #550e8400 передан курьеру
 - ✅ Заказ #550e8400 выполнен. Спасибо за покупку!
 
 ### 3. order_ready_ship
+
 **Когда:** Заказ готов к отправке (status = 'readyship')  
 **Кому:** Покупателю  
 **Особенность:** Содержит 6-значный код для курьера
@@ -130,6 +145,7 @@ Cron задача для напоминаний о брошенных корзи
 ```
 
 ### 4. abandoned_cart
+
 **Когда:** Корзина не обновлялась 2+ часа (cron)  
 **Кому:** Покупателю  
 **Кнопка:** Перейти в корзину
@@ -182,12 +198,13 @@ CRON_SECRET=your_cron_secret_key
 ### Шаг 4: Установить Vercel Cron (если на Vercel)
 
 Добавить в `vercel.json`:
+
 ```json
 {
   "crons": [
     {
       "path": "/api/cron/abandoned-cart",
-      "schedule": "0 * * * *"  // Каждый час
+      "schedule": "0 * * * *" // Каждый час
     }
   ]
 }
@@ -203,16 +220,14 @@ CRON_SECRET=your_cron_secret_key
 import { sendNotification } from '../lib/notifications';
 
 await sendNotification(
-  123456789,  // telegram_id
+  123456789, // telegram_id
   '✅ Ваш заказ оплачен!',
   {
     reply_markup: {
-      inline_keyboard: [[
-        { text: '📋 Мой заказ', web_app: { url: 'https://...' } }
-      ]]
-    }
+      inline_keyboard: [[{ text: '📋 Мой заказ', web_app: { url: 'https://...' } }]],
+    },
   },
-  'order_status_changed_buyer'  // event_type для логирования
+  'order_status_changed_buyer' // event_type для логирования
 );
 ```
 
@@ -222,7 +237,7 @@ await sendNotification(
 import { broadcastNotification } from '../lib/notifications';
 
 await broadcastNotification(
-  'admin',  // target_role
+  'admin', // target_role
   '🆕 Новый заказ!',
   undefined,
   'order_new_admin'
@@ -236,9 +251,9 @@ import { notifyAdminsNewOrder } from '../lib/notifications';
 
 await notifyAdminsNewOrder(
   orderId,
-  totalPrice,      // в звёздах
-  username,        // имя покупателя
-  itemsCount       // количество товаров
+  totalPrice, // в звёздах
+  username, // имя покупателя
+  itemsCount // количество товаров
 );
 ```
 
@@ -250,8 +265,8 @@ import { notifyBuyerOrderStatus } from '../lib/notifications';
 await notifyBuyerOrderStatus(
   telegramId,
   orderId,
-  'readyship',      // 'confirmed', 'readyship', 'shipped', 'done'
-  '123456'          // 6-digit code (опционально)
+  'readyship', // 'confirmed', 'readyship', 'shipped', 'done'
+  '123456' // 6-digit code (опционально)
 );
 ```
 
@@ -267,6 +282,7 @@ curl -X GET http://localhost:3000/api/admin/settings/notifications \
 ```
 
 **Ответ:**
+
 ```json
 {
   "settings": [
@@ -310,6 +326,7 @@ curl -X PATCH http://localhost:3000/api/orders/550e8400/status \
 ```
 
 **Что происходит:**
+
 1. Изменяется status в БД
 2. Логируется действие админа
 3. Отправляется уведомление покупателю
@@ -347,11 +364,7 @@ await notifyAdminsNewOrder(
 );
 
 // Уведомить покупателя
-await notifyBuyerOrderCreated(
-  telegramId,
-  order.id,
-  order.total_price
-);
+await notifyBuyerOrderCreated(telegramId, order.id, order.total_price);
 ```
 
 ---
@@ -363,6 +376,7 @@ await notifyBuyerOrderCreated(
 **Частота:** Каждый час (рекомендуется)
 
 **Что делает:**
+
 1. Находит корзины с последним обновлением > 2 часов назад
 2. Проверяет, нет ли у пользователя активных заказов
 3. Проверяет, не отправлено ли уже напоминание
@@ -370,6 +384,7 @@ await notifyBuyerOrderCreated(
 5. Обновляет статус в БД
 
 **Установка на Vercel:**
+
 ```json
 {
   "crons": [
@@ -383,6 +398,7 @@ await notifyBuyerOrderCreated(
 
 **Установка на self-hosted:**
 Используйте unix cron:
+
 ```bash
 0 * * * * curl -X GET http://yourapp.com/api/cron/abandoned-cart?token=YOUR_SECRET
 ```
@@ -399,12 +415,12 @@ fetch('/api/admin/settings/notifications', {
   method: 'PUT',
   headers: {
     'X-Telegram-Id': '123456789',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     event_type: 'abandoned_cart',
-    is_enabled: false
-  })
+    is_enabled: false,
+  }),
 });
 ```
 
@@ -413,14 +429,14 @@ fetch('/api/admin/settings/notifications', {
 ```typescript
 useEffect(() => {
   fetch('/api/admin/settings/notifications', {
-    headers: { 'X-Telegram-Id': '123456789' }
+    headers: { 'X-Telegram-Id': '123456789' },
   })
-  .then(r => r.json())
-  .then(data => {
-    console.log('Всего отправлено:', data.stats.total_sent);
-    console.log('Ошибок:', data.stats.total_failed);
-    console.log('Успешность:', data.stats.success_rate + '%');
-  });
+    .then((r) => r.json())
+    .then((data) => {
+      console.log('Всего отправлено:', data.stats.total_sent);
+      console.log('Ошибок:', data.stats.total_failed);
+      console.log('Успешность:', data.stats.success_rate + '%');
+    });
 }, []);
 ```
 
@@ -450,7 +466,7 @@ await sendNotification(
 
 ### Защита Cron
 
-- ✅ Проверка `CRON_SECRET` для /api/cron/*
+- ✅ Проверка `CRON_SECRET` для /api/cron/\*
 - ✅ Rate limiting между уведомлениями (100ms)
 - ✅ Graceful error handling
 
@@ -491,7 +507,7 @@ await sendNotification(
 
 ```sql
 -- Статистика по типам уведомлений
-SELECT event_type, COUNT(*) as count, 
+SELECT event_type, COUNT(*) as count,
        COUNT(CASE WHEN status='failed' THEN 1 END) as failed
 FROM notification_history
 WHERE sent_at >= NOW() - INTERVAL '7 days'

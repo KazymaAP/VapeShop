@@ -1,6 +1,9 @@
 import React from 'react';
 
-export const SkeletonLoader: React.FC<{ count?: number; className?: string }> = ({ count = 1, className = '' }) => {
+export const SkeletonLoader: React.FC<{ count?: number; className?: string }> = ({
+  count = 1,
+  className = '',
+}) => {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
@@ -48,7 +51,10 @@ export const TableRowSkeleton: React.FC<{ columns?: number }> = ({ columns = 5 }
   </tr>
 );
 
-export const TextSkeleton: React.FC<{ lines?: number; className?: string }> = ({ lines = 3, className = '' }) => (
+export const TextSkeleton: React.FC<{ lines?: number; className?: string }> = ({
+  lines = 3,
+  className = '',
+}) => (
   <div className={className}>
     {Array.from({ length: lines }).map((_, i) => (
       <div

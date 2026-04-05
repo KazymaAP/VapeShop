@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth, getTelegramId } from '@/lib/auth';
+import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const userId = getTelegramId(req).toString();
+  const userId = await getTelegramIdFromRequest(req);
 
   if (req.method === 'GET') {
     try {
@@ -23,8 +23,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(200).json({
         data: {
           current_balance: currentBalance,
-          history: historyResult.rows
-        }
+          history: historyResult.rows,
+        },
       });
     } catch {
       res.status(500).json({ error: 'Failed to fetch balance' });
@@ -53,4 +53,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['customer']);
-

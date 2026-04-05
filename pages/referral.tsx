@@ -19,7 +19,7 @@ export default function ReferralPage() {
   const loadReferralInfo = async () => {
     try {
       const response = await fetch('/api/user/referral', {
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -36,7 +36,7 @@ export default function ReferralPage() {
     try {
       const response = await fetch('/api/user/referral', {
         method: 'POST',
-        headers: { 'X-Telegram-Id': user?.id.toString() || '' }
+        headers: { 'X-Telegram-Id': user?.id.toString() || '' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -65,8 +65,10 @@ export default function ReferralPage() {
       <h1 className="text-2xl font-bold mb-6 text-neon">Реферальная программа</h1>
 
       <div className="bg-cardBg rounded-lg border border-border p-6 mb-6">
-        <p className="text-textSecondary mb-4">Приглашайте друзей и получайте 5% от каждой покупки</p>
-        
+        <p className="text-textSecondary mb-4">
+          Приглашайте друзей и получайте 5% от каждой покупки
+        </p>
+
         {referralInfo?.code ? (
           <>
             <div className="bg-bgDark rounded p-4 mb-4">

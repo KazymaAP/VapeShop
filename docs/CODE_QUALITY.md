@@ -10,7 +10,7 @@
 
 ```typescript
 // ❌ НЕПРАВИЛЬНО
-const data: any = await fetch('/api/data').then(r => r.json());
+const data: any = await fetch('/api/data').then((r) => r.json());
 const handleClick = (event: any) => {};
 
 // ✅ ПРАВИЛЬНО
@@ -18,7 +18,7 @@ interface ApiResponse {
   success: boolean;
   data: Record<string, unknown>;
 }
-const data: ApiResponse = await fetch('/api/data').then(r => r.json());
+const data: ApiResponse = await fetch('/api/data').then((r) => r.json());
 const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {};
 ```
 
@@ -55,6 +55,7 @@ npx prettier --write .
 ```
 
 **Стиль кода**:
+
 - Отступы: **2 пробела**
 - Максимальная длина строки: **100 символов**
 - Точка с запятой: **всегда**
@@ -62,6 +63,7 @@ npx prettier --write .
 - Трейлинг запятая: **es5** (в объектах и массивах, но не в функциях)
 
 Пример:
+
 ```typescript
 // ✅ ПРАВИЛЬНО
 const userConfig = {
@@ -77,17 +79,18 @@ const items = [
 
 ### 3. Именование
 
-| Элемент | Стиль | Пример |
-|---------|-------|--------|
-| Переменные | `camelCase` | `const userName = 'John'` |
-| Функции | `camelCase` | `function fetchProducts()` |
-| React компоненты | `PascalCase` | `export function UserCard()` |
-| Файлы компонентов | `PascalCase.tsx` | `ProductCard.tsx` |
-| Остальные файлы | `kebab-case.ts` | `user-utils.ts` |
-| Константы | `UPPER_SNAKE_CASE` | `const MAX_ITEMS = 100` |
-| Интерфейсы | `PascalCase` + `Props` | `interface UserCardProps {}` |
+| Элемент           | Стиль                  | Пример                       |
+| ----------------- | ---------------------- | ---------------------------- |
+| Переменные        | `camelCase`            | `const userName = 'John'`    |
+| Функции           | `camelCase`            | `function fetchProducts()`   |
+| React компоненты  | `PascalCase`           | `export function UserCard()` |
+| Файлы компонентов | `PascalCase.tsx`       | `ProductCard.tsx`            |
+| Остальные файлы   | `kebab-case.ts`        | `user-utils.ts`              |
+| Константы         | `UPPER_SNAKE_CASE`     | `const MAX_ITEMS = 100`      |
+| Интерфейсы        | `PascalCase` + `Props` | `interface UserCardProps {}` |
 
 **Правила имен**:
+
 - Длина: **2-30 символов**
 - Избегай однобуквенных имён (кроме счётчиков: `i`, `j`, `x`, `y`)
 - Используй полные слова (не сокращай: `product`, не `prod`)
@@ -167,10 +170,7 @@ catch (error) {
 // ✅ ПРАВИЛЬНО
 import { handleApiError } from '@/lib/errorHandler';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // твой код
   } catch (err) {
@@ -187,10 +187,7 @@ export default async function handler(
 // ✅ ПРАВИЛЬНО
 import { validateData, CreateProductSchema } from '@/lib/validation';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const input = validateData(CreateProductSchema, req.body);
     // input теперь типобезопасен!
@@ -217,7 +214,7 @@ export default async function handler(
 async function getProducts(
   page: number,
   limit: number,
-  filters?: ProductFilters,
+  filters?: ProductFilters
 ): Promise<Product[]> {
   // ...
 }
@@ -281,12 +278,9 @@ const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 
 ```typescript
 // ✅ ПРАВИЛЬНО - используй useCallback для обработчиков
-const handleDelete = useCallback(
-  (id: number) => {
-    deleteProduct(id);
-  },
-  [],
-);
+const handleDelete = useCallback((id: number) => {
+  deleteProduct(id);
+}, []);
 
 // ✅ ПРАВИЛЬНО - зависимости в useEffect
 useEffect(() => {
@@ -309,10 +303,7 @@ interface ResponseData {
   error?: string;
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ResponseData>,
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   if (req.method === 'GET') {
     try {
       // Твой код
@@ -381,6 +372,7 @@ npm run lint
 ```
 
 Исправляет автоматически (если можно):
+
 ```bash
 npm run lint -- --fix
 ```

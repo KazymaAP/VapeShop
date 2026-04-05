@@ -9,7 +9,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { page = '1', limit = '20', sort = 'created_at', order = 'desc', search, category_id, brand_id } = req.query;
+    const {
+      page = '1',
+      limit = '20',
+      sort = 'created_at',
+      order = 'desc',
+      search,
+      category_id,
+      brand_id,
+    } = req.query;
 
     // Валидация пагинации
     const pageNum = parseInt(String(page));
@@ -17,7 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const validationErrors = validatePagination(pageNum, limitNum);
     if (validationErrors.length > 0) {
-      return res.status(400).json({ error: 'Invalid pagination parameters', details: validationErrors });
+      return res
+        .status(400)
+        .json({ error: 'Invalid pagination parameters', details: validationErrors });
     }
 
     // Валидация сортировки
@@ -28,7 +38,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const allowedOrders = ['asc', 'desc'];
-    const safeOrder = allowedOrders.includes(String(order).toLowerCase()) ? String(order).toLowerCase() : 'desc';
+    const safeOrder = allowedOrders.includes(String(order).toLowerCase())
+      ? String(order).toLowerCase()
+      : 'desc';
     const safeSortBy = String(sort);
 
     const offset = (pageNum - 1) * limitNum;
@@ -38,7 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const params: (string | number)[] = [];
 
     if (search) {
-      whereConditions.push(`(name ILIKE $${params.length + 1} OR specification ILIKE $${params.length + 1})`);
+      whereConditions.push(
+        `(name ILIKE $${params.length + 1} OR specification ILIKE $${params.length + 1})`
+      );
       params.push(`%${String(search)}%`);
     }
 
@@ -106,9 +120,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const errorResponse = {
       success: false,
-      error: process.env.NODE_ENV === 'production' 
-        ? 'Internal server error' 
-        : error.message || 'Internal server error',
+      error:
+        process.env.NODE_ENV === 'production'
+          ? 'Internal server error'
+          : error.message || 'Internal server error',
       timestamp: Date.now(),
     };
 

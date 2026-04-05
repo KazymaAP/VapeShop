@@ -3,6 +3,7 @@
 ## 📊 Текущий статус
 
 ✅ **Завершено (100%)**
+
 - lib/auth.ts - Все функции аутентификации и авторизации
 - lib/frontend/auth.ts - Все утилиты фронтенда
 - /api/admin/products.ts - Защищен requireAuth
@@ -10,12 +11,14 @@
 - Документация (6 файлов с примерами и инструкциями)
 
 ⏳ **В процессе (16%)**
+
 - Остальные adminские API (7 файлов из 8 требуют защиты)
 - Компоненты админки (фронтенд)
 
 ❌ **Требуется (84%)**
-- Применить requireAuth ко всем /api/admin/* эндпоинтам
-- Обновить все pages/admin/* компоненты на fetchWithAuth
+
+- Применить requireAuth ко всем /api/admin/\* эндпоинтам
+- Обновить все pages/admin/\* компоненты на fetchWithAuth
 - Создать таблицу admin_logs в БД
 
 ## 🚀 Рекомендуемый порядок работы
@@ -58,6 +61,7 @@
 ### Приоритет 2: Обновление фронтенда админки (2-3 часа)
 
 1. Создайте общую утилиту для обработки ошибок (опционально):
+
 ```typescript
 // lib/frontend/authErrorHandler.ts
 export async function handleAuthError(response: Response) {
@@ -89,6 +93,7 @@ export async function handleAuthError(response: Response) {
 ### Приоритет 3: База данных и логирование (30 минут)
 
 1. Выполните SQL миграцию для создания таблицы admin_logs:
+
 ```sql
 CREATE TABLE admin_logs (
   id SERIAL PRIMARY KEY,
@@ -107,6 +112,7 @@ CREATE TABLE admin_logs (
    - is_blocked (BOOLEAN DEFAULT FALSE)
 
 3. Тестируйте логирование:
+
 ```sql
 -- Проверьте логи
 SELECT * FROM admin_logs ORDER BY created_at DESC LIMIT 10;
@@ -150,12 +156,14 @@ SELECT * FROM admin_logs ORDER BY created_at DESC LIMIT 10;
 ## 🔧 Инструменты для отладки
 
 ### 1. DevTools (F12)
+
 ```
 Network → Кликните на запрос → Headers
 Ищите x-telegram-id в Request Headers
 ```
 
 ### 2. curl для тестирования
+
 ```bash
 # Без заголовка (должно быть 401)
 curl -X GET http://localhost:3000/api/admin/products
@@ -166,6 +174,7 @@ curl -X GET http://localhost:3000/api/admin/products \
 ```
 
 ### 3. SQL для проверки
+
 ```sql
 -- Проверьте свою роль
 SELECT telegram_id, role, is_blocked FROM users WHERE telegram_id = YOUR_ID;
@@ -177,23 +186,26 @@ SELECT * FROM admin_logs ORDER BY created_at DESC LIMIT 5;
 ## ⚠️ Частые ошибки
 
 1. **Забыли обёртку requireAuth**
+
    ```typescript
    export default handler; // ❌ НЕ ПРАВИЛЬНО
    export default requireAuth(handler, ['admin']); // ✓ ПРАВИЛЬНО
    ```
 
 2. **export default async function вместо переименования**
+
    ```typescript
-   export default async function handler(req, res) { } // ❌ Не работает
-   async function handler(req, res) { } // ✓ Правильно
+   export default async function handler(req, res) {} // ❌ Не работает
+   async function handler(req, res) {} // ✓ Правильно
    export default requireAuth(handler, ['admin']);
    ```
 
 3. **Забыли getTelegramId() при логировании**
+
    ```typescript
    // ❌ Неправильно - не будет знать кто это сделал
    await query('UPDATE products SET ...');
-   
+
    // ✓ Правильно - записалось в логи
    const telegramId = getTelegramId(req);
    await query('INSERT INTO admin_logs ...');
@@ -223,7 +235,7 @@ SELECT * FROM admin_logs ORDER BY created_at DESC LIMIT 5;
 
 Когда всё будет готово, убедитесь:
 
-- [ ] Все /api/admin/* эндпоинты требуют X-Telegram-Id заголовок
+- [ ] Все /api/admin/\* эндпоинты требуют X-Telegram-Id заголовок
 - [ ] Админы видят всё, менеджеры видят заказы, остальные видят 403
 - [ ] Заблокированные пользователи не могут ничего делать
 - [ ] Все действия администраторов логируются в admin_logs

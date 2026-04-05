@@ -31,19 +31,19 @@ CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_is_active ON users(is_active);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| telegram_id | BIGINT | ID пользователя в Telegram |
-| first_name | VARCHAR | Имя из Telegram |
-| last_name | VARCHAR | Фамилия из Telegram |
-| username | VARCHAR | Username (@username) |
-| role | ENUM | Роль: customer, seller, manager, admin, super_admin |
-| phone | VARCHAR | Номер телефона |
-| email | VARCHAR | Электронная почта |
-| is_active | BOOLEAN | Активен ли пользователь |
-| created_at | TIMESTAMP | Дата регистрации |
-| updated_at | TIMESTAMP | Дата последнего обновления |
+| Колона      | Тип       | Описание                                            |
+| ----------- | --------- | --------------------------------------------------- |
+| id          | SERIAL    | Уникальный ID                                       |
+| telegram_id | BIGINT    | ID пользователя в Telegram                          |
+| first_name  | VARCHAR   | Имя из Telegram                                     |
+| last_name   | VARCHAR   | Фамилия из Telegram                                 |
+| username    | VARCHAR   | Username (@username)                                |
+| role        | ENUM      | Роль: customer, seller, manager, admin, super_admin |
+| phone       | VARCHAR   | Номер телефона                                      |
+| email       | VARCHAR   | Электронная почта                                   |
+| is_active   | BOOLEAN   | Активен ли пользователь                             |
+| created_at  | TIMESTAMP | Дата регистрации                                    |
+| updated_at  | TIMESTAMP | Дата последнего обновления                          |
 
 ---
 
@@ -63,15 +63,15 @@ CREATE TABLE categories (
 );
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| name | VARCHAR | Название категории (e.g., "Pods", "Liquids") |
-| description | TEXT | Описание |
-| icon_url | VARCHAR | URL иконки |
-| position | INT | Порядок отображения |
-| is_active | BOOLEAN | Видима ли категория |
-| created_at | TIMESTAMP | Дата создания |
+| Колона      | Тип       | Описание                                     |
+| ----------- | --------- | -------------------------------------------- |
+| id          | SERIAL    | Уникальный ID                                |
+| name        | VARCHAR   | Название категории (e.g., "Pods", "Liquids") |
+| description | TEXT      | Описание                                     |
+| icon_url    | VARCHAR   | URL иконки                                   |
+| position    | INT       | Порядок отображения                          |
+| is_active   | BOOLEAN   | Видима ли категория                          |
+| created_at  | TIMESTAMP | Дата создания                                |
 
 ---
 
@@ -100,19 +100,19 @@ CREATE INDEX idx_products_is_active ON products(is_active);
 CREATE INDEX idx_products_deleted_at ON products(deleted_at);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| name | VARCHAR | Название товара |
-| description | TEXT | Описание и характеристики |
-| price | DECIMAL | Цена в рублях |
-| stock | INT | Количество в наличии |
-| category_id | INT FK | Ссылка на категорию |
-| image_url | VARCHAR | URL основного изображения |
-| is_active | BOOLEAN | Видим ли товар (soft delete) |
-| deleted_at | TIMESTAMP | Дата удаления (soft delete) |
-| created_at | TIMESTAMP | Дата добавления |
-| updated_at | TIMESTAMP | Дата обновления |
+| Колона      | Тип       | Описание                     |
+| ----------- | --------- | ---------------------------- |
+| id          | SERIAL    | Уникальный ID                |
+| name        | VARCHAR   | Название товара              |
+| description | TEXT      | Описание и характеристики    |
+| price       | DECIMAL   | Цена в рублях                |
+| stock       | INT       | Количество в наличии         |
+| category_id | INT FK    | Ссылка на категорию          |
+| image_url   | VARCHAR   | URL основного изображения    |
+| is_active   | BOOLEAN   | Видим ли товар (soft delete) |
+| deleted_at  | TIMESTAMP | Дата удаления (soft delete)  |
+| created_at  | TIMESTAMP | Дата добавления              |
+| updated_at  | TIMESTAMP | Дата обновления              |
 
 ---
 
@@ -136,14 +136,14 @@ CREATE INDEX idx_cart_items_user_id ON cart_items(user_telegram_id);
 CREATE INDEX idx_cart_items_product_id ON cart_items(product_id);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| user_telegram_id | BIGINT FK | Кто добавил |
-| product_id | INT FK | Какой товар |
-| quantity | INT | Количество |
-| created_at | TIMESTAMP | Когда добавлено |
-| updated_at | TIMESTAMP | Когда обновлено |
+| Колона           | Тип       | Описание        |
+| ---------------- | --------- | --------------- |
+| id               | SERIAL    | Уникальный ID   |
+| user_telegram_id | BIGINT FK | Кто добавил     |
+| product_id       | INT FK    | Какой товар     |
+| quantity         | INT       | Количество      |
+| created_at       | TIMESTAMP | Когда добавлено |
+| updated_at       | TIMESTAMP | Когда обновлено |
 
 ---
 
@@ -155,7 +155,7 @@ CREATE INDEX idx_cart_items_product_id ON cart_items(product_id);
 CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   user_telegram_id BIGINT NOT NULL REFERENCES users(telegram_id),
-  status ENUM('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded') 
+  status ENUM('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded')
     DEFAULT 'pending',
   total DECIMAL(10, 2) NOT NULL,
   delivery_type VARCHAR(20),  -- 'pickup', 'courier'
@@ -174,20 +174,20 @@ CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_created_at ON orders(created_at DESC);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный номер заказа |
-| user_telegram_id | BIGINT FK | Кто заказал |
-| status | ENUM | Статус: pending, paid, shipped, delivered, cancelled, refunded |
-| total | DECIMAL | Сумма заказа |
-| delivery_type | VARCHAR | Тип доставки: pickup, courier |
-| address | TEXT | Адрес доставки |
-| notes | TEXT | Примечания |
-| created_at | TIMESTAMP | Дата создания |
-| paid_at | TIMESTAMP | Дата оплаты |
-| shipped_at | TIMESTAMP | Дата отправки |
-| delivered_at | TIMESTAMP | Дата доставки |
-| cancelled_at | TIMESTAMP | Дата отмены |
+| Колона           | Тип       | Описание                                                       |
+| ---------------- | --------- | -------------------------------------------------------------- |
+| id               | SERIAL    | Уникальный номер заказа                                        |
+| user_telegram_id | BIGINT FK | Кто заказал                                                    |
+| status           | ENUM      | Статус: pending, paid, shipped, delivered, cancelled, refunded |
+| total            | DECIMAL   | Сумма заказа                                                   |
+| delivery_type    | VARCHAR   | Тип доставки: pickup, courier                                  |
+| address          | TEXT      | Адрес доставки                                                 |
+| notes            | TEXT      | Примечания                                                     |
+| created_at       | TIMESTAMP | Дата создания                                                  |
+| paid_at          | TIMESTAMP | Дата оплаты                                                    |
+| shipped_at       | TIMESTAMP | Дата отправки                                                  |
+| delivered_at     | TIMESTAMP | Дата доставки                                                  |
+| cancelled_at     | TIMESTAMP | Дата отмены                                                    |
 
 ---
 
@@ -210,14 +210,14 @@ CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX idx_order_items_product_id ON order_items(product_id);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| order_id | INT FK | Номер заказа |
-| product_id | INT FK | ID товара |
-| quantity | INT | Количество |
-| price | DECIMAL | Цена в момент заказа (может отличаться от текущей) |
-| created_at | TIMESTAMP | Когда добавлено |
+| Колона     | Тип       | Описание                                           |
+| ---------- | --------- | -------------------------------------------------- |
+| id         | SERIAL    | Уникальный ID                                      |
+| order_id   | INT FK    | Номер заказа                                       |
+| product_id | INT FK    | ID товара                                          |
+| quantity   | INT       | Количество                                         |
+| price      | DECIMAL   | Цена в момент заказа (может отличаться от текущей) |
+| created_at | TIMESTAMP | Когда добавлено                                    |
 
 ---
 
@@ -250,20 +250,20 @@ CREATE INDEX idx_reviews_user_id ON reviews(user_telegram_id);
 CREATE INDEX idx_reviews_status ON reviews(status);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| product_id | INT FK | На какой товар |
-| user_telegram_id | BIGINT FK | От кого |
-| rating | INT | Оценка 1-5 |
-| title | VARCHAR | Заголовок отзыва |
-| text | TEXT | Текст отзыва |
-| image_urls | TEXT[] | Массив URL изображений |
-| helpful_count | INT | Сколько отметили как полезно |
-| status | ENUM | pending, approved, rejected |
-| cashback_awarded | BOOLEAN | Выплачен ли кэшбэк |
-| created_at | TIMESTAMP | Дата написания |
-| approved_at | TIMESTAMP | Дата одобрения админом |
+| Колона           | Тип       | Описание                     |
+| ---------------- | --------- | ---------------------------- |
+| id               | SERIAL    | Уникальный ID                |
+| product_id       | INT FK    | На какой товар               |
+| user_telegram_id | BIGINT FK | От кого                      |
+| rating           | INT       | Оценка 1-5                   |
+| title            | VARCHAR   | Заголовок отзыва             |
+| text             | TEXT      | Текст отзыва                 |
+| image_urls       | TEXT[]    | Массив URL изображений       |
+| helpful_count    | INT       | Сколько отметили как полезно |
+| status           | ENUM      | pending, approved, rejected  |
+| cashback_awarded | BOOLEAN   | Выплачен ли кэшбэк           |
+| created_at       | TIMESTAMP | Дата написания               |
+| approved_at      | TIMESTAMP | Дата одобрения админом       |
 
 ---
 
@@ -290,16 +290,16 @@ CREATE INDEX idx_referral_codes_code ON referral_codes(code);
 CREATE INDEX idx_referral_codes_user_id ON referral_codes(user_telegram_id);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| user_telegram_id | BIGINT FK | Кто владелец кода |
-| code | VARCHAR | Сам код (e.g., JOHN123) |
-| bonus_per_use | DECIMAL | Бонус при использовании |
-| max_uses | INT | Максимум использований |
-| current_uses | INT | Уже использовано |
-| is_active | BOOLEAN | Активен ли код |
-| created_at | TIMESTAMP | Дата создания |
+| Колона           | Тип       | Описание                |
+| ---------------- | --------- | ----------------------- |
+| id               | SERIAL    | Уникальный ID           |
+| user_telegram_id | BIGINT FK | Кто владелец кода       |
+| code             | VARCHAR   | Сам код (e.g., JOHN123) |
+| bonus_per_use    | DECIMAL   | Бонус при использовании |
+| max_uses         | INT       | Максимум использований  |
+| current_uses     | INT       | Уже использовано        |
+| is_active        | BOOLEAN   | Активен ли код          |
+| created_at       | TIMESTAMP | Дата создания           |
 
 ---
 
@@ -322,13 +322,13 @@ CREATE INDEX idx_referral_uses_code_id ON referral_uses(referral_code_id);
 CREATE INDEX idx_referral_uses_user_id ON referral_uses(new_user_telegram_id);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| referral_code_id | INT FK | Какой код использовали |
-| new_user_telegram_id | BIGINT FK | Новый пользователь |
-| bonus_amount | DECIMAL | Размер бонуса |
-| created_at | TIMESTAMP | Когда использовано |
+| Колона               | Тип       | Описание               |
+| -------------------- | --------- | ---------------------- |
+| id                   | SERIAL    | Уникальный ID          |
+| referral_code_id     | INT FK    | Какой код использовали |
+| new_user_telegram_id | BIGINT FK | Новый пользователь     |
+| bonus_amount         | DECIMAL   | Размер бонуса          |
+| created_at           | TIMESTAMP | Когда использовано     |
 
 ---
 
@@ -350,14 +350,14 @@ CREATE TABLE user_bonuses (
 CREATE INDEX idx_user_bonuses_user_id ON user_bonuses(user_telegram_id);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| user_telegram_id | BIGINT FK | Пользователь |
-| total_earned | DECIMAL | Всего заработано бонусов |
-| total_spent | DECIMAL | Всего потрачено |
-| current_balance | DECIMAL | Текущий баланс |
-| updated_at | TIMESTAMP | Дата последнего обновления |
+| Колона           | Тип       | Описание                   |
+| ---------------- | --------- | -------------------------- |
+| id               | SERIAL    | Уникальный ID              |
+| user_telegram_id | BIGINT FK | Пользователь               |
+| total_earned     | DECIMAL   | Всего заработано бонусов   |
+| total_spent      | DECIMAL   | Всего потрачено            |
+| current_balance  | DECIMAL   | Текущий баланс             |
+| updated_at       | TIMESTAMP | Дата последнего обновления |
 
 ---
 
@@ -428,17 +428,17 @@ CREATE INDEX idx_audit_log_table ON audit_log(table_name);
 CREATE INDEX idx_audit_log_created_at ON audit_log(created_at DESC);
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| id | SERIAL | Уникальный ID |
-| user_telegram_id | BIGINT FK | Кто совершил действие |
-| action | VARCHAR | DELETE, UPDATE, INSERT |
-| table_name | VARCHAR | Какая таблица затронута |
-| record_id | INT | ID записи |
-| details | JSONB | JSON с изменениями |
-| ip_address | INET | IP адрес |
-| user_agent | TEXT | User-Agent браузера |
-| created_at | TIMESTAMP | Когда произошло |
+| Колона           | Тип       | Описание                |
+| ---------------- | --------- | ----------------------- |
+| id               | SERIAL    | Уникальный ID           |
+| user_telegram_id | BIGINT FK | Кто совершил действие   |
+| action           | VARCHAR   | DELETE, UPDATE, INSERT  |
+| table_name       | VARCHAR   | Какая таблица затронута |
+| record_id        | INT       | ID записи               |
+| details          | JSONB     | JSON с изменениями      |
+| ip_address       | INET      | IP адрес                |
+| user_agent       | TEXT      | User-Agent браузера     |
+| created_at       | TIMESTAMP | Когда произошло         |
 
 ---
 
@@ -458,13 +458,14 @@ CREATE TABLE settings (
 );
 ```
 
-| Колона | Тип | Описание |
-|--------|-----|---------|
-| key | VARCHAR | Ключ (e.g., "min_order_amount") |
-| value | TEXT | Значение |
-| description | TEXT | Описание |
+| Колона      | Тип     | Описание                        |
+| ----------- | ------- | ------------------------------- |
+| key         | VARCHAR | Ключ (e.g., "min_order_amount") |
+| value       | TEXT    | Значение                        |
+| description | TEXT    | Описание                        |
 
 **Примеры**:
+
 ```
 min_order_amount = 100
 max_order_amount = 50000
@@ -549,20 +550,20 @@ CREATE INDEX idx_audit_log_created_at ON audit_log(created_at DESC);
 ```sql
 -- Категории
 INSERT INTO categories (name, description, position)
-VALUES 
+VALUES
   ('Pods', 'Картридж-системы', 1),
   ('Liquids', 'Жидкости для вейпа', 2),
   ('Accessories', 'Аксессуары', 3);
 
 -- Товары
 INSERT INTO products (name, description, price, stock, category_id)
-VALUES 
+VALUES
   ('Vape Pod 3000', 'High-performance pod', 1500.00, 50, 1),
   ('Premium Liquid 50ml', 'Smooth flavor', 800.00, 100, 2);
 
 -- Настройки
 INSERT INTO settings (key, value, description)
-VALUES 
+VALUES
   ('min_order_amount', '100', 'Минимальная сумма заказа'),
   ('review_cashback', '50', 'Кэшбэк за отзыв');
 ```

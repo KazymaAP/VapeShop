@@ -6,7 +6,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const [revenueRes, ordersRes, usersRes, lowStockRes] = await Promise.all([
-        query("SELECT COALESCE(SUM(total), 0) as revenue FROM orders WHERE status != 'cancelled' AND created_at >= NOW() - INTERVAL '30 days'"),
+        query(
+          "SELECT COALESCE(SUM(total), 0) as revenue FROM orders WHERE status != 'cancelled' AND created_at >= NOW() - INTERVAL '30 days'"
+        ),
         query("SELECT COUNT(*) FROM orders WHERE created_at >= NOW() - INTERVAL '30 days'"),
         query('SELECT COUNT(*) FROM users'),
         query('SELECT COUNT(*) FROM products WHERE stock < 5 AND is_active = true'),
@@ -27,4 +29,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default requireAuth(handler, ['admin']);
-

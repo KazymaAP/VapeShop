@@ -16,7 +16,7 @@ interface Stats {
 
 /**
  * Страница управления настройками уведомлений
- * 
+ *
  * Позволяет админам:
  * - Включать/отключать типы уведомлений
  * - Менять целевую роль для каждого уведомления
@@ -32,17 +32,17 @@ export default function NotificationSettings() {
 
   // Карта описаний событий
   const eventDescriptions: Record<string, string> = {
-    'order_new_admin': 'Новый заказ (админам)',
-    'order_status_changed_buyer': 'Статус заказа изменился (покупателю)',
-    'order_ready_ship': 'Заказ готов к отправке (покупателю)',
-    'abandoned_cart': 'Напоминание о брошенной корзине (покупателю)',
+    order_new_admin: 'Новый заказ (админам)',
+    order_status_changed_buyer: 'Статус заказа изменился (покупателю)',
+    order_ready_ship: 'Заказ готов к отправке (покупателю)',
+    abandoned_cart: 'Напоминание о брошенной корзине (покупателю)',
   };
 
   const eventEmojis: Record<string, string> = {
-    'order_new_admin': '🆕',
-    'order_status_changed_buyer': '📦',
-    'order_ready_ship': '🚀',
-    'abandoned_cart': '💔',
+    order_new_admin: '🆕',
+    order_status_changed_buyer: '📦',
+    order_ready_ship: '🚀',
+    abandoned_cart: '💔',
   };
 
   // Загруженные настройки
@@ -98,16 +98,12 @@ export default function NotificationSettings() {
 
   // Toggle включение/отключение
   const toggleEnabled = (id: number) => {
-    setSettings(settings.map(s => 
-      s.id === id ? { ...s, is_enabled: !s.is_enabled } : s
-    ));
+    setSettings(settings.map((s) => (s.id === id ? { ...s, is_enabled: !s.is_enabled } : s)));
   };
 
   // Изменить роль
   const changeRole = (id: number, newRole: string) => {
-    setSettings(settings.map(s => 
-      s.id === id ? { ...s, target_role: newRole } : s
-    ));
+    setSettings(settings.map((s) => (s.id === id ? { ...s, target_role: newRole } : s)));
   };
 
   useEffect(() => {
@@ -127,12 +123,8 @@ export default function NotificationSettings() {
       <div className="max-w-4xl mx-auto">
         {/* Заголовок */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-neon-cyan mb-2">
-            🔔 Настройки уведомлений
-          </h1>
-          <p className="text-gray-400">
-            Управляйте типами и целевыми ролями для уведомлений
-          </p>
+          <h1 className="text-3xl font-bold text-neon-cyan mb-2">🔔 Настройки уведомлений</h1>
+          <p className="text-gray-400">Управляйте типами и целевыми ролями для уведомлений</p>
         </div>
 
         {/* Статистика */}
@@ -181,9 +173,7 @@ export default function NotificationSettings() {
                   {/* Название события */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">
-                        {eventEmojis[setting.event_type] || '📌'}
-                      </span>
+                      <span className="text-2xl">{eventEmojis[setting.event_type] || '📌'}</span>
                       <div>
                         <p className="font-semibold text-white">
                           {eventDescriptions[setting.event_type] || setting.event_type}
@@ -252,8 +242,13 @@ export default function NotificationSettings() {
         <div className="mt-6 bg-gray-800/50 rounded p-4 border border-neon-purple/50">
           <h3 className="font-semibold text-neon-cyan mb-2">📖 Справка</h3>
           <ul className="text-sm text-gray-400 space-y-1">
-            <li>• <strong>Включено/Отключено</strong> - уведомления для этого события отправляются или нет</li>
-            <li>• <strong>Целевая роль</strong> - кому отправлять уведомления (только если включено)</li>
+            <li>
+              • <strong>Включено/Отключено</strong> - уведомления для этого события отправляются или
+              нет
+            </li>
+            <li>
+              • <strong>Целевая роль</strong> - кому отправлять уведомления (только если включено)
+            </li>
             <li>• Изменения сохраняются автоматически при клике на кнопку</li>
           </ul>
         </div>

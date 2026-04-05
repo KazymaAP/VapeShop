@@ -10,7 +10,7 @@ interface Column<T> {
   label: string;
   sortable?: boolean;
   filterable?: boolean;
-  render?: (value: any, row: T) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode;
 }
 
 interface DataTableProps<T extends { id: string }> {
@@ -43,9 +43,7 @@ export function DataTable<T extends { id: string }>({
   const handleSort = (column: keyof T) => {
     if (sortColumn === column) {
       // Переключаем направление
-      setSortDirection(
-        sortDirection === 'asc' ? 'desc' : sortDirection === 'desc' ? null : 'asc'
-      );
+      setSortDirection(sortDirection === 'asc' ? 'desc' : sortDirection === 'desc' ? null : 'asc');
     } else {
       setSortColumn(column);
       setSortDirection('asc');
@@ -58,11 +56,9 @@ export function DataTable<T extends { id: string }>({
 
     // Фильтрация по поиску
     if (searchTerm && searchableFields.length > 0) {
-      result = result.filter(row =>
-        searchableFields.some(field =>
-          String(row[field])
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+      result = result.filter((row) =>
+        searchableFields.some((field) =>
+          String(row[field]).toLowerCase().includes(searchTerm.toLowerCase())
         )
       );
     }
@@ -99,7 +95,7 @@ export function DataTable<T extends { id: string }>({
       setSelectedRows(new Set());
       onSelectionChange?.([]);
     } else {
-      const newSelected = new Set(processedData.map(row => row.id));
+      const newSelected = new Set(processedData.map((row) => row.id));
       setSelectedRows(newSelected);
       onSelectionChange?.(Array.from(newSelected));
     }
@@ -114,12 +110,10 @@ export function DataTable<T extends { id: string }>({
             type="text"
             placeholder="Поиск..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 bg-bgDark border border-border rounded-lg text-textPrimary placeholder-textSecondary focus:outline-none focus:border-neon"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textSecondary">
-            🔍
-          </span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-textSecondary">🔍</span>
         </div>
       )}
 
@@ -141,7 +135,7 @@ export function DataTable<T extends { id: string }>({
               )}
 
               {/* Заголовки столбцов */}
-              {columns.map(column => (
+              {columns.map((column) => (
                 <th
                   key={String(column.key)}
                   onClick={() => column.sortable && handleSort(column.key)}
@@ -186,18 +180,15 @@ export function DataTable<T extends { id: string }>({
                         type="checkbox"
                         checked={selectedRows.has(row.id)}
                         onChange={() => handleSelectRow(row.id)}
-                        onClick={e => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
                         className="w-4 h-4 cursor-pointer accent-neon"
                       />
                     </td>
                   )}
 
                   {/* Ячейки данных */}
-                  {columns.map(column => (
-                    <td
-                      key={String(column.key)}
-                      className="px-4 py-3 text-sm text-textPrimary"
-                    >
+                  {columns.map((column) => (
+                    <td key={String(column.key)} className="px-4 py-3 text-sm text-textPrimary">
                       {column.render
                         ? column.render(row[column.key], row)
                         : String(row[column.key])}
