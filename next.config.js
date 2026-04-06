@@ -92,11 +92,7 @@ const nextConfig = {
         destination: '/admin/dashboard',
         permanent: false,
       },
-      {
-        source: '/profile',
-        destination: '/user/profile',
-        permanent: false,
-      },
+      // /profile redirect removed - /user/profile doesn't exist
     ];
   },
 

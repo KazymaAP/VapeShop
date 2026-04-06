@@ -24,18 +24,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // Строим query с фильтрами
     let whereClause = 'WHERE 1=1';
-    const params: (string | Date)[] = [];
+    const params: (string | number)[] = [];
     let paramIndex = 1;
 
     if (startDate) {
       whereClause += ` AND o.created_at >= $${paramIndex}`;
-      params.push(new Date(startDate));
+      params.push(new Date(startDate).toISOString());
       paramIndex++;
     }
 
     if (endDate) {
       whereClause += ` AND o.created_at <= $${paramIndex}`;
-      params.push(new Date(endDate));
+      params.push(new Date(endDate).toISOString());
       paramIndex++;
     }
 
@@ -113,9 +113,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         customer_name: order.customer_name || 'N/A',
         username: order.username || 'N/A',
         total_amount: order.total_amount,
-        status: getStatusLabel(order.status),
+        status: getStatusLabel(order.status as string),
         delivery_code: order.delivery_code || '-',
-        created_at: new Date(order.created_at).toLocaleString('ru-RU'),
+        created_at: new Date(order.created_at as string).toLocaleString('ru-RU'),
         items: itemsText,
       });
     });
@@ -123,16 +123,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // Автоширина для некоторых колонок
     worksheet.columns.forEach((col) => {
       if (col.key !== 'items') {
-        col.alignment = { horizontal: 'center', vertical: 'center' };
+        col.alignment = { horizontal: 'center', vertical: 'middle' };
       }
     });
 
     // Добавляем фильтры в отчёт
-    const filterRow = worksheet.insertRow(1);
+    const filterRow = worksheet.insertRow(1, []);
     const filterText = `Фильтры: ${[
       startDate ? `с ${startDate}` : '',
       endDate ? `до ${endDate}` : '',
-      status ? `Статус: ${getStatusLabel(status)}` : '',
+      status ? `Статус: ${getStatusLabel(status as string)}` : '',
     ]
       .filter(Boolean)
       .join(' | ')}`;

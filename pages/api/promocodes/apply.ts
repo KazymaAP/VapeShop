@@ -36,7 +36,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       discount = promo.discount_value;
     }
 
-    await query('UPDATE promocodes SET used_count = used_count + 1 WHERE code = $1', [code]);
+    // ❌ УБРАНО: await query('UPDATE promocodes SET used_count ...')
+    // ✅ причина: нужно увеличивать used_count только ПОСЛЕ успешного платежа
+    // ✅ это делается в pages/api/orders.ts в handlePaymentSuccess
 
     res.status(200).json({ valid: true, discount, type: promo.discount_type });
   } catch {

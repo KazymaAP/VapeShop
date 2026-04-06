@@ -23,15 +23,17 @@ export default function NotFound() {
 
         {/* Кнопки */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/">
-            <a className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition inline-block">
-              🏠 На главную
-            </a>
+          <Link
+            href="/"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition inline-block"
+          >
+            🏠 На главную
           </Link>
-          <Link href="/products">
-            <a className="px-6 py-3 bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition inline-block">
-              🛍️ Каталог товаров
-            </a>
+          <Link
+            href="/products"
+            className="px-6 py-3 bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition inline-block"
+          >
+            🛍️ Каталог товаров
           </Link>
         </div>
 
@@ -39,21 +41,23 @@ export default function NotFound() {
         <div className="mt-12 pt-8 border-t border-gray-300 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Полезные ссылки:</p>
           <div className="space-y-2 text-sm">
-            <Link href="/">
-              <a className="text-blue-600 dark:text-blue-400 hover:underline block">
-                Главная страница
-              </a>
+            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline block">
+              Главная страница
             </Link>
-            <Link href="/products">
-              <a className="text-blue-600 dark:text-blue-400 hover:underline block">
-                Каталог товаров
-              </a>
+            <Link
+              href="/products"
+              className="text-blue-600 dark:text-blue-400 hover:underline block"
+            >
+              Каталог товаров
             </Link>
-            <Link href="/orders">
-              <a className="text-blue-600 dark:text-blue-400 hover:underline block">Мои заказы</a>
+            <Link href="/orders" className="text-blue-600 dark:text-blue-400 hover:underline block">
+              Мои заказы
             </Link>
-            <Link href="/profile">
-              <a className="text-blue-600 dark:text-blue-400 hover:underline block">Профиль</a>
+            <Link
+              href="/profile"
+              className="text-blue-600 dark:text-blue-400 hover:underline block"
+            >
+              Профиль
             </Link>
           </div>
         </div>

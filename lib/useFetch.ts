@@ -33,6 +33,10 @@ export function useFetch<T = unknown>(url: string, options?: UseFetchOptions) {
       const mergedOptions = { ...options, ...opts };
 
       try {
+        // Add AbortController for timeout
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
         // url всегда строка в этом хуке
         const response = await window.fetch(url, {
           method: mergedOptions.method || 'GET',
@@ -41,7 +45,10 @@ export function useFetch<T = unknown>(url: string, options?: UseFetchOptions) {
             ...mergedOptions.headers,
           },
           body: mergedOptions.body ? JSON.stringify(mergedOptions.body) : undefined,
+          signal: controller.signal,
         });
+
+        clearTimeout(timeout);
 
         // Проверяем статус ответа
         if (!response.ok) {

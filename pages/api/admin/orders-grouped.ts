@@ -6,7 +6,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
-import { ApiResponse } from '@/types/api';
+import { ApiResponse, ApiError } from '@/types/api';
 
 interface GroupedOrder {
   date: string;
@@ -22,21 +22,26 @@ interface GroupedOrder {
   }>;
 }
 
-export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResponse>) => {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  try {
-    const { days = 7, status } = req.query;
-
-    let where = `WHERE o.created_at > NOW() - INTERVAL '${days} days'`;
-    if (status && status !== 'all') {
-      where += ` AND o.status = '${status}'`;
+export default requireAuth(
+  async (req: NextApiRequest, res: NextApiResponse<ApiResponse | ApiError>) => {
+    if (req.method !== 'GET') {
+      return res.status(405).json({
+        success: false,
+        error: 'Method not allowed',
+        timestamp: Date.now(),
+      });
     }
 
-    const result = await query(
-      `SELECT 
+    try {
+      const { days = 7, status } = req.query;
+
+      let where = `WHERE o.created_at > NOW() - INTERVAL '${days} days'`;
+      if (status && status !== 'all') {
+        where += ` AND o.status = '${status}'`;
+      }
+
+      const result = await query(
+        `SELECT 
          DATE_TRUNC('day', o.created_at)::DATE as date,
          o.id,
          o.user_telegram_id,
@@ -51,49 +56,59 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiR
        ${where}
        GROUP BY o.id, u.first_name, u.last_name
        ORDER BY o.created_at DESC`,
-      []
-    );
+        []
+      );
 
-    // Сгруппируем по датам
-    const grouped = new Map<string, Array<Record<string, unknown>>>();
+      // Сгруппируем по датам
+      const grouped = new Map<string, Array<Record<string, unknown>>>();
 
-    result.rows.forEach((order: Record<string, unknown>) => {
-      const dateKey = order.date as string;
-      if (!grouped.has(dateKey)) {
-        grouped.set(dateKey, []);
-      }
-      grouped.get(dateKey)!.push(order);
-    });
+      result.rows.forEach((order: Record<string, unknown>) => {
+        const dateKey = order.date as string;
+        if (!grouped.has(dateKey)) {
+          grouped.set(dateKey, []);
+        }
+        grouped.get(dateKey)!.push(order);
+      });
 
-    // Преобразуем в нужный формат
-    const groupedOrders: GroupedOrder[] = Array.from(grouped.entries())
-      .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-      .map(([date, orders]) => ({
-        date,
-        dayLabel: formatDate(new Date(date)),
-        orders: orders.sort(
-          (a: Record<string, unknown>, b: Record<string, unknown>) =>
-            new Date(b.created_at as string).getTime() - new Date(a.created_at as string).getTime()
-        ) as Array<{
-          id: string;
-          user_telegram_id: number;
-          status: string;
-          total_amount: number;
-          items_count: number;
-          created_at: string;
-          user_name?: string;
-        }>,
-      }));
+      // Преобразуем в нужный формат
+      const groupedOrders: GroupedOrder[] = Array.from(grouped.entries())
+        .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+        .map(([date, orders]) => ({
+          date,
+          dayLabel: formatDate(new Date(date)),
+          orders: orders.sort(
+            (a: Record<string, unknown>, b: Record<string, unknown>) =>
+              new Date(b.created_at as string).getTime() -
+              new Date(a.created_at as string).getTime()
+          ) as Array<{
+            id: string;
+            user_telegram_id: number;
+            status: string;
+            total_amount: number;
+            items_count: number;
+            created_at: string;
+            user_name?: string;
+          }>,
+        }));
 
-    return res.status(200).json({
-      data: groupedOrders,
-      count: result.rows.length,
-    });
-  } catch (err) {
-    console.error('Orders grouping error:', err);
-    res.status(500).json({ error: 'Failed to fetch grouped orders' });
+      return res.status(200).json({
+        success: true,
+        data: {
+          orders: groupedOrders,
+          count: result.rows.length,
+        },
+        timestamp: Date.now(),
+      });
+    } catch (err) {
+      console.error('Orders grouping error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch grouped orders',
+        timestamp: Date.now(),
+      });
+    }
   }
-});
+);
 
 // Форматируем дату в русский формат
 function formatDate(date: Date): string {

@@ -1,12 +1,18 @@
 import { InlineKeyboard } from 'grammy';
 
+// Ensure WEBAPP_URL is configured
+const WEBAPP_URL = process.env.WEBAPP_URL;
+if (!WEBAPP_URL) {
+  throw new Error('WEBAPP_URL environment variable is required for bot keyboards');
+}
+
 export function getMainKeyboard() {
   return {
     keyboard: [
       [
         {
           text: '🛍️ Открыть магазин',
-          web_app: { url: process.env.WEBAPP_URL || 'https://your-app.vercel.app' },
+          web_app: { url: WEBAPP_URL },
         },
       ],
       [{ text: '📋 Мои заказы' }, { text: '🎁 Реферальная ссылка' }],
@@ -34,7 +40,7 @@ export function getAdminKeyboard() {
       [
         {
           text: '🌐 Открыть админку',
-          web_app: { url: `${process.env.WEBAPP_URL || 'https://your-app.vercel.app'}/admin` },
+          web_app: { url: `${WEBAPP_URL}/admin` },
         },
       ],
     ],

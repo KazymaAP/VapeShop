@@ -14,7 +14,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   json_build_object('product_id', oi.product_id, 'qty', oi.quantity)
                 ) FILTER (WHERE oi.id IS NOT NULL) as items
          FROM orders o
-         LEFT JOIN users u ON o.user_id = u.id
+         LEFT JOIN users u ON o.user_telegram_id = u.telegram_id
          LEFT JOIN order_items oi ON o.id = oi.order_id
          WHERE o.order_number::text ILIKE $1
          OR u.first_name ILIKE $1

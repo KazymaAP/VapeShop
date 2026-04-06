@@ -99,7 +99,11 @@ interface ReferralShareProps {
 
 export function ReferralShare({ code, stats }: ReferralShareProps) {
   const [copied, setCopied] = useState(false);
-  const link = `https://your-app.com/?ref=${code}`;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_WEBAPP_URL || typeof window !== 'undefined'
+      ? window.location.origin
+      : 'https://app.vapeshop.store';
+  const link = `${baseUrl}/?ref=${code}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(link);

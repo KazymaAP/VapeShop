@@ -11,7 +11,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         `SELECT o.id, o.status, o.updated_at, u.first_name as changed_by,
                 o.manager_notes, o.delivery_method
          FROM orders o
-         LEFT JOIN users u ON o.manager_id = u.id
+         LEFT JOIN users u ON o.user_telegram_id = u.telegram_id
          WHERE o.id = $1
          ORDER BY o.updated_at DESC`,
         [orderId]

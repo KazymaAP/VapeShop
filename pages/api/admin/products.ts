@@ -104,7 +104,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const old = oldProduct.rows[0];
 
       const fields: string[] = [];
-      const values: unknown[] = [];
+      const values: (string | number | boolean | null)[] = [];
       let idx = 1;
 
       // Список допустимых полей для обновления
@@ -204,7 +204,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Построение WHERE условия
       let whereClause = '';
-      const params: unknown[] = [];
+      const params: (string | number | boolean | null)[] = [];
 
       if (search) {
         whereClause = `WHERE (p.name ILIKE $1 OR p.specification ILIKE $1)`;

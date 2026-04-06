@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
+import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Получаем текущего пользователя
   const currentTelegramId = await getTelegramIdFromRequest(req);
 
@@ -108,3 +109,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
+export default rateLimit(handler, RATE_LIMIT_PRESETS.normal);

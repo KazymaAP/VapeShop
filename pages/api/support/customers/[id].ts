@@ -6,14 +6,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const customerId = req.query.id as string;
 
   try {
-    const customerResult = await query('SELECT * FROM users WHERE id = $1', [customerId]);
+    const customerResult = await query('SELECT * FROM users WHERE telegram_id = $1', [customerId]);
 
     if (customerResult.rows.length === 0) {
       return res.status(404).json({ error: 'Customer not found' });
     }
 
     const ordersResult = await query(
-      'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
+      'SELECT * FROM orders WHERE user_telegram_id = $1 ORDER BY created_at DESC',
       [customerId]
     );
 

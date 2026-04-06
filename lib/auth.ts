@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from './db';
 import crypto from 'crypto';
+import { logger } from './logger';
 
 export type UserRole =
   | 'super_admin'
@@ -56,8 +57,8 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
       if (headerTelegramId) {
         const id = parseInt(headerTelegramId as string, 10);
         if (!isNaN(id)) {
-          console.warn(
-            `⚠️ ПРЕДУПРЕЖДЕНИЕ: Используется X-Telegram-Id для тестирования. ` +
+          logger.warn(
+            `ПРЕДУПРЕЖДЕНИЕ: Используется X-Telegram-Id для тестирования. ` +
               `На production это должно быть отключено. Telegram ID: ${id}`
           );
           return id;
@@ -67,7 +68,7 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
 
     return null;
   } catch (err) {
-    console.error('getTelegramIdFromRequest error:', err);
+    logger.error('getTelegramIdFromRequest error', err);
     return null;
   }
 }
@@ -93,16 +94,36 @@ export function verifyTelegramInitData(initData: string): boolean {
     const bot_token = process.env.TELEGRAM_BOT_TOKEN;
 
     if (!bot_token) {
-      console.error('TELEGRAM_BOT_TOKEN not found in environment');
+      logger.error('TELEGRAM_BOT_TOKEN not found in environment');
       return false;
     }
 
     // Парсим параметры
     const params = new URLSearchParams(initData);
     const hash = params.get('hash');
+    const auth_date_str = params.get('auth_date');
 
     if (!hash) {
-      console.error('No hash found in initData');
+      logger.error('No hash found in initData');
+      return false;
+    }
+
+    // Проверка возраста данных (24 часа максимум)
+    if (auth_date_str) {
+      const auth_date = parseInt(auth_date_str, 10);
+      const current_time = Math.floor(Date.now() / 1000);
+      const max_age = 24 * 60 * 60; // 24 hours in seconds
+
+      if (current_time - auth_date > max_age) {
+        logger.warn('initData expired', {
+          auth_date,
+          current_time,
+          age_seconds: current_time - auth_date,
+        });
+        return false;
+      }
+    } else {
+      logger.warn('auth_date not found in initData');
       return false;
     }
 
@@ -131,19 +152,19 @@ export function verifyTelegramInitData(initData: string): boolean {
 
     // Проверка длины буферов перед сравнением
     if (receivedHashBuffer.length !== computedHashBuffer.length) {
-      console.warn('Hash length mismatch. Possible tampering attempt.');
+      logger.warn('Hash length mismatch. Possible tampering attempt.');
       return false;
     }
 
     const isValid = crypto.timingSafeEqual(computedHashBuffer, receivedHashBuffer);
 
     if (!isValid) {
-      console.warn('Invalid initData signature. Computed:', computed_hash, 'Received:', hash);
+      logger.warn('Invalid initData signature detected', { computed_hash, received_hash: hash });
     }
 
     return isValid;
   } catch (err) {
-    console.error('verifyTelegramInitData error:', err);
+    logger.error('verifyTelegramInitData error', err);
     return false;
   }
 }
@@ -159,7 +180,7 @@ function parseInitData(initData: string): { id: number } | null {
   try {
     // Сначала проверяем подпись
     if (!verifyTelegramInitData(initData)) {
-      console.error('initData verification failed');
+      logger.error('initData verification failed');
       return null;
     }
 
@@ -181,7 +202,7 @@ function parseInitData(initData: string): { id: number } | null {
 
     return null;
   } catch (err) {
-    console.error('parseInitData error:', err);
+    logger.error('parseInitData error', err);
     return null;
   }
 }
@@ -199,7 +220,7 @@ export async function getUserRole(telegramId: number): Promise<UserRole | null> 
 
     return result.rows[0].role as UserRole;
   } catch (err) {
-    console.error('getUserRole error:', err);
+    logger.error('getUserRole error', err);
     return null;
   }
 }
@@ -217,7 +238,7 @@ export async function isUserBlocked(telegramId: number): Promise<boolean> {
 
     return result.rows[0].is_blocked === true;
   } catch (err) {
-    console.error('isUserBlocked error:', err);
+    logger.error('isUserBlocked error', err);
     return false;
   }
 }
@@ -288,7 +309,7 @@ export function requireAuth(
       // 5. Вызываем оригинальный handler
       return await handler(req, res);
     } catch (err) {
-      console.error('requireAuth error:', err);
+      logger.error('requireAuth error', err);
       return res.status(500).json({
         error: 'Internal Server Error',
         message: 'Ошибка при проверке прав доступа',
@@ -385,4 +406,66 @@ export async function checkAccess(
   }
 
   return { allowed: true };
+}
+
+/**
+ * ⚠️ КРИТИЧНО: Проверка CRON_SECRET с protection от timing attacks
+ * Использование:
+ * if (!verifyCronSecret(req)) return res.status(401).json({ error: 'Unauthorized' });
+ *
+ * Поддерживает:
+ * - заголовок X-Cron-Secret
+ * - query параметр token
+ * - header Authorization Bearer
+ */
+export function verifyCronSecret(req: NextApiRequest): boolean {
+  if (!process.env.CRON_SECRET || process.env.CRON_SECRET.length === 0) {
+    logger.error('CRON_SECRET not configured');
+    return false;
+  }
+
+  // Получаем token из разных мест
+  let providedToken: string | null = null;
+
+  // 1. Из заголовка X-Cron-Secret
+  const headerToken = req.headers['x-cron-secret'];
+  if (headerToken && typeof headerToken === 'string') {
+    providedToken = headerToken;
+  }
+
+  // 2. Из query параметра token (для Vercel Crons)
+  if (!providedToken && req.query.token) {
+    providedToken = Array.isArray(req.query.token) ? req.query.token[0] : req.query.token;
+  }
+
+  // 3. Из заголовка Authorization: Bearer <token>
+  if (!providedToken && req.headers.authorization) {
+    const authHeader = req.headers.authorization;
+    if (authHeader.startsWith('Bearer ')) {
+      providedToken = authHeader.substring(7);
+    }
+  }
+
+  if (!providedToken) {
+    logger.warn('No CRON token provided');
+    return false;
+  }
+
+  // Constant-time сравнение для защиты от timing attacks
+  try {
+    const providedBuffer = Buffer.from(providedToken);
+    const expectedBuffer = Buffer.from(process.env.CRON_SECRET);
+
+    // Проверяем длину (защита от информации о длине)
+    if (providedBuffer.length !== expectedBuffer.length) {
+      logger.warn('CRON token length mismatch');
+      return false;
+    }
+
+    // Constant-time сравнение
+    return crypto.timingSafeEqual(providedBuffer, expectedBuffer);
+  } catch (err) {
+    logger.error('CRON token verification error', err);
+    return false;
+  }
 }

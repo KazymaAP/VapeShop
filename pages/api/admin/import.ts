@@ -116,7 +116,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await query('COMMIT');
 
       // Логируем импорт
-      const adminTelegramId = (req as Record<string, unknown>).telegramId as string;
+      const adminTelegramId = (req as unknown as Record<string, string>).telegramId;
       await query(
         `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
          VALUES ($1, $2, $3, $4)`,

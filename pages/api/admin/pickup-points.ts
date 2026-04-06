@@ -65,14 +65,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Log admin action
       const telegramId = getTelegramId(req);
-      await query(
-        `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [
-          telegramId,
-          'create_pickup_point',
-          JSON.stringify({ pickup_point_id: pickupPoint.id, name }),
-        ]
-      ).catch((err) => console.error('Logging error:', err));
+      await query(`INSERT INTO audit_log (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+        telegramId,
+        'create_pickup_point',
+        JSON.stringify({ pickup_point_id: pickupPoint.id, name }),
+      ]).catch((err) => console.error('Logging error:', err));
 
       res.status(201).json({ pickup_point: pickupPoint });
     } catch (err) {
@@ -98,7 +95,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const old = existingResult.rows[0];
       const fields: string[] = [];
-      const values: unknown[] = [];
+      const values: (string | number | boolean | null)[] = [];
       let idx = 1;
 
       if (name !== undefined && name !== null) {
@@ -142,10 +139,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Log admin action
       const telegramId = getTelegramId(req);
-      await query(
-        `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [telegramId, 'update_pickup_point', JSON.stringify({ pickup_point_id: id, changes })]
-      ).catch((err) => console.error('Logging error:', err));
+      await query(`INSERT INTO audit_log (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+        telegramId,
+        'update_pickup_point',
+        JSON.stringify({ pickup_point_id: id, changes }),
+      ]).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({ success: true });
     } catch (err) {
@@ -176,10 +174,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Log admin action
       const telegramId = getTelegramId(req);
-      await query(
-        `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [telegramId, 'delete_pickup_point', JSON.stringify({ pickup_point_id: id })]
-      ).catch((err) => console.error('Logging error:', err));
+      await query(`INSERT INTO audit_log (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+        telegramId,
+        'delete_pickup_point',
+        JSON.stringify({ pickup_point_id: id }),
+      ]).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({ success: true });
     } catch (err) {

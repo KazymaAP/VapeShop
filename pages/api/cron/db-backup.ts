@@ -5,16 +5,16 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
+import { verifyCronSecret } from '@/lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Проверяем CRON_SECRET
-  const cronSecret = req.headers['x-cron-secret'];
-  if (cronSecret !== process.env.CRON_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  // ⚠️ КРИТИЧНО: Проверяем CRON_SECRET с защитой от timing attacks
+  if (!verifyCronSecret(req)) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   try {

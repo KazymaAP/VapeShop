@@ -1,7 +1,5 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { useTelegramWebApp, hapticSuccess, hapticError } from '@/lib/telegram';
 import Toast from '@/components/Toast';
 
@@ -53,10 +51,9 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function TrackingPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user: _user, webapp: _webapp } = useTelegramWebApp();
 
-  const orderId = searchParams?.get('orderId');
+  const orderId = router.query.orderId as string | undefined;
   const [tracking, setTracking] = useState<TrackingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

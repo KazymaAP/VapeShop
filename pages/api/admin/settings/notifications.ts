@@ -74,11 +74,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
       }
 
-      // Логируем действие админа
+      // Логируем действие админа (HIGH-023: unified audit_log)
       const telegramId = getTelegramId(req);
       await query(
-        `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [telegramId, 'update_notification_settings', JSON.stringify({ updated_count: updated })]
+        `INSERT INTO audit_log (user_id, action, target_type, details, status) VALUES ($1, $2, $3, $4, $5)`,
+        [
+          telegramId,
+          'update_notification_settings',
+          'notification',
+          JSON.stringify({ updated_count: updated }),
+          'success',
+        ]
       ).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({
@@ -115,19 +121,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Логируем
       const telegramId = getTelegramId(req);
-      await query(
-        `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
-        [
-          telegramId,
-          'update_notification_setting',
-          JSON.stringify({
-            event_type,
-            old_enabled: result.rows[0].is_enabled,
-            new_enabled: is_enabled,
-            target_role,
-          }),
-        ]
-      ).catch((err) => console.error('Logging error:', err));
+      await query(`INSERT INTO audit_log (user_telegram_id, action, details) VALUES ($1, $2, $3)`, [
+        telegramId,
+        'update_notification_setting',
+        JSON.stringify({
+          event_type,
+          old_enabled: result.rows[0].is_enabled,
+          new_enabled: is_enabled,
+          target_role,
+        }),
+      ]).catch((err) => console.error('Logging error:', err));
 
       res.status(200).json({
         success: true,

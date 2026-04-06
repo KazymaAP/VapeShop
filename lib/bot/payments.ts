@@ -107,6 +107,11 @@ export async function handlePaymentSuccess(ctx: Context) {
     const order = orderCheckRes.rows[0];
     const total = parseFloat(order.total);
 
+    // Clear the user's cart after successful payment
+    await query('DELETE FROM carts WHERE user_telegram_id = $1', [telegramId]).catch((err) =>
+      console.warn('Failed to clear cart after payment:', err)
+    );
+
     // Отправляем уведомление пользователю
     await ctx.reply(
       `✅ Спасибо! Ваш заказ оплачен\n\n` +
@@ -133,35 +138,43 @@ export async function handlePaymentSuccess(ctx: Context) {
     );
 
     // Отправляем уведомление админам
-    const adminIds = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(Number);
-    for (const adminId of adminIds) {
-      if (adminId) {
-        try {
-          await ctx.api.sendMessage(
-            adminId,
-            `💰 Новая оплата!\n\n` +
-              `📦 Заказ #${orderId.slice(0, 8).toUpperCase()}\n` +
-              `👤 Пользователь: ${ctx.from?.first_name} (@${ctx.from?.username || 'N/A'})\n` +
-              `💵 Сумма: ${totalAmount / 100} ⭐️\n` +
-              `📦 Код доставки: ${code6digit}`,
-            {
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    {
-                      text: 'Открыть админ-панель',
-                      web_app: { url: `${process.env.WEBAPP_URL}/admin/orders` || '' },
-                    },
-                  ],
-                ],
-              },
+    // ⚠️ HIGH-004 FIX: Отделяем уведомленияот основной логики платежа
+    // Если уведомление не отправится, оно не откатит обновление БД
+    (async () => {
+      try {
+        const adminIds = (process.env.ADMIN_TELEGRAM_IDS || '').split(',').map(Number);
+        for (const adminId of adminIds) {
+          if (adminId) {
+            try {
+              await ctx.api.sendMessage(
+                adminId,
+                `💰 Новая оплата!\n\n` +
+                  `📦 Заказ #${orderId.slice(0, 8).toUpperCase()}\n` +
+                  `👤 Пользователь: ${ctx.from?.first_name} (@${ctx.from?.username || 'N/A'})\n` +
+                  `💵 Сумма: ${totalAmount / 100} ⭐️\n` +
+                  `📦 Код доставки: ${code6digit}`,
+                {
+                  reply_markup: {
+                    inline_keyboard: [
+                      [
+                        {
+                          text: 'Открыть админ-панель',
+                          web_app: { url: `${process.env.WEBAPP_URL}/admin/orders` || '' },
+                        },
+                      ],
+                    ],
+                  },
+                }
+              );
+            } catch (adminErr) {
+              console.error(`Failed to notify admin ${adminId}:`, adminErr);
             }
-          );
-        } catch (adminErr) {
-          console.error(`Failed to notify admin ${adminId}:`, adminErr);
+          }
         }
+      } catch (notificationErr) {
+        console.error('Admin notification batch failed:', notificationErr);
       }
-    }
+    })();
 
     // Обновляем реферальные бонусы
     const userRes = await query('SELECT referred_by FROM users WHERE telegram_id = $1', [

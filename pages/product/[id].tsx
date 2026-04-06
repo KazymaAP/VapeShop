@@ -65,11 +65,15 @@ export default function ProductPage() {
   }, [id]);
 
   useEffect(() => {
-    if (!id) return;
-    const stored = localStorage.getItem('compare_list');
-    if (stored) {
-      const ids = JSON.parse(stored);
-      setIsInCompare(ids.includes(id));
+    if (!id || typeof window === 'undefined') return;
+    try {
+      const stored = localStorage.getItem('compare_list');
+      if (stored) {
+        const ids = JSON.parse(stored);
+        setIsInCompare(ids.includes(id));
+      }
+    } catch (err) {
+      console.error('Ошибка при проверке списка сравнения:', err);
     }
   }, [id]);
 
@@ -131,16 +135,22 @@ export default function ProductPage() {
   };
 
   const toggleCompare = () => {
-    const stored = localStorage.getItem('compare_list');
-    let ids: string[] = stored ? JSON.parse(stored) : [];
-    if (isInCompare) {
-      ids = ids.filter((pid: string) => pid !== id);
-    } else {
-      ids.push(id as string);
+    if (typeof window === 'undefined') return;
+
+    try {
+      const stored = localStorage.getItem('compare_list');
+      let ids: string[] = stored ? JSON.parse(stored) : [];
+      if (isInCompare) {
+        ids = ids.filter((pid: string) => pid !== id);
+      } else {
+        ids.push(id as string);
+      }
+      localStorage.setItem('compare_list', JSON.stringify(ids));
+      setIsInCompare(!isInCompare);
+      hapticSuccess();
+    } catch (err) {
+      console.error('Ошибка при сохранении в список сравнения:', err);
     }
-    localStorage.setItem('compare_list', JSON.stringify(ids));
-    setIsInCompare(!isInCompare);
-    hapticSuccess();
   };
 
   const toggleFavorite = async () => {

@@ -13,36 +13,40 @@ export default requireAuth(
       const { format = 'xlsx', date_from, date_to, status, min_amount, max_amount } = req.query;
 
       let whereClause = '1=1';
-      const params: (string | Date | number)[] = [];
+      const params: (string | number)[] = [];
       let paramCount = 1;
 
       if (date_from) {
         whereClause += ` AND o.created_at >= $${paramCount}`;
-        params.push(new Date(date_from as string));
+        params.push(
+          new Date(Array.isArray(date_from) ? date_from[0] : (date_from as string)).toISOString()
+        );
         paramCount++;
       }
 
       if (date_to) {
         whereClause += ` AND o.created_at <= $${paramCount}`;
-        params.push(new Date(date_to as string));
+        params.push(
+          new Date(Array.isArray(date_to) ? date_to[0] : (date_to as string)).toISOString()
+        );
         paramCount++;
       }
 
       if (status) {
         whereClause += ` AND o.status = $${paramCount}`;
-        params.push(status);
+        params.push(Array.isArray(status) ? status[0] : status);
         paramCount++;
       }
 
       if (min_amount) {
         whereClause += ` AND o.total_amount >= $${paramCount}`;
-        params.push(parseFloat(min_amount as string));
+        params.push(parseFloat(Array.isArray(min_amount) ? min_amount[0] : (min_amount as string)));
         paramCount++;
       }
 
       if (max_amount) {
         whereClause += ` AND o.total_amount <= $${paramCount}`;
-        params.push(parseFloat(max_amount as string));
+        params.push(parseFloat(Array.isArray(max_amount) ? max_amount[0] : (max_amount as string)));
         paramCount++;
       }
 
@@ -50,7 +54,7 @@ export default requireAuth(
       const ordersResult = await query(
         `SELECT o.*, u.first_name, u.last_name, u.username 
        FROM orders o
-       LEFT JOIN users u ON o.user_id = u.telegram_id
+       LEFT JOIN users u ON o.user_telegram_id = u.telegram_id
        WHERE ${whereClause}
        ORDER BY o.created_at DESC`,
         params

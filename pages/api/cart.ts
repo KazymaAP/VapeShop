@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { validateCartItem } from '@/lib/validate';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
@@ -47,7 +48,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   } else if (method === 'POST') {
     try {
       const { telegram_id, product_id, quantity } = req.body;
-      if (!telegram_id || !product_id) return res.status(400).json({ error: 'Missing fields' });
+
+      // MED-001: Валидация входных данных (MEDIUM priority fix)
+      const validation = validateCartItem({ product_id, quantity });
+      if (validation.length > 0) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation,
+        });
+      }
+
+      if (!telegram_id) return res.status(400).json({ error: 'Missing telegram_id' });
 
       // Проверяем принадлежность и валидность quantity
       if (telegram_id !== currentTelegramId) {
@@ -130,20 +141,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   } else if (method === 'DELETE') {
     try {
-      const { telegram_id, product_id } = req.query;
-
-      // Проверяем принадлежность
-      if (telegram_id && Number(telegram_id) !== currentTelegramId) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
+      const { product_id } = req.query;
 
       if (!product_id) {
-        await query('DELETE FROM carts WHERE user_telegram_id = $1', [telegram_id]);
+        await query('DELETE FROM carts WHERE user_telegram_id = $1', [currentTelegramId]);
         return res.status(200).json({ success: true });
       }
 
       const cartRes = await query('SELECT items FROM carts WHERE user_telegram_id = $1', [
-        telegram_id,
+        currentTelegramId,
       ]);
       if (cartRes.rows.length === 0) return res.status(404).json({ error: 'Cart not found' });
 
@@ -152,7 +158,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       await query('UPDATE carts SET items = $1, updated_at = NOW() WHERE user_telegram_id = $2', [
         JSON.stringify(items),
-        telegram_id,
+        currentTelegramId,
       ]);
 
       res.status(200).json({ success: true });

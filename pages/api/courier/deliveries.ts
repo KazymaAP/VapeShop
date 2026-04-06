@@ -11,7 +11,7 @@ export default requireAuth(
           `SELECT cd.*, o.delivery_address, o.total_amount, u.first_name, u.last_name, u.phone
          FROM courier_deliveries cd
          JOIN orders o ON cd.order_id = o.id
-         LEFT JOIN users u ON o.user_id = u.telegram_id
+         LEFT JOIN users u ON o.user_telegram_id = u.telegram_id
          WHERE cd.courier_id = $1 AND cd.status IN ('assigned', 'in_progress')
          ORDER BY cd.assigned_at ASC`,
           [telegramId]

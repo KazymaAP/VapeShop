@@ -19,39 +19,44 @@ export default requireAuth(
     try {
       const { period = 'month' } = req.query;
 
-      let dateRange = '';
-      let groupBy = '';
-
-      switch (period) {
-        case 'day':
-          dateRange = "NOW() - INTERVAL '24 hours'";
-          groupBy = "DATE_TRUNC('hour', o.created_at)::TIMESTAMP";
-          break;
-        case 'week':
-          dateRange = "NOW() - INTERVAL '7 days'";
-          groupBy = "DATE_TRUNC('day', o.created_at)::DATE";
-          break;
-        case 'month':
-          dateRange = "NOW() - INTERVAL '30 days'";
-          groupBy = "DATE_TRUNC('day', o.created_at)::DATE";
-          break;
-        default:
-          return res.status(400).json({ error: 'Invalid period' });
+      // Валидируем период - используем белый список для безопасности!
+      const validPeriods = ['day', 'week', 'month'];
+      if (!validPeriods.includes(String(period))) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid period',
+          timestamp: Date.now(),
+        });
       }
 
-      // Получаем данные выручки
+      // Безопасное определение интервалов
+      let intervalValue: string = '30 days'; // default
+      let truncateUnit: string = 'day'; // default
+
+      if (String(period) === 'day') {
+        intervalValue = '24 hours';
+        truncateUnit = 'hour';
+      } else if (String(period) === 'week') {
+        intervalValue = '7 days';
+        truncateUnit = 'day';
+      } else if (String(period) === 'month') {
+        intervalValue = '30 days';
+        truncateUnit = 'day';
+      }
+
+      // Получаем данные выручки (безопасно - используем параметризованные запросы)
       const revenueData = await query(
         `SELECT 
-         ${groupBy} as date,
+         DATE_TRUNC($1::text, o.created_at)::${truncateUnit === 'hour' ? 'TIMESTAMP' : 'DATE'} as date,
          COUNT(*) as orders_count,
          SUM(total_amount) as revenue,
          AVG(total_amount) as avg_order_value,
          SUM(CASE WHEN status = 'completed' THEN total_amount ELSE 0 END) as completed_revenue
-       FROM orders
-       WHERE created_at > ${dateRange}
-       GROUP BY ${groupBy}
+       FROM orders o
+       WHERE o.created_at > NOW() - INTERVAL $2
+       GROUP BY DATE_TRUNC($1::text, o.created_at)
        ORDER BY date ASC`,
-        []
+        [truncateUnit, intervalValue]
       );
 
       // Получаем топ товаров
@@ -65,11 +70,11 @@ export default requireAuth(
        FROM order_items oi
        JOIN products p ON oi.product_id = p.id
        JOIN orders o ON oi.order_id = o.id
-       WHERE o.created_at > ${dateRange}
+       WHERE o.created_at > NOW() - INTERVAL $1
        GROUP BY p.id, p.name
        ORDER BY revenue DESC
        LIMIT 10`,
-        []
+        [intervalValue]
       );
 
       // Получаем статистику статусов
@@ -79,9 +84,9 @@ export default requireAuth(
          COUNT(*) as count,
          SUM(total_amount) as revenue
        FROM orders
-       WHERE created_at > ${dateRange}
+       WHERE created_at > NOW() - INTERVAL $1
        GROUP BY status`,
-        []
+        [intervalValue]
       );
 
       // Вычисляем метрики

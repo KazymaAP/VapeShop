@@ -250,6 +250,96 @@ export function validateAddress(data: AddressData): ValidationError[] {
   return errors;
 }
 
+/**
+ * MED-001: Валидация элемента корзины для API
+ */
+export interface CartItemData {
+  product_id?: string | number;
+  quantity?: number;
+}
+
+export function validateCartItem(data: CartItemData): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (data.product_id === undefined) {
+    errors.push({ field: 'product_id', message: 'product_id обязателен' });
+  } else if (typeof data.product_id !== 'string' && typeof data.product_id !== 'number') {
+    errors.push({ field: 'product_id', message: 'product_id должен быть строкой или числом' });
+  }
+
+  if (data.quantity === undefined) {
+    errors.push({ field: 'quantity', message: 'quantity обязателен' });
+  } else if (!Number.isInteger(data.quantity) || data.quantity < 1) {
+    errors.push({ field: 'quantity', message: 'quantity должно быть положительным целым числом' });
+  } else if (data.quantity > 999) {
+    errors.push({ field: 'quantity', message: 'Максимальное количество товара — 999' });
+  }
+
+  return errors;
+}
+
+/**
+ * Валидация email адреса
+ */
+export function validateEmail(email: string): boolean {
+  // RFC 5322 упрощенный regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+}
+
+/**
+ * Валидация дата-диапазона для аналитики
+ */
+export function validateDateRange(
+  startDate: string | undefined,
+  endDate: string | undefined
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (startDate && !isValidISODate(startDate)) {
+    errors.push({ field: 'startDate', message: 'startDate должна быть в формате ISO 8601' });
+  }
+
+  if (endDate && !isValidISODate(endDate)) {
+    errors.push({ field: 'endDate', message: 'endDate должна быть в формате ISO 8601' });
+  }
+
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (start > end) {
+      errors.push({
+        field: 'dateRange',
+        message: 'startDate не может быть позже endDate',
+      });
+    }
+
+    // Проверка что диапазон не больше 1 года
+    const diffMs = end.getTime() - start.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    if (diffDays > 365) {
+      errors.push({
+        field: 'dateRange',
+        message: 'Диапазон дат не может превышать 365 дней',
+      });
+    }
+  }
+
+  return errors;
+}
+
+/**
+ * Helper функции
+ */
+function isValidISODate(dateString: string): boolean {
+  try {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
+  } catch {
+    return false;
+  }
+}
+
 // Утилиты
 function isValidUrl(url: string): boolean {
   try {

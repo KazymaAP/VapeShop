@@ -133,6 +133,8 @@ export default function Home() {
   }, [search]);
 
   useEffect(() => {
+    setLoading(true);
+    setPage(1); // Reset to first page when filter changes
     fetchProducts();
     saveFilters();
   }, [page, sortBy, sortOrder, selectedCategory, selectedBrand]);

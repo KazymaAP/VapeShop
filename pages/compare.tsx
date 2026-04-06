@@ -25,30 +25,46 @@ export default function ComparePage() {
   }, []);
 
   const fetchCompareList = async () => {
+    // Проверяем, что мы на клиенте, а не на сервере
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+
     const stored = localStorage.getItem('compare_list');
     if (stored) {
-      const ids = JSON.parse(stored);
-      const products = await Promise.all(
-        ids.map(async (id: string) => {
-          const res = await fetch(`/api/products/${id}`);
-          if (!res.ok) {
-            throw new Error(`API Error: ${res.status}`);
-          }
-          return res.json();
-        })
-      );
-      setCompareList(products.filter(Boolean));
+      try {
+        const ids = JSON.parse(stored);
+        const products = await Promise.all(
+          ids.map(async (id: string) => {
+            const res = await fetch(`/api/products/${id}`);
+            if (!res.ok) {
+              throw new Error(`API Error: ${res.status}`);
+            }
+            return res.json();
+          })
+        );
+        setCompareList(products.filter(Boolean));
+      } catch (err) {
+        console.error('Ошибка загрузки списка сравнения:', err);
+      }
     }
     setLoading(false);
   };
 
   const removeFromCompare = (id: string) => {
+    if (typeof window === 'undefined') return;
+
     const stored = localStorage.getItem('compare_list');
     if (stored) {
-      const ids = JSON.parse(stored);
-      const filtered = ids.filter((pid: string) => pid !== id);
-      localStorage.setItem('compare_list', JSON.stringify(filtered));
-      setCompareList(compareList.filter((p) => p.id !== id));
+      try {
+        const ids = JSON.parse(stored);
+        const filtered = ids.filter((pid: string) => pid !== id);
+        localStorage.setItem('compare_list', JSON.stringify(filtered));
+        setCompareList(compareList.filter((p) => p.id !== id));
+      } catch (err) {
+        console.error('Ошибка удаления из списка сравнения:', err);
+      }
     }
   };
 

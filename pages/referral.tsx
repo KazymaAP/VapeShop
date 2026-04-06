@@ -50,11 +50,46 @@ export default function ReferralPage() {
   const shareCode = () => {
     if (!referralInfo?.code) return;
     const text = `Я покупаю в VapeShop и получаю кэшбэк! Используй мой код ${referralInfo.code} и получи скидку 5%`;
+
+    // Используем navigator.share если доступно (для мобильных браузеров)
     if (navigator.share) {
-      navigator.share({ title: 'VapeShop', text });
+      navigator
+        .share({
+          title: 'VapeShop',
+          text,
+        })
+        .catch((err) => {
+          console.error('Ошибка при попытке поделиться:', err);
+          // Fallback: копируем в буфер обмена
+          copyToClipboard(text);
+        });
     } else {
-      navigator.clipboard.writeText(text);
-      alert('Ссылка скопирована');
+      // Fallback для браузеров без поддержки navigator.share
+      copyToClipboard(text);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    try {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          // Показываем уведомление об успехе
+          alert('✅ Ссылка скопирована в буфер обмена!');
+        })
+        .catch(() => {
+          // Если clipboard API не работает, используем старый способ
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          alert('✅ Ссылка скопирована в буфер обмена!');
+        });
+    } catch (err) {
+      console.error('Ошибка при копировании:', err);
+      alert('❌ Ошибка при копировании.');
     }
   };
 

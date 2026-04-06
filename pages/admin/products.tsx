@@ -91,8 +91,17 @@ export default function AdminProducts() {
 
   const deleteProduct = async (id: string) => {
     if (!confirm('Удалить товар?')) return;
-    await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
-    fetchProducts();
+    try {
+      const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        alert('Ошибка удаления товара');
+        return;
+      }
+      fetchProducts();
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Ошибка удаления товара');
+    }
   };
 
   return (

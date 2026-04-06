@@ -78,3 +78,5 @@ export function useToast() {
 
   return { toasts, showToast };
 }
+
+export default Toast;

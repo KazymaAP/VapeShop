@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
+import ErrorBoundary from '../../components/ErrorBoundary';
 
 export async function getServerSideProps() {
   return { props: {} };
 }
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const router = useRouter();
   const { user } = useTelegramWebApp();
   const [stats, setStats] = useState({ revenue: 0, orders: 0, users: 0, lowStock: 0 });
@@ -157,6 +158,14 @@ export default function AdminDashboard() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <ErrorBoundary>
+      <AdminDashboardContent />
+    </ErrorBoundary>
   );
 }
 

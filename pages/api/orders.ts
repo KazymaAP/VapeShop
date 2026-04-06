@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query, transaction } from '@/lib/db';
-import { requireAuth, getTelegramId, getTelegramIdFromRequest, isUserBlocked } from '@/lib/auth';
+import { getTelegramIdFromRequest, isUserBlocked, requireAuth } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 import { withCSRFProtection } from '@/lib/csrf';
-import { validateOrderBody } from '@/lib/validation';
 import { Bot } from 'grammy';
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
@@ -15,11 +14,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     // 🔒 ВАЛИДАЦИЯ: Проверяем входные данные
-    const validation = validateOrderBody(req.body);
-    if (!validation.valid) {
+    const { telegram_id, items, delivery_method, delivery_date, address, promo_code, discount } =
+      req.body;
+
+    if (!telegram_id || !items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         error: 'Validation failed',
-        details: validation.errors,
+        details: ['Missing or invalid required fields: telegram_id, items'],
       });
     }
 
@@ -37,9 +38,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(403).json({ error: 'Ваш аккаунт заблокирован. Обратитесь в поддержку.' });
     }
 
-    const { telegram_id, items, delivery_method, delivery_date, address, promo_code, discount } =
-      req.body;
-
     if (!telegram_id || !items || items.length === 0) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -50,7 +48,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Валидируем, что все product_id существуют
-    const productIds = items.map((i: Record<string, unknown>) => i.product_id);
+    const productIds: string[] = items.map((i: Record<string, unknown>) => String(i.product_id));
     const productsRes = await query(
       'SELECT id, stock, price FROM products WHERE id = ANY($1::uuid[]) AND is_active = true',
       [productIds]
@@ -139,13 +137,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return createdOrder;
     });
 
-    // Логируем создание заказа
-    const adminTelegramId = getTelegramId(req);
+    // Логируем создание заказа (используем уже проверенный currentTelegramId)
     await query(
-      `INSERT INTO admin_logs (user_telegram_id, action, details, created_at)
+      `INSERT INTO audit_log (user_telegram_id, action, details, created_at)
        VALUES ($1, $2, $3, NOW())`,
       [
-        adminTelegramId,
+        currentTelegramId,
         'CREATE_ORDER',
         JSON.stringify({ order_id: order.id, total, items_count: items.length }),
       ]

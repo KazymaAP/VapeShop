@@ -10,7 +10,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const result = await query(
         `SELECT st.*, u.first_name as customer_name
          FROM support_tickets st
-         JOIN users u ON st.user_id = u.id
+         JOIN users u ON st.user_telegram_id = u.telegram_id
          WHERE st.id = $1`,
         [ticketId]
       );

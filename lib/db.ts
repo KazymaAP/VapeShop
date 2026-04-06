@@ -17,7 +17,7 @@ const pool = new Pool({
 // Основная функция query
 export async function query(
   text: string,
-  params?: (string | number | boolean | null)[]
+  params?: (string | number | boolean | null | string[] | number[])[]
 ): Promise<QueryResult> {
   return pool.query(text, params);
 }

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const userId = getTelegramId(req);
@@ -22,7 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ) FILTER (WHERE oi.id IS NOT NULL) as items
          FROM orders o
          LEFT JOIN order_items oi ON o.id = oi.order_id
-         LEFT JOIN users u ON o.user_id = u.id
+         LEFT JOIN users u ON o.user_telegram_id = u.telegram_id
          WHERE (o.manager_id = $1 OR $1::bigint IS NULL)
          GROUP BY o.id, o.order_number, o.total, o.status, o.created_at, u.first_name, u.phone
          ORDER BY o.status ASC, o.created_at DESC`,
@@ -81,7 +82,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       res.status(200).json({ success: true });
-    } catch (err) {
+    } catch (error) {
+      logger.error('Kanban update error', error);
       res.status(500).json({ error: 'Failed to update order' });
     }
   } else {

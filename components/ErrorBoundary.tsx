@@ -1,31 +1,39 @@
 import React, { ErrorInfo, ReactNode } from 'react';
+import { logger } from '../lib/logger';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Omit<State, 'errorInfo'> {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    // TODO: Отправить ошибку в Sentry или логирование сервиса
+    this.setState({ errorInfo });
+
+    // Log structured error for production monitoring
+    logger.error('ErrorBoundary caught an error', error, {
+      componentStack: errorInfo.componentStack,
+      errorBoundary: 'ErrorBoundary component',
+    });
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
   render() {
@@ -38,9 +46,16 @@ export class ErrorBoundary extends React.Component<Props, State> {
               К сожалению, что-то пошло не так. Пожалуйста, попробуйте ещё раз.
             </p>
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <pre className="bg-bgDark text-danger text-xs p-4 rounded mb-4 overflow-auto max-h-40">
-                {this.state.error.message}
-              </pre>
+              <>
+                <pre className="bg-bgDark text-danger text-xs p-4 rounded mb-4 overflow-auto max-h-40">
+                  {this.state.error.message}
+                </pre>
+                {this.state.errorInfo && (
+                  <pre className="bg-bgDark text-warning text-xs p-4 rounded mb-4 overflow-auto max-h-40">
+                    {this.state.errorInfo.componentStack}
+                  </pre>
+                )}
+              </>
             )}
             <button
               onClick={this.handleReset}

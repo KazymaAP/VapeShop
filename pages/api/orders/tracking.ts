@@ -8,6 +8,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
+import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
 interface TrackingEvent {
   status: string;
@@ -31,7 +32,7 @@ interface TrackingResponse {
   success: boolean;
 }
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse<TrackingResponse | { error: string }>
 ) {
@@ -138,3 +139,5 @@ export default async function handler(
     res.status(500).json({ error: 'Failed to get tracking information' });
   }
 }
+
+export default rateLimit(handler, RATE_LIMIT_PRESETS.normal);

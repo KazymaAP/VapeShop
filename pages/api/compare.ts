@@ -80,7 +80,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         [product_ids]
       );
 
-      if (productsCheck.rows[0].cnt !== product_ids.length) {
+      // HIGH-026 FIX: cnt из pg может быть string, нужно преобразовать
+      if (parseInt(productsCheck.rows[0].cnt, 10) !== product_ids.length) {
         return res.status(404).json({ success: false, error: 'One or more products not found' });
       }
 

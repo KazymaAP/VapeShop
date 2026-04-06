@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
 /**
  * API для проверки 6-значного кода доставки
@@ -9,7 +10,7 @@ import { query } from '@/lib/db';
  * Body: { order_id: string, code_6digit: number }
  * Response: { success: boolean, message: string, order?: Order }
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -101,3 +102,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
+
+export default rateLimit(handler, RATE_LIMIT_PRESETS.strict);

@@ -46,16 +46,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       const { action } = req.body;
 
+      // Требуем явное подтверждение через дополнительный параметр для безопасности
+      const confirmToken = req.body.confirmToken;
+      if (!confirmToken || confirmToken !== `${action}_confirmed_${new Date().toDateString()}`) {
+        return res.status(400).json({
+          error: 'Требуется подтверждение. Передайте confirmToken для подтверждения удаления.',
+        });
+      }
+
       if (action === 'clear_abandoned_carts') {
-        await query('DELETE FROM abandoned_carts');
+        // Добавляем WHERE условие - удаляем только заказы старше 7 дней (не используемые)
+        await query("DELETE FROM abandoned_carts WHERE created_at < NOW() - INTERVAL '7 days'", []);
       } else if (action === 'clear_admin_logs') {
-        await query('DELETE FROM admin_logs');
+        // Добавляем WHERE условие - удаляем только логи старше 90 дней
+        await query("DELETE FROM admin_logs WHERE created_at < NOW() - INTERVAL '90 days'", []);
       } else {
         return res.status(400).json({ error: 'Invalid action' });
       }
 
-      res.status(200).json({ success: true });
-    } catch {
+      // Логируем это действие как критическое
+      console.warn(`[ADMIN ACTION] ${action} executed by admin`);
+
+      res.status(200).json({ success: true, message: `${action} completed successfully` });
+    } catch (err) {
+      console.error('Error in DELETE handler:', err);
       res.status(500).json({ error: 'Ошибка выполнения действия' });
     }
   } else {

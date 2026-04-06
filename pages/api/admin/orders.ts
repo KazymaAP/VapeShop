@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { getTelegramId } from '@/lib/auth';
+import { getTelegramId, requireAuth } from '@/lib/auth';
 import { validatePagination } from '@/lib/validate';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
@@ -170,4 +170,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default requireAuth(rateLimit(handler, RATE_LIMIT_PRESETS.normal), ['admin', 'manager']);
+export default rateLimit(requireAuth(handler, ['admin', 'manager']), RATE_LIMIT_PRESETS.normal);

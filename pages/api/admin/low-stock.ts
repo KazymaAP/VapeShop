@@ -7,17 +7,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
-import { ApiResponse } from '@/types/api';
+import { ApiResponse, ApiError } from '@/types/api';
 import { getBot } from '@/lib/notifications';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
-async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse | ApiError>) {
   if (req.method === 'GET') {
     return handleGet(req, res);
   } else if (req.method === 'POST') {
     return handlePost(req, res);
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({
+      success: false,
+      error: 'Method not allowed',
+      timestamp: Date.now(),
+    });
   }
 }
 

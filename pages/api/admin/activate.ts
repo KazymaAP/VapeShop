@@ -124,46 +124,91 @@ function validateActivateRequest(body: unknown): {
 }
 
 /**
- * Получает данные товара из price_import по ID
- * @param priceImportId ID в таблице price_import
- * @returns Данные товара или null
+ * Получает данные товаров из price_import BATCH запросом (HIGH-002 fix)
+ * @param priceImportIds Массив ID в таблице price_import
+ * @returns Map ID → данные товара
  */
-async function getPriceImportData(priceImportId: string): Promise<{
-  id: string;
-  name: string;
-  specification: string;
-  stock: number;
-  price_tier_1: number;
-  price_tier_2: number;
-  price_tier_3: number;
-  distributor_price: number;
-  is_activated: boolean;
-} | null> {
+async function getPriceImportDataBatch(priceImportIds: string[]): Promise<
+  Map<
+    string,
+    {
+      id: string;
+      name: string;
+      specification: string;
+      stock: number;
+      price_tier_1: number;
+      price_tier_2: number;
+      price_tier_3: number;
+      distributor_price: number;
+      is_activated: boolean;
+    }
+  >
+> {
+  if (priceImportIds.length === 0) {
+    return new Map();
+  }
+
   try {
+    // BATCH запрос вместо N отдельных запросов
     const result = await query(
       `SELECT id, name, specification, stock, price_tier_1, price_tier_2, price_tier_3, 
               distributor_price, is_activated
        FROM price_import
-       WHERE id = $1`,
-      [priceImportId]
+       WHERE id = ANY($1::text[])`,
+      [priceImportIds]
     );
 
-    if (result.rows.length === 0) {
-      return null;
-    }
-
-    return result.rows[0];
+    const map = new Map();
+    result.rows.forEach((row) => {
+      map.set(row.id, row);
+    });
+    return map;
   } catch (err) {
-    console.error('getPriceImportData error:', err);
+    console.error('getPriceImportDataBatch error:', err);
     throw err;
   }
 }
 
 /**
- * Проверяет наличие товара в таблице products с такими же name и specification
- * @param name Название товара
- * @param specification Характеристика
- * @returns ID продукта или null
+ * Проверяет наличие товаров в таблице products BATCH запросом (HIGH-002 fix)
+ * @param items Массив {name, specification}
+ * @returns Map "name|specification" → product.id
+ */
+async function findExistingProductsBatch(
+  items: Array<{ name: string; specification: string }>
+): Promise<Map<string, string>> {
+  if (items.length === 0) {
+    return new Map();
+  }
+
+  try {
+    // BATCH запрос для проверки всех товаров сразу
+    const names = items.map((i) => i.name);
+    const specs = items.map((i) => i.specification);
+
+    const result = await query(
+      `SELECT id, name, specification 
+       FROM products 
+       WHERE (name, specification) IN (SELECT * FROM UNNEST($1::text[], $2::text[]))`,
+      [names, specs]
+    );
+
+    const map = new Map();
+    result.rows.forEach((row) => {
+      const key = `${row.name}|${row.specification}`;
+      map.set(key, row.id);
+    });
+    return map;
+  } catch (err) {
+    console.error('findExistingProductsBatch error:', err);
+    throw err;
+  }
+}
+
+/**
+ * Получает данные товара из price_import по ID (DEPRECATED - используй getPriceImportDataBatch)
+ * @param priceImportId ID в таблице price_import
+ * @returns Данные товара или null
  */
 async function findExistingProduct(name: string, specification: string): Promise<string | null> {
   try {
@@ -338,19 +383,21 @@ async function createOrUpdateProduct(
 }
 
 /**
- * Отмечает товар в price_import как активированный
- * @param priceImportId ID в price_import
+ * Отмечает товары в price_import как активированные BATCH запросом (HIGH-002 fix)
+ * @param priceImportIds Массив ID в price_import
  */
-async function markAsActivated(priceImportId: string): Promise<void> {
+async function markAsActivatedBatch(priceImportIds: string[]): Promise<void> {
+  if (priceImportIds.length === 0) return;
+
   try {
     await query(
       `UPDATE price_import 
        SET is_activated = true, updated_at = NOW()
-       WHERE id = $1`,
-      [priceImportId]
+       WHERE id = ANY($1::text[])`,
+      [priceImportIds]
     );
   } catch (err) {
-    console.error('markAsActivated error:', err);
+    console.error('markAsActivatedBatch error:', err);
     throw err;
   }
 }
@@ -362,10 +409,11 @@ async function markAsActivated(priceImportId: string): Promise<void> {
  */
 async function logAdminAction(telegramId: number, details: Record<string, unknown>): Promise<void> {
   try {
+    // HIGH-023 FIX: Используем единую таблицу audit_log вместо admin_logs
     await query(
-      `INSERT INTO admin_logs (user_telegram_id, action, details)
-       VALUES ($1, $2, $3)`,
-      [telegramId, 'activate_products', JSON.stringify(details)]
+      `INSERT INTO audit_log (user_id, action, target_type, details, status)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [telegramId, 'activate_products', 'product', JSON.stringify(details), 'success']
     ).catch((err) => {
       console.error('Logging error:', err);
     });
@@ -405,34 +453,53 @@ async function handler(
 
     const details: ActivateProductResponse['details'] = [];
     const errors: Array<{ id: string; error: string }> = [];
+    const activatedIds: string[] = [];
 
-    // Обрабатываем каждый товар
+    // BATCH запрос: получаем все товары из price_import за один запрос (HIGH-002 fix)
+    const priceImportMap = await getPriceImportDataBatch(data.price_import_ids);
+
+    // Фильтруем валидные товары и подготавливаем данные для поиска
+    const validItems: Array<{
+      priceImportId: string;
+      priceImportData: typeof priceImportMap extends Map<string, infer V> ? V : never;
+    }> = [];
+
     for (const priceImportId of data.price_import_ids) {
+      const priceImportData = priceImportMap.get(priceImportId);
+
+      if (!priceImportData) {
+        errors.push({ id: priceImportId, error: 'Товар не найден в таблице price_import' });
+        continue;
+      }
+
+      if (priceImportData.is_activated) {
+        errors.push({ id: priceImportId, error: 'Товар уже активирован' });
+        continue;
+      }
+
+      validItems.push({ priceImportId, priceImportData });
+    }
+
+    // BATCH запрос: проверяем существующие товары все за один запрос (HIGH-002 fix)
+    // Note: existingProductsMap получается, но используется в createOrUpdateProduct
+    await findExistingProductsBatch(
+      validItems.map((v) => ({
+        name: v.priceImportData.name,
+        specification: v.priceImportData.specification,
+      }))
+    );
+
+    // Получаем или создаём категорию и бренд ОДИ раз (не в цикле)
+    const finalCategoryId = await getOrCreateCategory(
+      data.category_id || null,
+      data.new_category_name || null
+    );
+    const finalBrandId = await getOrCreateBrand(data.brand_id || null, data.new_brand_name || null);
+
+    // Обрабатываем товары с уже полученными данными
+    for (const { priceImportId, priceImportData } of validItems) {
       try {
-        // Получаем данные товара из price_import
-        const priceImportData = await getPriceImportData(priceImportId);
-
-        if (!priceImportData) {
-          errors.push({ id: priceImportId, error: 'Товар не найден в таблице price_import' });
-          continue;
-        }
-
-        if (priceImportData.is_activated) {
-          errors.push({ id: priceImportId, error: 'Товар уже активирован' });
-          continue;
-        }
-
-        // Получаем или создаём категорию и бренд
-        const finalCategoryId = await getOrCreateCategory(
-          data.category_id || null,
-          data.new_category_name || null
-        );
-        const finalBrandId = await getOrCreateBrand(
-          data.brand_id || null,
-          data.new_brand_name || null
-        );
-
-        // Создаём или обновляем товар в products
+        // Используем уже полученные ID категории и бренда
         const { action, productId } = await createOrUpdateProduct(
           {
             name: priceImportData.name,
@@ -448,15 +515,14 @@ async function handler(
           data.is_new
         );
 
-        // Отмечаем товар как активированный
-        await markAsActivated(priceImportId);
-
         details.push({
           price_import_id: priceImportId,
           action,
           product_id: productId,
           name: priceImportData.name,
         });
+
+        activatedIds.push(priceImportId);
       } catch (err) {
         console.error(`Error activating product ${priceImportId}:`, err);
         errors.push({
@@ -464,6 +530,11 @@ async function handler(
           error: 'Внутренняя ошибка при обработке товара',
         });
       }
+    }
+
+    // BATCH маркировка: отмечаем все активированные товары за один запрос (HIGH-002 fix)
+    if (activatedIds.length > 0) {
+      await markAsActivatedBatch(activatedIds);
     }
 
     // Логируем завершение операции

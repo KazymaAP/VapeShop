@@ -2,7 +2,7 @@
  * Error Recovery компоненты и утилиты
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface RetryableErrorProps {
   message: string;
@@ -168,5 +168,3 @@ export function useFetchWithRetry<T>(
     isRetrying,
   };
 }
-
-import { useEffect } from 'react';

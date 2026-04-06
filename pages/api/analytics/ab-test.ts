@@ -1,10 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { getTelegramId } from '@/lib/auth';
+import { getTelegramIdFromRequest, requireAuth } from '@/lib/auth';
+import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // ⚠️ ТРЕБУЕТСЯ НОМАХ VALIDATION для всех операций
+  const userId = await getTelegramIdFromRequest(req);
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   if (req.method === 'GET') {
-    const userId = getTelegramId(req);
     const testName = req.query.testName as string;
 
     try {
@@ -31,7 +38,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(500).json({ error: 'Failed to get test variant' });
     }
   } else if (req.method === 'POST') {
-    const userId = getTelegramId(req);
     const { testName, result } = req.body;
 
     try {
@@ -54,4 +60,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default handler;
+export default rateLimit(requireAuth(handler, ['customer']), RATE_LIMIT_PRESETS.normal);

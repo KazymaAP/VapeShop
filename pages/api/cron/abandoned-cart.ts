@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { notifyAbandonedCart } from '@/lib/notifications';
+import { logger } from '@/lib/logger';
+import { verifyCronSecret } from '@/lib/auth';
 
 /**
  * Cron API для отправки напоминаний о брошенных корзинах
  *
  * Использование:
  * - Vercel Cron: Добавить в vercel.json: "crons": [{ "path": "/api/cron/abandoned-cart", "schedule": "0 * * * *" }]
- * - Self-hosted: curl https://yourapp.com/api/cron/abandoned-cart?token=YOUR_CRON_TOKEN
+ * - Self-hosted: curl https://yourapp.com/api/cron/abandoned-cart?token=YOUR_CRON_SECRET
  *
  * Что это делает:
  * 1. Находит корзины, где последнее обновление было более 2 часов назад
@@ -17,19 +19,19 @@ import { notifyAbandonedCart } from '@/lib/notifications';
  */
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Проверяем метод
+  // Разрешены только GET и POST методы (требуется для безопасности Vercel Cron)
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Простая защита через токен (установи в .env CRON_SECRET)
-  const token = req.query.token || req.headers['x-cron-secret'];
-  if (process.env.CRON_SECRET && token !== process.env.CRON_SECRET) {
+  // ⚠️ КРИТИЧНО: Проверяем CRON_SECRET с защитой от timing attacks
+  if (!verifyCronSecret(req)) {
+    logger.warn('Unauthorized CRON access attempt to abandoned-cart');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   try {
-    console.log('Starting abandoned cart reminder job...');
+    logger.info('Abandoned cart reminder job started');
 
     // Время: 2 часа назад
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
@@ -47,10 +49,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       [twoHoursAgo]
     );
 
-    console.log(`Found ${cartsResult.rows.length} candidates`);
+    logger.info('Abandoned cart job: found candidates', { count: cartsResult.rows.length });
 
     let processed = 0;
     let notified = 0;
+    let errors = 0;
 
     for (const cart of cartsResult.rows) {
       try {
@@ -69,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Если есть активный заказ - пропускаем
         if (recentOrdersResult.rows.length > 0) {
-          console.log(`User ${telegramId} has active order, skipping`);
+          logger.info('User has active order, skipping', { telegramId });
           processed++;
           continue;
         }
@@ -85,23 +88,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Если напоминание уже отправлено - пропускаем
         if (abandoned && abandoned.reminder_sent) {
-          console.log(`User ${telegramId} already got reminder, skipping`);
+          logger.debug('User already got reminder, skipping', { telegramId });
           processed++;
           continue;
         }
 
-        // 4. Считаем товары и сумму
+        // 4. Считаем товары и сумму - ОПТИМИЗИРОВАНО: используем batch query вместо N+1
         let totalItems = 0;
         let totalPrice = 0;
 
-        for (const item of items) {
-          if (item.product_id) {
-            const productResult = await query(`SELECT price FROM products WHERE id = $1`, [
-              item.product_id,
-            ]);
+        // Извлекаем все product_id сразу
+        const productIds = items
+          .filter((item: Record<string, unknown>) => item.product_id)
+          .map((item: Record<string, unknown>) => item.product_id);
 
-            if (productResult.rows.length > 0) {
-              const price = parseFloat(productResult.rows[0].price);
+        if (productIds.length > 0) {
+          // Один запрос вместо N запросов - ЗНАЧИТЕЛЬНО БЫСТРЕЕ!
+          const productsResult = await query(
+            `SELECT id, price FROM products WHERE id = ANY($1::uuid[])`,
+            [productIds]
+          );
+
+          const productMap = new Map(productsResult.rows.map((p) => [p.id, p]));
+
+          for (const item of items) {
+            if (item.product_id && productMap.has(item.product_id)) {
+              const product = productMap.get(item.product_id);
+              const price = parseFloat(product.price);
               totalItems += item.quantity || 1;
               totalPrice += price * (item.quantity || 1);
             }
@@ -131,9 +144,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (notified_success) {
           notified++;
-          console.log(`✅ Reminder sent to ${telegramId}`);
+          logger.info('Reminder sent successfully', {
+            telegramId,
+            items: totalItems,
+            price: totalPrice,
+          });
         } else {
-          console.log(`❌ Failed to send reminder to ${telegramId}`);
+          logger.warn('Failed to send reminder', { telegramId });
+          errors++;
         }
 
         processed++;
@@ -141,21 +159,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Небольшая задержка между уведомлениями
         await new Promise((resolve) => setTimeout(resolve, 100));
       } catch (err) {
-        console.error(`Error processing cart for user ${cart.user_telegram_id}:`, err);
+        logger.error('Error processing cart for user', err, { telegramId: cart.user_telegram_id });
+        errors++;
         processed++;
       }
     }
 
-    console.log(`Job complete: processed=${processed}, notified=${notified}`);
+    logger.info('Abandoned cart job completed', { processed, notified, errors });
 
     res.status(200).json({
       success: true,
       processed,
       notified,
-      message: `Processed ${processed} carts, notified ${notified} users`,
+      errors,
+      message: `Processed ${processed} carts, notified ${notified} users, ${errors} errors`,
     });
   } catch (err) {
-    console.error('Abandoned cart cron error:', err);
+    logger.error('Abandoned cart cron fatal error', err);
     res.status(500).json({
       error: 'Cron job failed',
       message: String(err),

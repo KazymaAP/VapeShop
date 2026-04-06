@@ -28,15 +28,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       for (const telegramId of recipients) {
         try {
-          await bot.api.sendMessage(telegramId, message);
+          // Add timeout to prevent hanging on broadcast
+          await Promise.race([
+            bot.api.sendMessage(telegramId, message),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Message send timeout')), 10000)
+            ),
+          ]);
           sent++;
-        } catch {
+        } catch (err) {
+          console.error(`Failed to send message to ${telegramId}:`, err);
           failed++;
         }
       }
 
       await query(
-        `INSERT INTO admin_logs (user_telegram_id, action, details) VALUES ($1, $2, $3)`,
+        `INSERT INTO audit_log (user_id, action, target_type, details, status) VALUES ($1, $2, $3, $4, $5)`,
         [
           req.body.sender_id || null,
           'broadcast',

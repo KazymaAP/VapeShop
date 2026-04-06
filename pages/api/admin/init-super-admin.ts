@@ -65,8 +65,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Логируем операцию
     await query(
-      `INSERT INTO admin_logs (user_telegram_id, action, details, created_at)
-       VALUES ($1, $2, $3, NOW())`,
+      `INSERT INTO audit_log (user_id, action, target_type, details, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())`,
       [
         currentUserId,
         'SUPER_ADMIN_INIT',

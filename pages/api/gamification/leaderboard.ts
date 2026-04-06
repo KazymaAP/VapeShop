@@ -9,7 +9,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               COUNT(o.id) as orders_count,
               COALESCE(SUM(o.total), 0) as total_spent
        FROM users u
-       LEFT JOIN user_levels ul ON u.telegram_id = ul.user_id
+       LEFT JOIN user_levels ul ON u.telegram_id = ul.user_telegram_id
        LEFT JOIN orders o ON u.telegram_id = o.user_telegram_id AND o.status = 'completed'
        WHERE u.role = 'customer'
        GROUP BY u.telegram_id, u.first_name, u.last_name, ul.level, ul.experience

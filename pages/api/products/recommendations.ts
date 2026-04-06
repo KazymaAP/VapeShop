@@ -11,7 +11,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       `SELECT DISTINCT oi.product_id 
        FROM order_items oi
        JOIN orders o ON oi.order_id = o.id
-       WHERE o.user_id = $1
+       WHERE o.user_telegram_id = $1
        LIMIT 5`,
       [userId]
     );
@@ -27,13 +27,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       `SELECT DISTINCT p.id, p.name, p.price, p.images, COUNT(*) as popularity
        FROM order_items oi
        JOIN products p ON oi.product_id = p.id
-       WHERE oi.product_id != ANY($1::int[])
+       WHERE oi.product_id != ALL($1::uuid[])
        AND EXISTS (
          SELECT 1 FROM order_items oi2
          WHERE oi2.order_id = oi.order_id
-         AND oi2.product_id = ANY($1::int[])
+         AND oi2.product_id = ANY($1::uuid[])
        )
-       GROUP BY p.id
+       GROUP BY p.id, p.name, p.price, p.images
        ORDER BY popularity DESC
        LIMIT 6`,
       [productIds]

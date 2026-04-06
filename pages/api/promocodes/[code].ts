@@ -72,7 +72,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Логируем действие
       await query(
-        `INSERT INTO admin_logs (user_telegram_id, action, details)
+        `INSERT INTO audit_log (user_telegram_id, action, details)
          VALUES ($1, $2, $3)`,
         [telegramId, 'update_promocode', JSON.stringify({ code: code.toUpperCase() })]
       ).catch((err) => {
@@ -92,7 +92,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Логируем действие
       await query(
-        `INSERT INTO admin_logs (user_telegram_id, action, details)
+        `INSERT INTO audit_log (user_telegram_id, action, details)
          VALUES ($1, $2, $3)`,
         [telegramId, 'delete_promocode', JSON.stringify({ code: code.toUpperCase() })]
       ).catch((err) => {

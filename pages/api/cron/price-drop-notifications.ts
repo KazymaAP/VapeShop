@@ -7,15 +7,23 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getBot } from '@/lib/notifications';
+import { logger } from '@/lib/logger';
+import { verifyCronSecret } from '@/lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Проверяем CRON_SECRET для безопасности
-  const cronSecret = req.headers['x-cron-secret'];
-  if (cronSecret !== process.env.CRON_SECRET) {
+  // Only GET and POST methods allowed
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ⚠️ КРИТИЧНО: Проверяем CRON_SECRET с защитой от timing attacks
+  if (!verifyCronSecret(req)) {
+    logger.warn('Unauthorized CRON access attempt to price-drop-notifications');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   try {
+    logger.info('Price drop notifications cron job started');
     // Находим товары, цена на которых упала на 10% или больше за последний час
     const priceDrops = await query(
       `SELECT 

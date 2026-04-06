@@ -26,19 +26,19 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse) => 
 
     if (dateFrom) {
       where += ` AND o.created_at >= $${paramIndex}`;
-      params.push(dateFrom);
+      params.push(Array.isArray(dateFrom) ? dateFrom[0] : dateFrom);
       paramIndex++;
     }
 
     if (dateTo) {
       where += ` AND o.created_at <= $${paramIndex}`;
-      params.push(dateTo);
+      params.push(Array.isArray(dateTo) ? dateTo[0] : dateTo);
       paramIndex++;
     }
 
     if (status && status !== 'all') {
       where += ` AND o.status = $${paramIndex}`;
-      params.push(status);
+      params.push(Array.isArray(status) ? status[0] : status);
       paramIndex++;
     }
 

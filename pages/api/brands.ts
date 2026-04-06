@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
 interface Brand {
   id: string;
@@ -14,7 +15,7 @@ interface ErrorResponse {
  * GET - получить все бренды
  * Используется для фильтрации в каталоге и админке
  */
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse<{ brands: Brand[] } | ErrorResponse>
 ) {
@@ -31,3 +32,5 @@ export default async function handler(
     res.status(500).json({ error: 'Ошибка при загрузке брендов' });
   }
 }
+
+export default rateLimit(handler, RATE_LIMIT_PRESETS.normal);

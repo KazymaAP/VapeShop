@@ -38,8 +38,8 @@ async function handleDelete(
 
     // Логируем действие
     await query(
-      `INSERT INTO admin_logs (user_telegram_id, action, details)
-       VALUES ($1, $2, $3)`,
+      `INSERT INTO audit_log (user_id, action, target_type, target_id, details, status)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
       [telegramId, 'delete_price_import', JSON.stringify({ price_import_id: id })]
     ).catch((err) => {
       console.error('Logging error:', err);

@@ -310,3 +310,90 @@ export type UserRole =
   | 'support'
   | 'courier'
   | 'super_admin';
+
+// ============== REQUEST BODY TYPES (для безопасности и типизации) ==============
+
+/**
+ * Типы для POST/PUT запросов
+ * Используются для валидации тела запроса
+ */
+
+export interface CreateOrderRequest {
+  items: Array<{ product_id: string; quantity: number }>;
+  delivery_method: DeliveryMethod;
+  delivery_address?: string;
+  promo_code?: string;
+}
+
+export interface UpdateOrderStatusRequest {
+  status: OrderStatus;
+  note?: string;
+}
+
+export interface AddToCartRequest {
+  product_id: string;
+  quantity: number;
+}
+
+export interface CreateReviewRequest {
+  product_id: string;
+  comment: string;
+  rating?: number;
+}
+
+export interface AddAddressRequest {
+  address: string;
+  street?: string;
+  city?: string;
+  postal_code?: string;
+  phone?: string;
+  is_default?: boolean;
+}
+
+export interface UpdateAddressRequest {
+  address?: string;
+  street?: string;
+  city?: string;
+  postal_code?: string;
+  phone?: string;
+  is_default?: boolean;
+}
+
+// ============== PAGINATION & FILTER TYPES ==============
+
+export interface PaginationQuery {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+}
+
+export interface ProductFilterQuery extends PaginationQuery {
+  category_id?: string;
+  brand_id?: string;
+  search?: string;
+  price_min?: number;
+  price_max?: number;
+  in_stock?: boolean;
+}
+
+export interface OrderFilterQuery extends PaginationQuery {
+  status?: OrderStatus;
+  user_telegram_id?: number;
+  start_date?: string;
+  end_date?: string;
+}
+
+// ============== AUTHENTICATION & AUTHORIZATION ==============
+
+export interface AuthContext {
+  telegramId: number;
+  role: UserRole;
+  is_verified: boolean;
+  verified_at: number;
+}
+
+export interface RequiredAuthContext extends AuthContext {
+  telegramId: number;
+  role: NonNullable<UserRole>;
+}

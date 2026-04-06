@@ -57,7 +57,7 @@ async function handleGet(
     const offset = (pageNum - 1) * limitNum;
 
     let whereClause = '';
-    const params: unknown[] = [];
+    const params: (string | number | boolean | null)[] = [];
 
     if (is_activated !== undefined) {
       const isActiv = is_activated === 'true';

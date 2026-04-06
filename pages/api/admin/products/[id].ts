@@ -6,11 +6,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
-import { ApiResponse } from '@/types/api';
+import { ApiResponse, ApiError } from '@/types/api';
 
-export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResponse>) => {
+type ApiResp = ApiResponse | ApiError;
+
+export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiResp>) => {
   if (req.method !== 'PATCH') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res
+      .status(405)
+      .json({ success: false, error: 'Method not allowed', timestamp: Date.now() });
   }
 
   try {
@@ -18,7 +22,9 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiR
     const { field, value } = req.body;
 
     if (!id || !field) {
-      return res.status(400).json({ error: 'Product ID and field required' });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Product ID and field required', timestamp: Date.now() });
     }
 
     // Allowlist полей которые можно редактировать
@@ -33,25 +39,37 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiR
     ];
 
     if (!allowedFields.includes(field)) {
-      return res.status(400).json({ error: `Field ${field} cannot be edited` });
+      return res
+        .status(400)
+        .json({ success: false, error: `Field ${field} cannot be edited`, timestamp: Date.now() });
     }
 
     // Валидируем типы
     if (field === 'price' || field === 'discount_percent') {
       if (typeof value !== 'number' || value < 0) {
-        return res.status(400).json({ error: `${field} must be positive number` });
+        return res.status(400).json({
+          success: false,
+          error: `${field} must be positive number`,
+          timestamp: Date.now(),
+        });
       }
     }
 
     if (field === 'stock') {
       if (typeof value !== 'number' || value < 0) {
-        return res.status(400).json({ error: 'Stock must be non-negative number' });
+        return res.status(400).json({
+          success: false,
+          error: 'Stock must be non-negative number',
+          timestamp: Date.now(),
+        });
       }
     }
 
     if (field === 'is_active') {
       if (typeof value !== 'boolean') {
-        return res.status(400).json({ error: 'is_active must be boolean' });
+        return res
+          .status(400)
+          .json({ success: false, error: 'is_active must be boolean', timestamp: Date.now() });
       }
     }
 
@@ -65,7 +83,9 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiR
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res
+        .status(404)
+        .json({ success: false, error: 'Product not found', timestamp: Date.now() });
     }
 
     // Логируем операцию
@@ -77,11 +97,15 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiR
     );
 
     return res.status(200).json({
+      success: true,
       data: result.rows[0],
       message: `Field ${field} updated successfully`,
+      timestamp: Date.now(),
     });
   } catch (err) {
     console.error('Inline edit error:', err);
-    res.status(500).json({ error: 'Failed to update product' });
+    res
+      .status(500)
+      .json({ success: false, error: 'Failed to update product', timestamp: Date.now() });
   }
 });
