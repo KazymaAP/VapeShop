@@ -7,7 +7,6 @@
     "NEON_DATABASE_URL": "@NEON_DATABASE_URL",
     "ADMIN_TELEGRAM_IDS": "@ADMIN_TELEGRAM_IDS"
   },
-  "regions": ["iad1", "sfo1"],
   "functions": {
     "pages/api/**/*.ts": {
       "runtime": "nodejs18.x",
