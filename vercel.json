@@ -74,11 +74,11 @@
     },
     {
       "path": "/api/cron/check-low-stock",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 4 * * *"
     },
     {
       "path": "/api/cron/abandoned-cart",
-      "schedule": "0 * * * *"
+      "schedule": "0 5 * * *"
     }
   ]
 }
