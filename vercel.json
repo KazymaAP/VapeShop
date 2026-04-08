@@ -2,12 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "functions": {
-    "pages/api/**/*.ts": {
-      "runtime": "nodejs18.x",
-      "memory": 1024
-    }
-  },
   "rewrites": [
     {
       "source": "/api/:path*",
