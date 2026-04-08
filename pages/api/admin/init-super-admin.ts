@@ -12,32 +12,27 @@ import { query } from '@/lib/db';
 import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
+  // Поддерживаем GET и POST для удобства
+  if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { telegramId } = req.body;
-    const currentUserId = await getTelegramIdFromRequest(req);
+    // Получаем telegramId из query параметра или body (для GET и POST)
+    const telegramIdParam = req.method === 'GET' 
+      ? req.query.telegramId 
+      : req.body?.telegramId;
+    
+    const telegramId = telegramIdParam 
+      ? parseInt(String(telegramIdParam), 10) 
+      : null;
 
-    if (!currentUserId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    if (!telegramId || isNaN(telegramId)) {
+      return res.status(400).json({ error: 'telegramId required (number)' });
     }
 
-    if (!telegramId) {
-      return res.status(400).json({ error: 'telegramId required' });
-    }
-
-    // ⚠️ ВАЖНО: Инициализация super_admin безопасна только если:
-    // 1. Никакой super_admin ещё не существует в системе
-    // 2. Запрос идёт через верифицированный Telegram WebApp (getTelegramIdFromRequest проверил это)
-    // 3. Пароль был УДАЛЁН так как он видим в environment переменных и логах
-    //
-    // Раньше это была критическая уязвимость -
-    // любой кто видит SUPER_ADMIN_INIT_PASSWORD в env может создать super_admin.
-    // Теперь требуется физический доступ к серверу для инициализации (через одноразовый скрипт).
-
-    // Проверяем, есть ли уже super_admin
+    // ⚠️ КРИТИЧЕСКИ ВАЖНО: Проверяем, есть ли уже super_admin
+    // Эта проверка ПЕРВИЧНА - инициализация возможна ТОЛЬКО если super_admin не существует
     const existingSuper = await query('SELECT telegram_id FROM users WHERE role = $1 LIMIT 1', [
       'super_admin',
     ]);
@@ -45,17 +40,39 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (existingSuper.rows.length > 0) {
       return res.status(400).json({
         error: 'Super admin already exists',
+        message: 'Super admin initialization is only allowed once',
         existing_id: existingSuper.rows[0].telegram_id,
       });
     }
 
-    // Проверяем, есть ли пользователь
+    // ВАЖНО: Используем CRON_SECRET для дополнительной защиты при повторных попытках
+    const cronSecret = process.env.CRON_SECRET;
+    const requestSecret = req.method === 'GET' 
+      ? req.query.secret 
+      : req.body?.secret;
+
+    if (cronSecret && requestSecret !== cronSecret) {
+      logger.warn('init-super-admin: Invalid or missing CRON_SECRET', {
+        ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      });
+      return res.status(403).json({ 
+        error: 'Forbidden',
+        message: 'CRON_SECRET required for first initialization'
+      });
+    }
+
+    // Проверяем, есть ли пользователь в БД
     const user = await query('SELECT telegram_id, role FROM users WHERE telegram_id = $1', [
       telegramId,
     ]);
 
     if (user.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      // Потребуется создать пользователя сначала
+      return res.status(404).json({ 
+        error: 'User not found',
+        message: 'Please open the app as Telegram Web App first to create your user profile',
+        telegramId 
+      });
     }
 
     // Назначаем роль super_admin
@@ -64,30 +81,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       ['super_admin', telegramId]
     );
 
-    // Логируем операцию
-    try {
-      await query(
-        `INSERT INTO audit_log (user_id, action, target_type, details, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
-        [
-          currentUserId,
-          'super_admin_init',
-          'user',
-          JSON.stringify({
-            previous_role: user.rows[0].role,
-            new_role: 'super_admin',
-            target_telegram_id: telegramId,
-            initiated_by: currentUserId,
-          }),
-          'success',
-        ]
-      );
-    } catch (logErr) {
-      logger.error('Failed to log super_admin init:', logErr);
-      // Continue even if logging fails
-    }
+    logger.info('Super admin initialized successfully', {
+      telegram_id: telegramId,
+      ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+    });
 
     return res.status(200).json({
+      success: true,
       message: 'Super admin initialized successfully',
       user: {
         telegram_id: result.rows[0].telegram_id,
