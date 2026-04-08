@@ -2,11 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "env": {
-    "TELEGRAM_BOT_TOKEN": "@TELEGRAM_BOT_TOKEN",
-    "NEON_DATABASE_URL": "@NEON_DATABASE_URL",
-    "ADMIN_TELEGRAM_IDS": "@ADMIN_TELEGRAM_IDS"
-  },
   "functions": {
     "pages/api/**/*.ts": {
       "runtime": "nodejs18.x",
