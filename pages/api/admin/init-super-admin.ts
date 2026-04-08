@@ -9,7 +9,6 @@ import { logger } from '@/lib/logger';
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Поддерживаем GET и POST для удобства
@@ -19,13 +18,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     // Получаем telegramId из query параметра или body (для GET и POST)
-    const telegramIdParam = req.method === 'GET' 
-      ? req.query.telegramId 
-      : req.body?.telegramId;
-    
-    const telegramId = telegramIdParam 
-      ? parseInt(String(telegramIdParam), 10) 
-      : null;
+    const telegramIdParam = req.method === 'GET' ? req.query.telegramId : req.body?.telegramId;
+
+    const telegramId = telegramIdParam ? parseInt(String(telegramIdParam), 10) : null;
 
     if (!telegramId || isNaN(telegramId)) {
       return res.status(400).json({ error: 'telegramId required (number)' });
@@ -47,17 +42,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // ВАЖНО: Используем CRON_SECRET для дополнительной защиты при повторных попытках
     const cronSecret = process.env.CRON_SECRET;
-    const requestSecret = req.method === 'GET' 
-      ? req.query.secret 
-      : req.body?.secret;
+    const requestSecret = req.method === 'GET' ? req.query.secret : req.body?.secret;
 
     if (cronSecret && requestSecret !== cronSecret) {
       logger.warn('init-super-admin: Invalid or missing CRON_SECRET', {
         ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
       });
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Forbidden',
-        message: 'CRON_SECRET required for first initialization'
+        message: 'CRON_SECRET required for first initialization',
       });
     }
 
@@ -66,20 +59,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       telegramId,
     ]);
 
+    let result;
+    
     if (user.rows.length === 0) {
-      // Потребуется создать пользователя сначала
-      return res.status(404).json({ 
-        error: 'User not found',
-        message: 'Please open the app as Telegram Web App first to create your user profile',
-        telegramId 
-      });
+      // Создаем пользователя если его нет
+      const createResult = await query(
+        `INSERT INTO users (telegram_id, role, lang, created_at, updated_at) 
+         VALUES ($1, $2, $3, NOW(), NOW()) 
+         RETURNING telegram_id, role, created_at`,
+        [telegramId, 'super_admin', 'en']
+      );
+      result = createResult;
+    } else {
+      // Назначаем роль super_admin существующему пользователю
+      const updateResult = await query(
+        `UPDATE users SET role = $1, updated_at = NOW() WHERE telegram_id = $2 RETURNING telegram_id, role, created_at`,
+        ['super_admin', telegramId]
+      );
+      result = updateResult;
     }
-
-    // Назначаем роль super_admin
-    const result = await query(
-      `UPDATE users SET role = $1, updated_at = NOW() WHERE telegram_id = $2 RETURNING telegram_id, role, created_at`,
-      ['super_admin', telegramId]
-    );
 
     logger.info('Super admin initialized successfully', {
       telegram_id: telegramId,
@@ -102,4 +100,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default requireAuth(handler, ['super_admin', 'admin']);
+export default handler;
