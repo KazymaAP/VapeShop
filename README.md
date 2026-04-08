@@ -1,82 +1,92 @@
-# VapeShop - E-Commerce Platform
+# VapeShop - платформа электронной коммерции
 
-Modern e-commerce platform for vape products built with Next.js, PostgreSQL, and Telegram Bot API integration.
+Современная платформа для продажи товаров для вейпинга, построенная на Next.js, PostgreSQL и Telegram Bot API.
 
-## 🚀 Features
+## 🚀 Возможности
 
-### Core Features
-- **Telegram Bot Integration** - Seamless integration with Telegram Web App
-- **Product Catalog** - Advanced product filtering, search, and recommendations
-- **Shopping Cart** - Real-time cart management with persistent storage
-- **Order Management** - Complete order lifecycle management with tracking
-- **Payment Processing** - Telegram Stars payment integration
-- **User Authentication** - Secure Telegram-based authentication
-- **Admin Dashboard** - Comprehensive analytics and management interface
+### Основные функции
 
-### Advanced Features
-- **Role-Based Access Control** - Admin, Manager, Courier, Support roles
-- **Gamification System** - Leaderboards, levels, and rewards
-- **AI-Powered Recommendations** - Product suggestions based on user behavior
-- **A/B Testing** - Built-in experimentation framework
-- **Performance Analytics** - Detailed metrics and insights
-- **Internationalization** - Multi-language support
+- **Интеграция с Telegram Bot** - Полная интеграция с Telegram Web App
+- **Каталог товаров** - Расширенная фильтрация, поиск и рекомендации
+- **Корзина покупок** - Управление корзиной в реальном времени с сохранением
+- **Управление заказами** - Полный жизненный цикл заказов с отслеживанием
+- **Обработка платежей** - Интеграция с платежами Telegram Stars
+- **Аутентификация пользователей** - Безопасная аутентификация через Telegram
+- **Панель администратора** - Полная аналитика и управление
 
-### Technical Highlights
-- **Type Safety** - 100% TypeScript with strict mode
-- **Security Hardened** - CSRF protection, SQL injection prevention, timing-safe comparisons
-- **Database Migrations** - Version-controlled schema management with 40+ migrations
-- **Rate Limiting** - Redis-backed rate limiting for API endpoints
-- **Error Handling** - Comprehensive error recovery and logging
-- **Responsive Design** - Mobile-first UI with Tailwind CSS
+### Расширенные функции
 
-## 🛠 Tech Stack
+- **Управление доступом на основе ролей** - Роли: Админ, Менеджер, Курьер, Поддержка
+- **Система геймификации** - Рейтинги, уровни и награды
+- **Умные рекомендации** - Предложения товаров на основе поведения пользователя
+- **A/B тестирование** - Встроенные возможности экспериментов
+- **Аналитика производительности** - Детальная метрика и статистика
+- **Многоязычность** - Поддержка нескольких языков
+
+### Технические особенности
+
+- **Типобезопасность** - 100% TypeScript со строгим режимом
+- **Защита безопасности** - CSRF защита, предотвращение SQL инъекций, timing-safe сравнения
+- **Миграции БД** - Версионированное управление схемой с 40+ миграциями
+- **Ограничение частоты запросов** - Redis-подкреплённое ограничение для API
+- **Обработка ошибок** - Полная обработка ошибок и логирование
+- **Адаптивный дизайн** - Mobile-first UI на Tailwind CSS
+
+## 🛠 Стек технологий
 
 ### Frontend
-- **Next.js 14** - React framework with App Router
-- **React** - UI component library
-- **TypeScript** - Static type checking
-- **Tailwind CSS** - Utility-first CSS framework
-- **SWR** - Data fetching and caching
+
+- **Next.js 14** - React фреймворк с App Router
+- **React** - Библиотека компонентов UI
+- **TypeScript** - Проверка статических типов
+- **Tailwind CSS** - CSS фреймворк на основе утилит
+- **SWR** - Получение данных и кеширование
 
 ### Backend
-- **Node.js** - Runtime environment
-- **Next.js API Routes** - Serverless backend
-- **PostgreSQL** - Relational database
-- **Redis (Upstash)** - Caching and rate limiting
 
-### Infrastructure
-- **Vercel** - Platform deployment
-- **Docker** - Containerization
-- **GitHub** - Version control
+- **Node.js** - Среда выполнения
+- **Next.js API Routes** - Бессерверный бэкэнд
+- **PostgreSQL** - Реляционная БД
+- **Redis (Upstash)** - Кеширование и ограничение частоты
 
-## 📋 Prerequisites
+### Инфраструктура
+
+- **Vercel** - Развертывание платформы
+- **Docker** - Контейнеризация
+- **GitHub** - Контроль версий
+
+## 📋 Требования
 
 - Node.js 18+
-- npm or yarn
+- npm или yarn
 - PostgreSQL 12+
-- Redis instance (Upstash)
+- Экземпляр Redis (Upstash)
 
-## ⚙ Installation
+## ⚙ Установка
 
-1. **Clone the repository**
+1. **Клонируйте репозиторий**
+
 ```bash
 git clone https://github.com/KazymaAP/VapeShop.git
 cd VapeShop
 ```
 
-2. **Install dependencies**
+2. **Установите зависимости**
+
 ```bash
 npm install
 ```
 
-3. **Configure environment variables**
+3. **Настройте переменные окружения**
+
 ```bash
 cp .env.example .env.local
 ```
 
-Edit `.env.local` with your configuration:
+Отредактируйте `.env.local` с вашей конфигурацией:
+
 ```env
-# Database
+# База данных
 DATABASE_URL=postgresql://user:password@localhost:5432/vapeshop
 
 # Telegram
@@ -84,191 +94,203 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_BOT_USERNAME=your_bot_username
 TELEGRAM_APP_SECRET=your_app_secret
 
-# Redis/Cache
+# Redis/Кеш
 UPSTASH_REDIS_REST_URL=your_upstash_url
 UPSTASH_REDIS_REST_TOKEN=your_upstash_token
 
-# Payment
+# Платежи
 TELEGRAM_STARS_ENABLED=true
 
 # API
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-4. **Run database migrations**
+4. **Запустите миграции БД**
+
 ```bash
 npm run migrate
 ```
 
-5. **Start development server**
+5. **Запустите сервер разработки**
+
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` in your browser.
+Откройте `http://localhost:3000` в браузере.
 
-## 📚 Project Structure
+## 📚 Структура проекта
 
 ```
-├── components/          # React components
+├── components/          # React компоненты
 ├── db/
-│   └── migrations/      # Database migrations
-├── lib/                 # Utility functions
-│   ├── auth.ts         # Authentication logic
-│   ├── db.ts           # Database client
-│   └── telegram.ts     # Telegram integration
+│   └── migrations/      # Миграции БД
+├── lib/                 # Утилиты и функции
+│   ├── auth.ts         # Логика аутентификации
+│   ├── db.ts           # Клиент БД
+│   └── telegram.ts     # Интеграция Telegram
 ├── pages/
-│   ├── api/            # API routes
-│   ├── admin/          # Admin dashboard
-│   └── ...             # Public pages
-├── public/             # Static assets
-├── styles/             # Global styles
-├── types/              # TypeScript types
-└── middleware.ts       # Request middleware
+│   ├── api/            # API маршруты
+│   ├── admin/          # Панель администратора
+│   └── ...             # Общедоступные страницы
+├── public/             # Статические ресурсы
+├── styles/             # Глобальные стили
+├── types/              # TypeScript типы
+└── middleware.ts       # Middleware запросов
 ```
 
-## 🔐 Security Features
+## 🔐 Особенности безопасности
 
-- **CSRF Protection** - Token-based CSRF tokens with Redis storage
-- **Rate Limiting** - Per-endpoint rate limiting
-- **SQL Injection Prevention** - Parameterized queries throughout
-- **Timing-Safe Comparisons** - Protection against timing attacks
-- **CIDR Validation** - Telegram webhook IP verification
-- **Input Sanitization** - XSS prevention with DOMPurify
+- **CSRF защита** - Токен-базированная CSRF защита с хранилищем Redis
+- **Ограничение частоты** - Ограничение частоты для каждого эндпоинта
+- **Предотвращение SQL инъекций** - Параметризованные запросы везде
+- **Timing-Safe сравнения** - Защита от timing атак
+- **CIDR валидация** - Проверка IP Telegram вебхука
+- **Санитизация входных данных** - XSS защита с DOMPurify
 
-## 📊 Database Schema
+## 📊 Схема базы данных
 
-The project includes 40+ database migrations covering:
-- User accounts and authentication
-- Products and categories
-- Orders and payments
-- Cart and saved items
-- Reviews and ratings
-- Gamification system
-- Admin audit logs
+Проект включает 40+ миграций БД, охватывающих:
 
-Key tables:
-- `users` - User accounts
-- `products` - Product catalog
-- `orders` - Order history
-- `cart_items` - Shopping cart
-- `user_roles` - Access control
-- `audit_logs` - Activity tracking
+- Учетные записи пользователей и аутентификацию
+- Товары и категории
+- Заказы и платежи
+- Корзину и сохраненные товары
+- Отзывы и оценки
+- Систему геймификации
+- Логи аудита администратора
 
-## 🚀 Deployment
+Ключевые таблицы:
 
-### Deploy to Vercel
+- `users` - Учетные записи пользователей
+- `products` - Каталог товаров
+- `orders` - История заказов
+- `cart_items` - Корзина покупок
+- `user_roles` - Управление доступом
+- `audit_logs` - Отслеживание активности
 
-1. **Push to GitHub**
+## 🚀 Развертывание
+
+### Развертывание на Vercel
+
+1. **Пушьте на GitHub**
+
 ```bash
 git push origin main
 ```
 
-2. **Connect to Vercel**
-- Go to [vercel.com](https://vercel.com)
-- Click "New Project"
-- Select your repository
-- Configure environment variables
-- Deploy
+2. **Подключитесь к Vercel**
 
-### Environment Variables for Production
-Set these in Vercel Project Settings:
-- `DATABASE_URL` - Production PostgreSQL connection
-- `TELEGRAM_BOT_TOKEN` - Bot token
-- `UPSTASH_REDIS_REST_*` - Redis credentials
-- All other `.env.local` variables
+- Перейдите на [vercel.com](https://vercel.com)
+- Нажмите "New Project"
+- Выберите ваш репозиторий
+- Настройте переменные окружения
+- Развертывание
 
-## 📝 API Documentation
+### Переменные окружения для продакшена
 
-### Authentication
-All API endpoints require Telegram authentication via `initData` parameter.
+Установите в настройках проекта Vercel:
 
-### Key Endpoints
+- `DATABASE_URL` - Подключение к продакшену PostgreSQL
+- `TELEGRAM_BOT_TOKEN` - Токен бота
+- `UPSTASH_REDIS_REST_*` - Credentials Redis
+- Все остальные переменные из `.env.local`
+
+## 📝 Документация API
+
+### Аутентификация
+
+Все API эндпойнты требуют аутентификацию Telegram через параметр `initData`.
+
+### Основные эндпойнты
 
 ```
-GET  /api/products              # Get products
-GET  /api/products/[id]         # Get product details
-POST /api/cart                  # Add to cart
-GET  /api/orders                # Get user orders
-POST /api/orders                # Create order
-GET  /api/admin/stats           # Admin dashboard stats
+GET  /api/products              # Получить товары
+GET  /api/products/[id]         # Получить детали товара
+POST /api/cart                  # Добавить в корзину
+GET  /api/orders                # Получить заказы пользователя
+POST /api/orders                # Создать заказ
+GET  /api/admin/stats           # Статистика админ панели
 ```
 
-## 🧪 Testing
+## 🧪 Тестирование
 
 ```bash
-# Run tests
+# Запустить тесты
 npm run test
 
-# Run tests in watch mode
+# Запустить тесты в режиме watch
 npm run test:watch
 
-# Generate coverage report
+# Создать отчет о покрытии
 npm run test:coverage
 ```
 
-## 📦 Build & Deployment
+## 📦 Сборка и развертывание
 
 ```bash
-# Build for production
+# Сборка для продакшена
 npm run build
 
-# Start production server
+# Запуск продакшн сервера
 npm start
 
-# Generate standalone build
+# Создание standalone сборки
 npm run build:standalone
 ```
 
-## 🐛 Troubleshooting
+## 🐛 Решение проблем
 
-### Database Connection Issues
+### Проблемы с подключением БД
+
 ```bash
-# Verify connection string
+# Проверить строку подключения
 psql $DATABASE_URL -c "SELECT 1"
 
-# Run migrations
+# Запустить миграции
 npm run migrate
 ```
 
-### Build Errors
+### Ошибки сборки
+
 ```bash
-# Clear Next.js cache
+# Очистить кэш Next.js
 rm -rf .next
 
-# Rebuild
+# Перестроить
 npm run build
 ```
 
-### Redis Connection
-Ensure Upstash Redis URL and token are correctly set in environment.
+### Подключение Redis
 
-## 📄 License
+Убедитесь, что URL и токен Upstash Redis правильно установлены в переменных окружения.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📄 Лицензия
 
-## 👥 Contributing
+Этот проект лицензирован под MIT License - подробности см. в файле LICENSE.
 
-Contributions are welcome! Please follow these steps:
+## 👥 Вклад
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Вклады приветствуются! Пожалуйста, следуйте этим шагам:
 
-## 📞 Support
+1. Форкните репозиторий
+2. Создайте ветку функции (`git checkout -b feature/amazing-feature`)
+3. Закоммитьте ваши изменения (`git commit -m 'Add amazing feature'`)
+4. Пушьте в ветку (`git push origin feature/amazing-feature`)
+5. Откройте Pull Request
 
-For support, email support@vapeshop.app or open an issue on GitHub.
+## 📞 Поддержка
 
-## 🔗 Links
+Для получения поддержки напишите на support@vapeshop.app или откройте issue на GitHub.
+
+## 🔗 Ссылки
 
 - **GitHub**: https://github.com/KazymaAP/VapeShop
 - **Live Demo**: https://vapeshop.vercel.app
-- **Documentation**: https://docs.vapeshop.app
+- **Документация**: https://docs.vapeshop.app
 
 ---
 
-**Last Updated**: April 2026
-**Version**: 2.0.0
-**Status**: Production Ready
+**Последнее обновление**: Апрель 2026
+**Версия**: 2.0.0
+**Статус**: Готово к производству

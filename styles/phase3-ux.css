@@ -1,0 +1,387 @@
+/* 
+ * ФАЗА 3 UX Improvements CSS
+ * Animations, responsive design, transitions
+ */
+
+/* ========== ANIMATIONS ========== */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* ========== ANIMATION UTILITIES ========== */
+
+.animate-slide-up {
+  animation: slideInUp 0.3s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideInDown 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.animate-bounce-soft {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+/* ========== TRANSITIONS ========== */
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.transition-colors {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.transition-transform {
+  transition: transform 0.3s ease;
+}
+
+/* ========== RESPONSIVE TABLET DESIGN (768px-1024px) ========== */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Adjust grid for tablets */
+  .grid-cols-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Larger touch targets */
+  button,
+  a,
+  input {
+    min-height: 48px;
+    padding: 0.75rem;
+  }
+
+  /* Adjust padding for readability */
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  /* Sidebar layout */
+  .sidebar-layout {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .sidebar {
+    width: 35%;
+  }
+
+  .main-content {
+    flex: 1;
+  }
+
+  /* Table responsiveness */
+  table {
+    font-size: 0.875rem;
+  }
+
+  /* Modal adjustments */
+  .modal {
+    max-width: 90vw;
+    max-height: 90vh;
+  }
+}
+
+/* ========== SMOOTH PAGE TRANSITIONS ========== */
+
+.page-enter {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.page-exit {
+  animation: slideInDown 0.3s ease-in reverse;
+}
+
+/* ========== LOADING STATES ========== */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-border) 0%,
+    var(--color-cardBg) 50%,
+    var(--color-border) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.loading-spinner {
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-neon);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== FORM INTERACTIONS ========== */
+
+.form-input:focus {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.form-input.error {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* ========== BUTTON EFFECTS ========== */
+
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.6s,
+    height 0.6s;
+}
+
+button:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* ========== HOVER EFFECTS ========== */
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.button-hover {
+  transition: all 0.2s ease;
+}
+
+.button-hover:hover {
+  transform: scale(1.05);
+}
+
+/* ========== SCROLL BEHAVIOR ========== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ========== ACCESSIBLE FOCUS ========== */
+
+*:focus-visible {
+  outline: 2px solid var(--color-neon);
+  outline-offset: 2px;
+}
+
+/* ========== DARK MODE SUPPORT ========== */
+
+@media (prefers-color-scheme: dark) {
+  .shimmer {
+    background: linear-gradient(90deg, #222 0%, #333 50%, #222 100%);
+  }
+}
+
+/* ========== MOTION PREFERENCES ========== */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========== RESPONSIVE ADMIN TABLES ========== */
+
+@media (max-width: 768px) {
+  table {
+    display: block;
+    border: none;
+  }
+
+  table thead {
+    display: none;
+  }
+
+  table tbody {
+    display: block;
+  }
+
+  table tr {
+    display: block;
+    border: 1px solid var(--color-border);
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--color-cardBg);
+  }
+
+  table td {
+    display: block;
+    text-align: right;
+    padding: 0.5rem 0;
+    border: none;
+  }
+
+  table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    color: var(--color-textPrimary);
+  }
+}
+
+/* ========== CART COUNTER ANIMATION ========== */
+
+.cart-counter-badge {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.cart-counter-badge.update {
+  animation: bounce 0.6s ease-in-out;
+}
+
+/* ========== SUCCESS/ERROR TOAST ANIMATIONS ========== */
+
+.toast {
+  animation: slideInUp 0.3s ease-out forwards;
+}
+
+.toast.dismiss {
+  animation: slideInDown 0.3s ease-in reverse;
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast-info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
