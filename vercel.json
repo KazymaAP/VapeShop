@@ -80,14 +80,5 @@
       "path": "/api/cron/abandoned-cart",
       "schedule": "0 * * * *"
     }
-  ],
-  "_cronNotes": {
-    "description": "CRON задачи для Vercel Deployed Functions",
-    "requirements": "Переменная окружения CRON_SECRET должна быть установлена в Settings > Environment Variables",
-    "format": "schedule используется cron format (minute hour day month day-of-week)",
-    "backup-database": "Ежедневно в 2:00 UTC - резервная копия БД через Neon API",
-    "cleanup-sessions": "Ежедневно в 3:00 UTC - удаление устаревших сессий",
-    "check-low-stock": "Каждые 30 минут - проверка товаров с низким стоком",
-    "abandoned-cart": "Ежечасно - отправка напоминаний о брошенных корзинах"
-  }
+  ]
 }
