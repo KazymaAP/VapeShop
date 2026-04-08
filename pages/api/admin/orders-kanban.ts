@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 interface KanbanOrder {
   id: string;
@@ -79,7 +80,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json(kanbanData);
   } catch (_err) {
-    console.error('Kanban API error:', _err);
+    logger.error('Kanban API error:', _err);
     res.status(500).json({ error: 'Ошибка при получении данных канбана' });
   }
 }

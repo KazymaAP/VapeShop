@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../../../lib/telegram';
+import { TextSkeleton } from '../../../components/SkeletonLoader';
 
 interface Order {
   id: string;
@@ -9,9 +10,20 @@ interface Order {
   createdAt: string;
 }
 
+interface Customer {
+  telegram_id: number;
+  first_name: string;
+  last_name?: string | null;
+  phone?: string | null;
+  username?: string | null;
+  created_at?: string;
+  status?: string;
+  [key: string]: unknown;
+}
+
 export default function CustomerProfilePage() {
   const { user } = useTelegramWebApp();
-  const [customer, setCustomer] = useState<Record<string, unknown> | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const customerId = typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : '';
@@ -37,7 +49,7 @@ export default function CustomerProfilePage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) return <TextSkeleton lines={8} />;
   if (!customer) return <div className="text-center py-8 text-textSecondary">Клиент не найден</div>;
 
   return (
@@ -66,7 +78,7 @@ export default function CustomerProfilePage() {
           <p className="text-textSecondary">
             Зарегистрирован:{' '}
             <span className="text-textPrimary">
-              {new Date(customer.created_at).toLocaleDateString('ru-RU')}
+              {customer.created_at ? new Date(customer.created_at).toLocaleDateString('ru-RU') : 'N/A'}
             </span>
           </p>
         </div>

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,9 +10,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const result = await query('SELECT * FROM user_levels WHERE user_id = $1', [userId]);
 
       if (result.rows.length === 0) {
-        await query('INSERT INTO user_levels (user_id, level, experience) VALUES ($1, 1, 0)', [
-          userId,
-        ]);
+        await transaction(async (client) => {
+          await client.query('INSERT INTO user_levels (user_id, level, experience) VALUES ($1, 1, 0)', [
+            userId,
+          ]);
+        });
         return res.status(200).json({ data: { level: 1, experience: 0, badges: [] } });
       }
 
@@ -30,10 +32,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const newExp = current.experience + amount;
       const newLevel = Math.floor(newExp / 100) + 1;
 
-      await query(
-        'INSERT INTO user_levels (user_id, level, experience) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET level = $2, experience = $3',
-        [userId, newLevel, newExp % 100]
-      );
+      await transaction(async (client) => {
+        await client.query(
+          'INSERT INTO user_levels (user_id, level, experience) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET level = $2, experience = $3',
+          [userId, newLevel, newExp % 100]
+        );
+      });
 
       res.status(200).json({ success: true });
     } catch {

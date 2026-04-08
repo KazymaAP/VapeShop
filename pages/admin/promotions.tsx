@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../../lib/telegram';
 
 interface Promotion {

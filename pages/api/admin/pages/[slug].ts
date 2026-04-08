@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../../lib/db';
+import { query, transaction } from '../../../../lib/db';
 import { requireAuth } from '../../../../lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { slug } = req.query;
@@ -23,16 +24,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json(result.rows[0]);
     } catch (err) {
-      console.error('Page GET error:', err);
+      logger.error('Page GET error:', err);
       res.status(500).json({ error: 'Ошибка при получении страницы' });
     }
   } else if (req.method === 'DELETE') {
     try {
-      await query(`DELETE FROM pages WHERE slug = $1`, [slug]);
+      await transaction(async (client) => {
+        await client.query(`DELETE FROM pages WHERE slug = $1`, [slug]);
+      });
 
       res.status(200).json({ success: true, message: 'Страница удалена' });
     } catch (err) {
-      console.error('Page DELETE error:', err);
+      logger.error('Page DELETE error:', err);
       res.status(500).json({ error: 'Ошибка при удалении страницы' });
     }
   } else {

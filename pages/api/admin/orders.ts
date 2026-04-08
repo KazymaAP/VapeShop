@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { getTelegramId, requireAuth } from '@/lib/auth';
 import { validatePagination } from '@/lib/validate';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -86,7 +87,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json(response);
     } catch (_err) {
-      console.error('Error loading orders:', _err);
+      logger.error('Error loading orders:', _err);
       res.status(500).json({ error: 'Ошибка загрузки заказов' });
     }
   } else if (req.method === 'PUT') {
@@ -99,18 +100,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Обновление примечания менеджера
       if (manager_note !== undefined) {
-        await query('UPDATE orders SET manager_note = $1, updated_at = NOW() WHERE id = $2', [
-          manager_note,
-          id,
-        ]);
+        await transaction(async (client) => {
+          await client.query('UPDATE orders SET manager_note = $1, updated_at = NOW() WHERE id = $2', [
+            manager_note,
+            id,
+          ]);
 
-        // Логируем
-        const adminTelegramId = getTelegramId(req);
-        await query(
-          `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
-           VALUES ($1, $2, $3, $4)`,
-          [adminTelegramId, 'UPDATE_ORDER_NOTE', 'orders', JSON.stringify({ order_id: id })]
-        ).catch(() => {});
+          // Логируем
+          const adminTelegramId = getTelegramId(req);
+          await client.query(
+            `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
+             VALUES ($1, $2, $3, $4)`,
+            [adminTelegramId, 'UPDATE_ORDER_NOTE', 'orders', JSON.stringify({ order_id: id })]
+          ).catch(() => {});
+        });
 
         return res.status(200).json({ success: true });
       }
@@ -131,28 +134,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const oldStatus = oldOrder.rows[0].status;
       const userTelegramId = oldOrder.rows[0].user_telegram_id;
 
-      // Обновляем статус
-      await query('UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2', [status, id]);
+      // Обновляем статус и логируем в одной транзакции
+      await transaction(async (client) => {
+        await client.query('UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2', [status, id]);
 
-      // Логируем в история заказа
-      const adminTelegramId = getTelegramId(req);
-      await query(
-        `INSERT INTO order_history (order_id, user_telegram_id, old_status, new_status)
-         VALUES ($1, $2, $3, $4)`,
-        [id, adminTelegramId || null, oldStatus, status]
-      );
+        // Логируем в история заказа
+        const adminTelegramId = getTelegramId(req);
+        await client.query(
+          `INSERT INTO order_history (order_id, user_telegram_id, old_status, new_status)
+           VALUES ($1, $2, $3, $4)`,
+          [id, adminTelegramId || null, oldStatus, status]
+        );
 
-      // Логируем в audit_log
-      await query(
-        `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
-         VALUES ($1, $2, $3, $4)`,
-        [
-          adminTelegramId,
-          'UPDATE_ORDER_STATUS',
-          'orders',
-          JSON.stringify({ order_id: id, old_status: oldStatus, new_status: status }),
-        ]
-      ).catch(() => {});
+        // Логируем в audit_log
+        await client.query(
+          `INSERT INTO audit_log (user_telegram_id, action, table_name, details)
+           VALUES ($1, $2, $3, $4)`,
+          [
+            adminTelegramId,
+            'UPDATE_ORDER_STATUS',
+            'orders',
+            JSON.stringify({ order_id: id, old_status: oldStatus, new_status: status }),
+          ]
+        ).catch(() => {});
+      });
 
       // Отправляем уведомление пользователю (опционально)
       if (userTelegramId) {
@@ -162,7 +167,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json({ success: true, old_status: oldStatus, new_status: status });
     } catch (_err) {
-      console.error('Error updating order:', _err);
+      logger.error('Error updating order:', _err);
       res.status(500).json({ error: 'Ошибка обновления заказа' });
     }
   } else {

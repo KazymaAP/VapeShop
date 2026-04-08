@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../../lib/db';
+import { query, transaction } from '../../../../lib/db';
 import { requireAuth } from '../../../../lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -27,10 +27,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { status } = req.body;
 
     try {
-      await query('UPDATE support_tickets SET status = $1, updated_at = NOW() WHERE id = $2', [
-        status,
-        ticketId,
-      ]);
+      await transaction(async (client) => {
+        await client.query('UPDATE support_tickets SET status = $1, updated_at = NOW() WHERE id = $2', [
+          status,
+          ticketId,
+        ]);
+      });
       res.status(200).json({ success: true });
     } catch {
       res.status(500).json({ error: 'Failed to update ticket' });

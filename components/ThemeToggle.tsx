@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 interface ThemeToggleProps {
   onToggle?: (isDark: boolean) => void;
@@ -25,7 +26,7 @@ export default function ThemeToggle({ onToggle }: ThemeToggleProps) {
           document.documentElement.classList.remove('dark');
         }
       } catch (err) {
-        console.error('Ошибка при загрузке темы:', err);
+        logger.error('Ошибка при загрузке темы:', err);
       }
     }
   }, []);
@@ -47,7 +48,7 @@ export default function ThemeToggle({ onToggle }: ThemeToggleProps) {
 
       onToggle?.(newIsDark);
     } catch (err) {
-      console.error('Ошибка при изменении темы:', err);
+      logger.error('Ошибка при изменении темы:', err);
     }
   };
 

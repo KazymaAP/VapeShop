@@ -149,3 +149,78 @@ export const NOTIFICATION_TYPES = {
   PRODUCT_IN_STOCK: 'product_in_stock',
   PROMO_CODE_AVAILABLE: 'promo_code_available',
 } as const;
+
+// ============ Коэффициенты геймификации и рефералов ============
+export const REFERRAL_BONUS_PERCENT = 0.1; // 10% от суммы заказа
+
+// ============ Магические числа - Лимиты формы ============
+export const FORM_LIMITS = {
+  CATEGORY_NAME_MAX_LENGTH: 100,
+  BRAND_NAME_MAX_LENGTH: 100,
+  MAX_IMAGE_URLs: 10,
+  MAX_FILE_SIZE_MB: 5,
+  MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024,
+} as const;
+
+// ============ Магические числа - Продукты ============
+export const PRODUCT_LIMITS = {
+  MAX_QUANTITY: 100,
+  MAX_PRICE: 9999999, // в копейках
+  MIN_QUANTITY: 1,
+  MIN_PRICE: 1, // в копейках
+} as const;
+
+// ============ Финансовые коэффициенты ============
+export const FINANCIAL = {
+  DELIVERY_CHARGE_MULTIPLIER: 1.15, // +15% за доставку
+  TAX_MULTIPLIER: 0.93, // -7% налога
+  KOPECK_CONVERSION: 100, // Рубли -> Копейки
+} as const;
+
+// ============ Сроки доставки в днях ============
+export const DELIVERY_DAYS = {
+  STANDARD: 2,
+  EXPRESS: 1,
+  SCHEDULED: 7,
+} as const;
+
+// ============ Размеры для адаптивности ============
+export const BREAKPOINTS = {
+  SM: 640,
+  MD: 768,
+  LG: 1024,
+  XL: 1280,
+  '2XL': 1536,
+} as const;
+
+// ============ Таймеры и интервалы (миллисекунды) ============
+export const TIMERS = {
+  POLL_INTERVAL: 30000, // 30 секунд для обновления alerts
+  SEARCH_DEBOUNCE: 300, // 300ms для debounce поиска
+  API_TIMEOUT: 30000, // 30 секунд timeout для API
+  CONNECTION_TIMEOUT: 10000, // 10 секунд для连ection
+  ABANDONED_CART_TIMEOUT: 2 * 60 * 60 * 1000, // 2 часа для брошенных корзин
+  PENDING_ORDER_TIMEOUT: 60 * 60 * 1000, // 1 час порог ожидания заказов
+  TOAST_DURATION: 3000, // 3 секунды для toast уведомлений
+} as const;
+
+// ============ Batch размеры и лимиты для cron jobs ============
+export const CRON_LIMITS = {
+  ABANDONED_CART_BATCH_SIZE: 100, // Размер batch для брошенных корзин
+  LOW_STOCK_ALERT_LIMIT: 5, // Товары с количеством < этого = низкий сток
+  LOW_STOCK_FETCH_LIMIT: 5, // Максимум товаров с низким опубликовать в alerts
+  CLEANUP_OLD_AUDIT_DAYS: 180, // Удалять audit logs старше N дней
+  CLEANUP_CSV_DAYS: 30, // Удалять CSV импорты старше N дней
+  CLEANUP_NOTIFICATIONS_DAYS: 90, // Удалять старые уведомления старше N дней
+  CLEANUP_REFERRALS_DAYS: 365, // Удалять старые рефереальные ссылки старше N дней
+} as const;
+
+// ============ Color scheme (для типизации) ============
+export const COLOR_SCHEME = {
+  DARK_BG_PRIMARY: '#111115',
+  DARK_BG_SECONDARY: '#1f1f2a',
+  DARK_BG_TERTIARY: '#131318',
+  TEXT_PRIMARY: '#ffffff',
+  TEXT_SECONDARY: '#a0a0a0',
+  BORDER: '#2a2a3a',
+} as const;

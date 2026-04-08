@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const userId = getTelegramId(req);
@@ -15,9 +16,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
          AND (p.old_price > p.price OR p.price < (SELECT AVG(price) FROM products WHERE category = p.category))`,
         [userId]
       );
-      res.status(200).json({ data: result.rows });
+      return apiSuccess(res, result.rows, 200);
     } catch {
-      res.status(500).json({ error: 'Failed to fetch discounts' });
+      return apiError(res, 'Failed to fetch discounts', 500);
     }
   } else if (req.method === 'POST') {
     const { productId, enabled } = req.body;
@@ -27,12 +28,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         'UPDATE wishlist SET notify_on_discount = $1 WHERE user_id = $2 AND product_id = $3',
         [enabled, userId, productId]
       );
-      res.status(200).json({ success: true });
+      return apiSuccess(res, { notification_updated: true }, 200);
     } catch {
-      res.status(500).json({ error: 'Failed to update notification' });
+      return apiError(res, 'Failed to update notification', 500);
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 }
 

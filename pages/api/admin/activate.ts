@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import type { PoolClient } from 'pg';
+import { query, transaction } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 interface ActivateProductRequest {
   price_import_ids: string[];
@@ -125,10 +127,14 @@ function validateActivateRequest(body: unknown): {
 
 /**
  * Получает данные товаров из price_import BATCH запросом (HIGH-002 fix)
+ * @param client БД клиент транзакции
  * @param priceImportIds Массив ID в таблице price_import
  * @returns Map ID → данные товара
  */
-async function getPriceImportDataBatch(priceImportIds: string[]): Promise<
+async function getPriceImportDataBatch(
+  client: PoolClient,
+  priceImportIds: string[]
+): Promise<
   Map<
     string,
     {
@@ -150,7 +156,7 @@ async function getPriceImportDataBatch(priceImportIds: string[]): Promise<
 
   try {
     // BATCH запрос вместо N отдельных запросов
-    const result = await query(
+    const result = await client.query(
       `SELECT id, name, specification, stock, price_tier_1, price_tier_2, price_tier_3, 
               distributor_price, is_activated
        FROM price_import
@@ -159,22 +165,24 @@ async function getPriceImportDataBatch(priceImportIds: string[]): Promise<
     );
 
     const map = new Map();
-    result.rows.forEach((row) => {
-      map.set(row.id, row);
+    result.rows.forEach((row: Record<string, unknown>) => {
+      map.set(row.id as string, row);
     });
     return map;
   } catch (err) {
-    console.error('getPriceImportDataBatch error:', err);
+    logger.error('getPriceImportDataBatch error:', err);
     throw err;
   }
 }
 
 /**
  * Проверяет наличие товаров в таблице products BATCH запросом (HIGH-002 fix)
+ * @param client БД клиент транзакции
  * @param items Массив {name, specification}
  * @returns Map "name|specification" → product.id
  */
 async function findExistingProductsBatch(
+  client: PoolClient,
   items: Array<{ name: string; specification: string }>
 ): Promise<Map<string, string>> {
   if (items.length === 0) {
@@ -186,7 +194,7 @@ async function findExistingProductsBatch(
     const names = items.map((i) => i.name);
     const specs = items.map((i) => i.specification);
 
-    const result = await query(
+    const result = await client.query(
       `SELECT id, name, specification 
        FROM products 
        WHERE (name, specification) IN (SELECT * FROM UNNEST($1::text[], $2::text[]))`,
@@ -194,25 +202,31 @@ async function findExistingProductsBatch(
     );
 
     const map = new Map();
-    result.rows.forEach((row) => {
-      const key = `${row.name}|${row.specification}`;
-      map.set(key, row.id);
+    result.rows.forEach((row: Record<string, unknown>) => {
+      const key = `${row.name as string}|${row.specification as string}`;
+      map.set(key, row.id as string);
     });
     return map;
   } catch (err) {
-    console.error('findExistingProductsBatch error:', err);
+    logger.error('findExistingProductsBatch error:', err);
     throw err;
   }
 }
 
 /**
- * Получает данные товара из price_import по ID (DEPRECATED - используй getPriceImportDataBatch)
- * @param priceImportId ID в таблице price_import
- * @returns Данные товара или null
+ * Получает существующий товар из products (используется внутри транзакции)
+ * @param client БД клиент транзакции
+ * @param name Название товара
+ * @param specification Спецификация товара
+ * @returns ID товара или null
  */
-async function findExistingProduct(name: string, specification: string): Promise<string | null> {
+async function findExistingProduct(
+  client: PoolClient,
+  name: string,
+  specification: string
+): Promise<string | null> {
   try {
-    const result = await query(
+    const result = await client.query(
       `SELECT id FROM products WHERE name = $1 AND specification = $2 LIMIT 1`,
       [name, specification]
     );
@@ -223,18 +237,20 @@ async function findExistingProduct(name: string, specification: string): Promise
 
     return result.rows[0].id;
   } catch (err) {
-    console.error('findExistingProduct error:', err);
+    logger.error('findExistingProduct error:', err);
     throw err;
   }
 }
 
 /**
- * Получает или создаёт категорию
+ * Получает или создаёт категорию внутри транзакции
+ * @param client БД клиент транзакции
  * @param categoryId ID существующей категории или null
  * @param newCategoryName Имя новой категории
  * @returns ID категории
  */
 async function getOrCreateCategory(
+  client: PoolClient,
   categoryId: string | null,
   newCategoryName: string | null
 ): Promise<string | null> {
@@ -248,7 +264,7 @@ async function getOrCreateCategory(
     }
 
     // Проверяем, существует ли уже категория с таким именем
-    const existing = await query('SELECT id FROM categories WHERE LOWER(name) = LOWER($1)', [
+    const existing = await client.query('SELECT id FROM categories WHERE LOWER(name) = LOWER($1)', [
       newCategoryName.trim(),
     ]);
 
@@ -257,25 +273,27 @@ async function getOrCreateCategory(
     }
 
     // Создаём новую категорию
-    const result = await query(
+    const result = await client.query(
       'INSERT INTO categories (name, sort_order) VALUES ($1, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM categories)) RETURNING id',
       [newCategoryName.trim()]
     );
 
     return result.rows[0].id;
   } catch (err) {
-    console.error('getOrCreateCategory error:', err);
+    logger.error('getOrCreateCategory error:', err);
     throw err;
   }
 }
 
 /**
- * Получает или создаёт бренд
+ * Получает или создаёт бренд внутри транзакции
+ * @param client БД клиент транзакции
  * @param brandId ID существующего бренда или null
  * @param newBrandName Имя нового бренда
  * @returns ID бренда
  */
 async function getOrCreateBrand(
+  client: PoolClient,
   brandId: string | null,
   newBrandName: string | null
 ): Promise<string | null> {
@@ -289,7 +307,7 @@ async function getOrCreateBrand(
     }
 
     // Проверяем, существует ли уже бренд с таким именем
-    const existing = await query('SELECT id FROM brands WHERE LOWER(name) = LOWER($1)', [
+    const existing = await client.query('SELECT id FROM brands WHERE LOWER(name) = LOWER($1)', [
       newBrandName.trim(),
     ]);
 
@@ -298,19 +316,20 @@ async function getOrCreateBrand(
     }
 
     // Создаём новый бренд
-    const result = await query('INSERT INTO brands (name) VALUES ($1) RETURNING id', [
+    const result = await client.query('INSERT INTO brands (name) VALUES ($1) RETURNING id', [
       newBrandName.trim(),
     ]);
 
     return result.rows[0].id;
   } catch (err) {
-    console.error('getOrCreateBrand error:', err);
+    logger.error('getOrCreateBrand error:', err);
     throw err;
   }
 }
 
 /**
- * Создаёт или обновляет товар в таблице products
+ * Создаёт или обновляет товар в таблице products внутри транзакции
+ * @param client БД клиент транзакции
  * @param priceImportData Данные из price_import
  * @param finalPrice Итоговая цена
  * @param categoryId ID категории
@@ -322,6 +341,7 @@ async function getOrCreateBrand(
  * @returns ID созданного или обновлённого товара
  */
 async function createOrUpdateProduct(
+  client: PoolClient,
   priceImportData: {
     name: string;
     specification: string;
@@ -337,13 +357,14 @@ async function createOrUpdateProduct(
 ): Promise<{ action: 'created' | 'updated'; productId: string }> {
   try {
     const existingProductId = await findExistingProduct(
+      client,
       priceImportData.name,
       priceImportData.specification
     );
 
     if (existingProductId) {
       // Обновляем существующий товар
-      await query(
+      await client.query(
         `UPDATE products 
          SET price = $1, stock = $2, updated_at = NOW()
          WHERE id = $3`,
@@ -353,7 +374,7 @@ async function createOrUpdateProduct(
       return { action: 'updated', productId: existingProductId };
     } else {
       // Создаём новый товар
-      const result = await query(
+      const result = await client.query(
         `INSERT INTO products 
          (name, specification, price, stock, category_id, brand_id, images, 
           promotion, is_hit, is_new, is_active)
@@ -377,27 +398,28 @@ async function createOrUpdateProduct(
       return { action: 'created', productId: result.rows[0].id };
     }
   } catch (err) {
-    console.error('createOrUpdateProduct error:', err);
+    logger.error('createOrUpdateProduct error:', err);
     throw err;
   }
 }
 
 /**
- * Отмечает товары в price_import как активированные BATCH запросом (HIGH-002 fix)
+ * Отмечает товары в price_import как активированные BATCH запросом (HIGH-002 fix) внутри транзакции
+ * @param client БД клиент транзакции
  * @param priceImportIds Массив ID в price_import
  */
-async function markAsActivatedBatch(priceImportIds: string[]): Promise<void> {
+async function markAsActivatedBatch(client: PoolClient, priceImportIds: string[]): Promise<void> {
   if (priceImportIds.length === 0) return;
 
   try {
-    await query(
+    await client.query(
       `UPDATE price_import 
        SET is_activated = true, updated_at = NOW()
        WHERE id = ANY($1::text[])`,
       [priceImportIds]
     );
   } catch (err) {
-    console.error('markAsActivatedBatch error:', err);
+    logger.error('markAsActivatedBatch error:', err);
     throw err;
   }
 }
@@ -415,16 +437,17 @@ async function logAdminAction(telegramId: number, details: Record<string, unknow
        VALUES ($1, $2, $3, $4, $5)`,
       [telegramId, 'activate_products', 'product', JSON.stringify(details), 'success']
     ).catch((err) => {
-      console.error('Logging error:', err);
+      logger.error('Logging error:', err);
     });
   } catch (err) {
-    console.error('logAdminAction error:', err);
+    logger.error('logAdminAction error:', err);
   }
 }
 
 /**
  * POST handler для активации товаров из price_import
  * Принимает массив ID товаров и активирует их в продакшене
+ * Все операции выполняются внутри единой транзакции
  */
 async function handler(
   req: NextApiRequest,
@@ -445,7 +468,7 @@ async function handler(
 
     const data = validation.data!;
 
-    // Логируем начало операции
+    // Логируем начало операции (вне транзакции для надёжности логирования)
     await logAdminAction(telegramId, {
       action_type: 'start_activation',
       price_import_ids: data.price_import_ids,
@@ -453,91 +476,104 @@ async function handler(
 
     const details: ActivateProductResponse['details'] = [];
     const errors: Array<{ id: string; error: string }> = [];
-    const activatedIds: string[] = [];
 
-    // BATCH запрос: получаем все товары из price_import за один запрос (HIGH-002 fix)
-    const priceImportMap = await getPriceImportDataBatch(data.price_import_ids);
+    // ============= ГЛАВНАЯ ТРАНЗАКЦИЯ =============
+    // ВСЕ INSERT/UPDATE операции находятся внутри этой транзакции
+    await transaction(async (client) => {
+      const activatedIds: string[] = [];
 
-    // Фильтруем валидные товары и подготавливаем данные для поиска
-    const validItems: Array<{
-      priceImportId: string;
-      priceImportData: typeof priceImportMap extends Map<string, infer V> ? V : never;
-    }> = [];
+      // BATCH запрос: получаем все товары из price_import за один запрос (HIGH-002 fix)
+      const priceImportMap = await getPriceImportDataBatch(client, data.price_import_ids);
 
-    for (const priceImportId of data.price_import_ids) {
-      const priceImportData = priceImportMap.get(priceImportId);
+      // Фильтруем валидные товары и подготавливаем данные для поиска
+      const validItems: Array<{
+        priceImportId: string;
+        priceImportData: typeof priceImportMap extends Map<string, infer V> ? V : never;
+      }> = [];
 
-      if (!priceImportData) {
-        errors.push({ id: priceImportId, error: 'Товар не найден в таблице price_import' });
-        continue;
+      for (const priceImportId of data.price_import_ids) {
+        const priceImportData = priceImportMap.get(priceImportId);
+
+        if (!priceImportData) {
+          errors.push({ id: priceImportId, error: 'Товар не найден в таблице price_import' });
+          continue;
+        }
+
+        if (priceImportData.is_activated) {
+          errors.push({ id: priceImportId, error: 'Товар уже активирован' });
+          continue;
+        }
+
+        validItems.push({ priceImportId, priceImportData });
       }
 
-      if (priceImportData.is_activated) {
-        errors.push({ id: priceImportId, error: 'Товар уже активирован' });
-        continue;
-      }
+      // BATCH запрос: проверяем существующие товары все за один запрос (HIGH-002 fix)
+      await findExistingProductsBatch(
+        client,
+        validItems.map((v) => ({
+          name: v.priceImportData.name,
+          specification: v.priceImportData.specification,
+        }))
+      );
 
-      validItems.push({ priceImportId, priceImportData });
-    }
+      // Получаем или создаём категорию и бренд один раз (не в цикле)
+      const finalCategoryId = await getOrCreateCategory(
+        client,
+        data.category_id || null,
+        data.new_category_name || null
+      );
+      const finalBrandId = await getOrCreateBrand(
+        client,
+        data.brand_id || null,
+        data.new_brand_name || null
+      );
 
-    // BATCH запрос: проверяем существующие товары все за один запрос (HIGH-002 fix)
-    // Note: existingProductsMap получается, но используется в createOrUpdateProduct
-    await findExistingProductsBatch(
-      validItems.map((v) => ({
-        name: v.priceImportData.name,
-        specification: v.priceImportData.specification,
-      }))
-    );
+      // Обрабатываем товары с уже полученными данными
+      for (const { priceImportId, priceImportData } of validItems) {
+        try {
+          // Используем уже полученные ID категории и бренда
+          const { action, productId } = await createOrUpdateProduct(
+            client,
+            {
+              name: priceImportData.name,
+              specification: priceImportData.specification,
+              stock: priceImportData.stock,
+            },
+            data.final_price,
+            finalCategoryId || undefined,
+            finalBrandId || undefined,
+            data.images,
+            data.is_promotion,
+            data.is_hit,
+            data.is_new
+          );
 
-    // Получаем или создаём категорию и бренд ОДИ раз (не в цикле)
-    const finalCategoryId = await getOrCreateCategory(
-      data.category_id || null,
-      data.new_category_name || null
-    );
-    const finalBrandId = await getOrCreateBrand(data.brand_id || null, data.new_brand_name || null);
-
-    // Обрабатываем товары с уже полученными данными
-    for (const { priceImportId, priceImportData } of validItems) {
-      try {
-        // Используем уже полученные ID категории и бренда
-        const { action, productId } = await createOrUpdateProduct(
-          {
+          details.push({
+            price_import_id: priceImportId,
+            action,
+            product_id: productId,
             name: priceImportData.name,
-            specification: priceImportData.specification,
-            stock: priceImportData.stock,
-          },
-          data.final_price,
-          finalCategoryId || undefined,
-          finalBrandId || undefined,
-          data.images,
-          data.is_promotion,
-          data.is_hit,
-          data.is_new
-        );
+          });
 
-        details.push({
-          price_import_id: priceImportId,
-          action,
-          product_id: productId,
-          name: priceImportData.name,
-        });
-
-        activatedIds.push(priceImportId);
-      } catch (err) {
-        console.error(`Error activating product ${priceImportId}:`, err);
-        errors.push({
-          id: priceImportId,
-          error: 'Внутренняя ошибка при обработке товара',
-        });
+          activatedIds.push(priceImportId);
+        } catch (err) {
+          logger.error(`Error activating product ${priceImportId}:`, err);
+          // Если произойдёт ошибка при обработке товара - откатываем всю транзакцию
+          throw new Error(
+            `Ошибка при обработке товара ${priceImportId}: ${String(err)}`
+          );
+        }
       }
-    }
 
-    // BATCH маркировка: отмечаем все активированные товары за один запрос (HIGH-002 fix)
-    if (activatedIds.length > 0) {
-      await markAsActivatedBatch(activatedIds);
-    }
+      // BATCH маркировка: отмечаем все активированные товары за один запрос (HIGH-002 fix)
+      // Это последняя операция внутри транзакции
+      if (activatedIds.length > 0) {
+        await markAsActivatedBatch(client, activatedIds);
+      }
+    }); // Конец транзакции
 
-    // Логируем завершение операции
+    // ============= КОНЕЦ ГЛАВНОЙ ТРАНЗАКЦИИ =============
+    // Логируем завершение операции (вне транзакции)
     await logAdminAction(telegramId, {
       action_type: 'complete_activation',
       activated_count: details.length,
@@ -564,8 +600,9 @@ async function handler(
       details,
     });
   } catch (err) {
-    console.error('Activate products error:', err);
+    logger.error('Activate products error:', err);
 
+    // При ошибке логируем её вне транзакции (не будет затронуто rollback'ом)
     await logAdminAction(telegramId, {
       action_type: 'activation_error',
       error: String(err),

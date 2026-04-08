@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { getTelegramIdFromRequest, requireAuth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'PUT') {
@@ -43,21 +44,38 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       // Назначение админских ролей должно быть только через админ-панель (pages/api/admin/users.ts)
       const blockedRoles = ['admin', 'manager', 'super_admin', 'support'];
       if (blockedRoles.includes(role)) {
+        // ⚠️ ИСПРАВЛЕНО: Логируем попытку нарушения безопасности в транзакции
+        await transaction(async (client) => {
+          await client.query(
+            `INSERT INTO audit_log (user_telegram_id, action, details, created_at)
+             VALUES ($1, $2, $3, NOW())`,
+            [
+              currentTelegramId,
+              'USER_ROLE_UPDATE_BLOCKED',
+              `Attempted to assign blocked role: ${role}`,
+            ]
+          ).catch(() => {}); // Ignore logging errors
+        });
+
         return res.status(403).json({ error: 'Cannot assign this role via user endpoint' });
       }
 
-      // Логирование изменения
-      await query(
-        `INSERT INTO audit_log (user_telegram_id, action, details, created_at)
-         VALUES ($1, $2, $3, NOW())`,
-        [currentTelegramId, 'USER_ROLE_UPDATE', `Changed role to: ${role}`]
-      );
+      // Теперь обновляем роль и логируем в транзакции
+      await transaction(async (client) => {
+        await client.query('UPDATE users SET role = $1 WHERE telegram_id = $2', [role, currentTelegramId]);
 
-      await query('UPDATE users SET role = $1 WHERE telegram_id = $2', [role, currentTelegramId]);
+        // И логируем успешное изменение
+        await client.query(
+          `INSERT INTO audit_log (user_telegram_id, action, details, created_at)
+           VALUES ($1, $2, $3, NOW())`,
+          [currentTelegramId, 'USER_ROLE_UPDATE', `Changed role to: ${role}`]
+        ).catch(() => {}); // Ignore logging errors
+      });
+
       res.status(200).json({ success: true, role });
     }
   } catch (err) {
-    console.error('Role update error:', err);
+    logger.error('Role update error:', err);
     res.status(500).json({ error: 'Ошибка обновления роли' });
   }
 }

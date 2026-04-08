@@ -10,6 +10,7 @@
  */
 
 import { query } from './db';
+import { logger } from './logger';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -34,9 +35,9 @@ async function initMigrationsTable(): Promise<void> {
         applied_at TIMESTAMP DEFAULT NOW()
       )
     `);
-    console.log('✅ Таблица schema_migrations готова');
+    logger.info('✅ Таблица schema_migrations готова');
   } catch (err) {
-    console.error('❌ Ошибка создания таблицы schema_migrations:', err);
+    logger.error('❌ Ошибка создания таблицы schema_migrations:', err);
     throw err;
   }
 }
@@ -49,7 +50,7 @@ async function getAppliedMigrations(): Promise<Set<string>> {
     const result = await query('SELECT version FROM schema_migrations');
     return new Set(result.rows.map((r: Record<string, unknown>) => String(r.version)));
   } catch (err) {
-    console.error('❌ Ошибка чтения примененных миграций:', err);
+    logger.error('❌ Ошибка чтения примененных миграций:', err);
     return new Set();
   }
 }
@@ -71,7 +72,7 @@ function getMigrationFiles(): Migration[] {
       timestamp: fs.statSync(path.join(MIGRATIONS_DIR, file)).mtimeMs,
     }));
   } catch (err) {
-    console.error('❌ Ошибка чтения миграций:', err);
+    logger.error('❌ Ошибка чтения миграций:', err);
     return [];
   }
 }
@@ -81,7 +82,7 @@ function getMigrationFiles(): Migration[] {
  */
 async function applyMigration(migration: Migration): Promise<void> {
   try {
-    console.log(`📝 Применение миграции: ${migration.name}`);
+    logger.info(`📏 Применение миграции: ${migration.name}`);
 
     await query(migration.content);
 
@@ -91,10 +92,10 @@ async function applyMigration(migration: Migration): Promise<void> {
       [migration.name, migration.name]
     );
 
-    console.log(`✅ Миграция ${migration.name} успешно применена`);
+    logger.info(`✅ Миграция ${migration.name} успешно применена`);
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
-    console.error(`❌ Ошибка при применении ${migration.name}:`, errMsg);
+    logger.error(`❌ Ошибка при применении ${migration.name}:`, errMsg);
     throw err;
   }
 }
@@ -104,18 +105,18 @@ async function applyMigration(migration: Migration): Promise<void> {
  */
 async function migrate(): Promise<void> {
   try {
-    console.log('🚀 Начало применения миграций...\n');
+    logger.info('🚀 Начало применения миграций...\n');
 
     // Создаём таблицу отслеживания
     await initMigrationsTable();
 
     // Получаем примененные миграции
     const appliedMigrations = await getAppliedMigrations();
-    console.log(`📊 Уже применено миграций: ${appliedMigrations.size}\n`);
+    logger.info(`📋 Уже применено миграций: ${appliedMigrations.size}\n`);
 
     // Получаем все миграции
     const allMigrations = getMigrationFiles();
-    console.log(`📁 Найдено файлов миграций: ${allMigrations.length}\n`);
+    logger.info(`📁 Найдено файлов миграций: ${allMigrations.length}\n`);
 
     // Применяем неприменённые миграции
     let appliedCount = 0;
@@ -124,13 +125,13 @@ async function migrate(): Promise<void> {
         await applyMigration(migration);
         appliedCount++;
       } else {
-        console.log(`⏭️  Миграция ${migration.name} уже применена (пропускаем)`);
+        logger.info(`⏭️  Миграция ${migration.name} уже применена (пропускаем)`);
       }
     }
 
-    console.log(`\n✅ Миграции завершены! Применено новых миграций: ${appliedCount}`);
+    logger.info(`\n✅ Миграции завершены! Применено новых миграций: ${appliedCount}`);
   } catch (err) {
-    console.error('\n❌ Ошибка при применении миграций:', err);
+    logger.error('\n❌ Ошибка при применении миграций:', err);
     process.exit(1);
   }
 }

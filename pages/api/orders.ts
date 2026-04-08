@@ -3,9 +3,28 @@ import { query, transaction } from '@/lib/db';
 import { getTelegramIdFromRequest, isUserBlocked, requireAuth } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 import { withCSRFProtection } from '@/lib/csrf';
+import type { ProductID } from '@/types';
 import { Bot } from 'grammy';
+import { logger } from '@/lib/logger';
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
+
+// ⚠️ ИСПРАВЛЕНО: Добавлены строгие type annotations для request payload
+interface CreateOrderRequest {
+  telegram_id: number;
+  items: OrderItemInput[];
+  delivery_method: 'pickup' | 'courier';
+  delivery_date: string;
+  address?: string;
+  promo_code?: string;
+  discount?: number;
+}
+
+interface OrderItemInput {
+  product_id: ProductID;
+  quantity: number;
+  price: number;
+}
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -13,9 +32,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    // 🔒 ВАЛИДАЦИЯ: Проверяем входные данные
+    // 🔒 ВАЛИДАЦИЯ: Проверяем входные данные с type safety
     const { telegram_id, items, delivery_method, delivery_date, address, promo_code, discount } =
-      req.body;
+      req.body as CreateOrderRequest;
 
     if (!telegram_id || !items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
@@ -48,7 +67,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Валидируем, что все product_id существуют
-    const productIds: string[] = items.map((i: Record<string, unknown>) => String(i.product_id));
+    const productIds: string[] = items.map((i: OrderItemInput) => String(i.product_id));
     const productsRes = await query(
       'SELECT id, stock, price FROM products WHERE id = ANY($1::uuid[]) AND is_active = true',
       [productIds]
@@ -80,9 +99,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Total price cannot be negative' });
     }
 
-    // 🔄 ЗАЩИТА: Используем транзакцию для создания заказа и уменьшения остатков
+    // 🔄 ЗАЩИТА: Используем SERIALIZABLE транзакцию для создания заказа
     // Это предотвращает race condition, когда несколько запросов создают заказы одновременно
-    const order = await transaction(async (client) => {
+    const order = await transaction(
+      async (client) => {
       // Получаем товары с блокировкой (FOR UPDATE) - запрос будет заблокирован до конца транзакции
       const lockedProducts = await client.query(
         'SELECT id, stock, price FROM products WHERE id = ANY($1::uuid[]) AND is_active = true FOR UPDATE',
@@ -135,7 +155,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await client.query('DELETE FROM carts WHERE user_telegram_id = $1', [telegram_id]);
 
       return createdOrder;
-    });
+    }, 'SERIALIZABLE');
 
     // Логируем создание заказа (используем уже проверенный currentTelegramId)
     await query(
@@ -167,7 +187,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
       );
     } catch (err) {
-      console.error('Failed to send bot notification:', err);
+      logger.error('Failed to send bot notification:', err);
     }
 
     // Возвращаем order_id для frontend
@@ -178,7 +198,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       message: 'Заказ создан. Ожидается оплата через Telegram Stars',
     });
   } catch (err) {
-    console.error('Order creation error:', err);
+    logger.error('Order creation error:', err);
     res.status(500).json({ error: 'Ошибка создания заказа' });
   }
 }

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../../lib/db';
 import { requireAuth, getTelegramId } from '../../../../../lib/auth';
+import { logger } from '@/lib/logger';
 
 interface Message {
   id: number;
@@ -81,7 +82,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         timestamp: Date.now(),
       });
     } catch (_) {
-      console.error('Error fetching replies:', _);
+      logger.error('Error fetching replies:', _);
       res.status(500).json({ error: 'Failed to fetch replies' });
     }
   }
@@ -152,7 +153,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         timestamp: Date.now(),
       });
     } catch (_) {
-      console.error('Error sending reply:', _);
+      logger.error('Error sending reply:', _);
       res.status(500).json({ error: 'Failed to send reply' });
     }
   } else {

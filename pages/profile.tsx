@@ -98,7 +98,7 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     const res = await fetch(`/api/users/profile?telegram_id=${user?.id}`);
     if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
+      throw new Error(`Failed to load user profile (HTTP ${res.status}): GET /api/users/profile?telegram_id=${user?.id}`);
     }
     const data = await res.json();
     setProfile(data);
@@ -107,7 +107,7 @@ export default function ProfilePage() {
   const fetchOrders = async () => {
     const res = await fetch(`/api/orders?telegram_id=${user?.id}`);
     if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
+      throw new Error(`Failed to load user orders (HTTP ${res.status}): GET /api/orders?telegram_id=${user?.id}`);
     }
     const data = await res.json();
     setOrders(data.orders || []);

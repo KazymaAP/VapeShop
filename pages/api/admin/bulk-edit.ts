@@ -1,10 +1,11 @@
+import { logger } from '@/lib/logger';
 /**
  * API для массового редактирования товаров
  * POST /api/admin/bulk-edit - обновить несколько товаров
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { transaction } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { ApiResponse, ApiError } from '@/types/api';
 
@@ -41,51 +42,55 @@ export default requireAuth(
           .json({ success: false, error: 'Maximum 100 items per request', timestamp: Date.now() });
       }
 
-      const results = [];
+      const results = await transaction(async (client) => {
+        const updateResults = [];
 
-      for (const item of items) {
-        const { productId, fields } = item;
+        for (const item of items) {
+          const { productId, fields } = item;
 
-        if (!productId) continue;
+          if (!productId) continue;
 
-        // Построили динамический UPDATE запрос
-        const updates: string[] = [];
-        const values: (string | number | boolean)[] = [productId];
-        let paramIndex = 2;
+          // Построили динамический UPDATE запрос
+          const updates: string[] = [];
+          const values: (string | number | boolean)[] = [productId];
+          let paramIndex = 2;
 
-        if (fields.price !== undefined) {
-          updates.push(`price = $${paramIndex}`);
-          values.push(fields.price);
-          paramIndex++;
+          if (fields.price !== undefined) {
+            updates.push(`price = $${paramIndex}`);
+            values.push(fields.price);
+            paramIndex++;
+          }
+
+          if (fields.category !== undefined) {
+            updates.push(`category = $${paramIndex}`);
+            values.push(fields.category);
+            paramIndex++;
+          }
+
+          if (fields.is_active !== undefined) {
+            updates.push(`is_active = $${paramIndex}`);
+            values.push(fields.is_active);
+            paramIndex++;
+          }
+
+          if (fields.discount_percent !== undefined) {
+            updates.push(`discount_percent = $${paramIndex}`);
+            values.push(fields.discount_percent);
+            paramIndex++;
+          }
+
+          updates.push(`updated_at = NOW()`);
+
+          if (updates.length === 1) continue; // Нечего обновлять
+
+          const sql = `UPDATE products SET ${updates.join(', ')} WHERE id = $1 RETURNING id, price, category, is_active`;
+
+          const result = await client.query(sql, values);
+          updateResults.push(result.rows[0]);
         }
 
-        if (fields.category !== undefined) {
-          updates.push(`category = $${paramIndex}`);
-          values.push(fields.category);
-          paramIndex++;
-        }
-
-        if (fields.is_active !== undefined) {
-          updates.push(`is_active = $${paramIndex}`);
-          values.push(fields.is_active);
-          paramIndex++;
-        }
-
-        if (fields.discount_percent !== undefined) {
-          updates.push(`discount_percent = $${paramIndex}`);
-          values.push(fields.discount_percent);
-          paramIndex++;
-        }
-
-        updates.push(`updated_at = NOW()`);
-
-        if (updates.length === 1) continue; // Нечего обновлять
-
-        const sql = `UPDATE products SET ${updates.join(', ')} WHERE id = $1 RETURNING id, price, category, is_active`;
-
-        const result = await query(sql, values);
-        results.push(result.rows[0]);
-      }
+        return updateResults;
+      });
 
       return res.status(200).json({
         success: true,
@@ -94,7 +99,7 @@ export default requireAuth(
         message: `Successfully updated ${results.length} products`,
       });
     } catch (err) {
-      console.error('Bulk edit error:', err);
+      logger.error('Bulk edit error:', err);
       res
         .status(500)
         .json({ success: false, error: 'Failed to update products', timestamp: Date.now() });

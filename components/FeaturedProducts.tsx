@@ -8,6 +8,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import clsx from 'clsx';
 import ProductCard from './ProductCard';
+import type { UUID } from '@/types';
 
 const DEFAULT_PRODUCT_IMAGE = '/no-image.png';
 
@@ -46,7 +47,7 @@ export function FeaturedProducts({
     `/api/products/best-sellers?limit=${limit}&sortBy=${sortBy}${category ? `&category=${category}` : ''}`,
     async (url: string) => {
       const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to load products');
+      if (!res.ok) throw new Error(`Failed to load featured products: HTTP ${res.status}`);
       return res.json();
     },
     { revalidateOnFocus: false }
@@ -112,7 +113,7 @@ export function FeaturedProducts({
           {[...Array(limit)].map((_, i) => (
             <ProductCard
               key={i}
-              id={`skeleton-${i}`}
+              id={`00000000-0000-0000-0000-00000000000${i}` as unknown as UUID}
               name=""
               price={0}
               stock={0}
@@ -130,7 +131,7 @@ export function FeaturedProducts({
           {products.map((product: Product) => (
             <ProductCard
               key={product.id}
-              id={String(product.id)}
+              id={String(product.id) as unknown as UUID}
               name={product.name}
               price={product.price}
               image={product.image_url || DEFAULT_PRODUCT_IMAGE}

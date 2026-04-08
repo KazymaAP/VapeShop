@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
@@ -16,12 +16,7 @@ function AdminDashboardContent() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<{ role: string } | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    checkAdmin();
-  }, [user]);
-
-  const checkAdmin = async () => {
+  const checkAdmin = useCallback(async () => {
     try {
       const res = await fetch(`/api/users/profile?telegram_id=${user?.id}`);
       const data = await res.json();
@@ -35,18 +30,9 @@ function AdminDashboardContent() {
     } catch {
       router.push('/');
     }
-  };
+  }, [user?.id, router]);
 
-  const fetchProfile = async () => {
-    const res = await fetch(`/api/users/profile?telegram_id=${user?.id}`);
-    if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
-    }
-    const data = await res.json();
-    setProfile(data);
-  };
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/stats');
       if (!res.ok) {
@@ -58,7 +44,21 @@ function AdminDashboardContent() {
       // fallback
     }
     setLoading(false);
-  };
+  }, []);
+
+  const fetchProfile = useCallback(async () => {
+    const res = await fetch(`/api/users/profile?telegram_id=${user?.id}`);
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
+    const data = await res.json();
+    setProfile(data);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    checkAdmin();
+  }, [user, checkAdmin]);
 
   if (!isAdmin) {
     return (

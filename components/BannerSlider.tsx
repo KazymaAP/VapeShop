@@ -224,7 +224,7 @@ export function useBanners() {
       try {
         setIsLoading(true);
         const res = await fetch('/api/banners');
-        if (!res.ok) throw new Error('Failed to load banners');
+        if (!res.ok) throw new Error(`Failed to load banners: HTTP ${res.status}`);
         const data = await res.json();
         setBanners(data.data || []);
         setError(null);

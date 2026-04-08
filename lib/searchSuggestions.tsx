@@ -2,6 +2,8 @@
  * Search Suggestions with localStorage history
  */
 
+import { logger } from './logger';
+
 const SEARCH_HISTORY_KEY = 'vapeShop_searchHistory';
 const MAX_HISTORY_ITEMS = 10;
 
@@ -19,7 +21,7 @@ export class SearchHistory {
     try {
       localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
     } catch (e) {
-      console.error('Failed to save search history:', e);
+      logger.error('Failed to save search history:', e);
     }
   }
 
@@ -36,7 +38,7 @@ export class SearchHistory {
     try {
       localStorage.removeItem(SEARCH_HISTORY_KEY);
     } catch (e) {
-      console.error('Failed to clear search history:', e);
+      logger.error('Failed to clear search history:', e);
     }
   }
 
@@ -46,7 +48,7 @@ export class SearchHistory {
     try {
       localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(filtered));
     } catch (e) {
-      console.error('Failed to remove from search history:', e);
+      logger.error('Failed to remove from search history:', e);
     }
   }
 }

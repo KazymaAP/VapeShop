@@ -2,16 +2,20 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
-import { ApiResponse } from '@/types/api';
+import { ApiResponse, ApiError } from '@/types/api';
 import crypto from 'crypto';
 
-async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
+type ApiResponseType = ApiResponse | ApiError;
+
+async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponseType>) {
   // Получаем текущего пользователя с HMAC проверкой
   const telegramId = await getTelegramIdFromRequest(req);
 
   if (!telegramId) {
     return res.status(401).json({
+      success: false,
       error: 'Unauthorized - invalid Telegram verification',
+      timestamp: Date.now(),
     });
   }
 
@@ -34,22 +38,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
 
       if (stats.rows.length === 0) {
         return res.status(200).json({
+          success: true,
           data: {
             code: null,
             total_referrals: 0,
             bonus_awarded: 0,
             total_bonus: 0,
           },
+          timestamp: Date.now(),
         });
       }
 
-      return res.status(200).json({ data: stats.rows[0] });
+      return res.status(200).json({ success: true, data: stats.rows[0], timestamp: Date.now() });
     } else if (req.method === 'POST') {
       // ============ POST: Действия с рефералами ============
       const { action, referralCode } = req.body;
 
       if (!action || typeof action !== 'string') {
-        return res.status(400).json({ error: 'Action parameter required' });
+        return res.status(400).json({ success: false, error: 'Action parameter required', timestamp: Date.now() });
       }
 
       if (action === 'generate') {
@@ -66,25 +72,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         );
 
         if (result.rows.length === 0) {
-          return res.status(500).json({ error: 'Failed to generate code' });
+          return res.status(500).json({ success: false, error: 'Failed to generate code', timestamp: Date.now() });
         }
 
         return res.status(200).json({
+          success: true,
           data: {
             code: result.rows[0].code,
             link: `${process.env.NEXT_PUBLIC_WEBAPP_URL || 'https://your-app.com'}/?ref=${result.rows[0].code}`,
             createdAt: result.rows[0].created_at,
           },
+          timestamp: Date.now(),
         });
       } else if (action === 'apply') {
         // ===== Применить реферальный код =====
         if (!referralCode || typeof referralCode !== 'string') {
-          return res.status(400).json({ error: 'Referral code required' });
+          return res.status(400).json({ success: false, error: 'Referral code required', timestamp: Date.now() });
         }
 
         // Валидируем формат кода (8 символов, только hex)
         if (!/^[A-F0-9]{8}$/.test(referralCode)) {
-          return res.status(400).json({ error: 'Invalid referral code format' });
+          return res.status(400).json({ success: false, error: 'Invalid referral code format', timestamp: Date.now() });
         }
 
         // Находим реферера
@@ -95,14 +103,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         );
 
         if (referrer.rows.length === 0) {
-          return res.status(400).json({ error: 'Invalid or inactive referral code' });
+          return res.status(400).json({ success: false, error: 'Invalid or inactive referral code', timestamp: Date.now() });
         }
 
         const referrerId = referrer.rows[0].user_telegram_id;
 
         // Проверяем, что это не сам себя приглашает
         if (referrerId === telegramId) {
-          return res.status(400).json({ error: 'Cannot use own referral code' });
+          return res.status(400).json({ success: false, error: 'Cannot use own referral code', timestamp: Date.now() });
         }
 
         // Проверяем, что пользователь ещё не применил другой код
@@ -112,7 +120,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         );
 
         if (existingReferral.rows.length > 0) {
-          return res.status(400).json({ error: 'You already used a referral code' });
+          return res.status(400).json({ success: false, error: 'You already used a referral code', timestamp: Date.now() });
         }
 
         // Добавляем запись реферала
@@ -125,7 +133,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         );
 
         if (refResult.rows.length === 0) {
-          return res.status(400).json({ error: 'This referral is already applied' });
+          return res.status(400).json({ success: false, error: 'This referral is already applied', timestamp: Date.now() });
         }
 
         // Проверяем, есть ли уже заказы у этого пользователя
@@ -159,22 +167,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         }
 
         return res.status(200).json({
+          success: true,
           data: {
             message: 'Referral code applied successfully',
             bonusInfo: hasOrders
               ? 'Бонусы дарят только при первом заказе'
               : 'Вы получите 50₽ бонуса после вашего первого заказа',
           },
+          timestamp: Date.now(),
         });
       } else {
-        return res.status(400).json({ error: 'Invalid action' });
+        return res.status(400).json({ success: false, error: 'Invalid action', timestamp: Date.now() });
       }
     } else {
-      return res.status(405).json({ error: 'Method not allowed' });
+      return res.status(405).json({ success: false, error: 'Method not allowed', timestamp: Date.now() });
     }
-  } catch (err) {
-    console.error('Referral API error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : 'Internal server error';
+    return res.status(500).json({ success: false, error, timestamp: Date.now() });
   }
 }
 

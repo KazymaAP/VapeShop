@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Утилиты для работы с платежами Telegram Stars
  */
@@ -68,7 +69,7 @@ export async function createOrderWithPayment(
     const data = await response.json();
     return data;
   } catch (err) {
-    console.error('Create order error:', err);
+    logger.error('Create order error:', err);
     throw err;
   }
 }
@@ -101,7 +102,7 @@ export async function verifyDeliveryCode(
 
     return data;
   } catch (err) {
-    console.error('Verify code error:', err);
+    logger.error('Verify code error:', err);
     throw err;
   }
 }
@@ -130,7 +131,7 @@ export async function getOrderInfo(order_id: string) {
 
     return await response.json();
   } catch (err) {
-    console.error('Get order info error:', err);
+    logger.error('Get order info error:', err);
     throw err;
   }
 }
@@ -156,7 +157,7 @@ export async function cancelOrder(order_id: string, telegram_id: number) {
 
     return await response.json();
   } catch (err) {
-    console.error('Cancel order error:', err);
+    logger.error('Cancel order error:', err);
     throw err;
   }
 }

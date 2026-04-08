@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API endpoint для получения лучших/рекомендуемых товаров
  * Параметры: limit, sortBy (rating, sales, new), category
@@ -5,6 +6,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
 
 interface Product {
   id: number;
@@ -19,7 +21,7 @@ interface Product {
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 
   try {
@@ -33,11 +35,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Построение WHERE clause
     let whereClause = 'p.is_active = true';
-    const params: string[] = [];
+    const params: (string | number)[] = [];
 
     if (category) {
       whereClause += ` AND p.category_id = $${params.length + 1}`;
-      params.push(category);
+      const categoryId = Array.isArray(category) ? category[0] : category;
+      params.push(categoryId);
     }
 
     // Построение ORDER BY в зависимости от sortBy
@@ -72,14 +75,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       [...params, validatedLimit]
     );
 
-    return res.status(200).json({
-      success: true,
-      data: result.rows as Product[],
-      timestamp: Date.now(),
-    });
+    return apiSuccess(res, result.rows as Product[], 200);
   } catch (err) {
-    console.error('Best sellers error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    logger.error('Best sellers error:', err);
+    return apiError(res, 'Internal server error', 500);
   }
 }
 

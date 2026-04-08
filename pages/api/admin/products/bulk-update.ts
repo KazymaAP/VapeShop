@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { requireAuth } from '../../../../lib/auth';
 import { query } from '../../../../lib/db';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -74,7 +75,7 @@ export default requireAuth(
         errors,
       });
     } catch (_err) {
-      console.error('bulk-update error:', _err);
+      logger.error('bulk-update error:', _err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   },

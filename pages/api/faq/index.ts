@@ -1,11 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { buildUpdateSet } from '@/lib/sqlBuilder';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const result = await query('SELECT * FROM faq ORDER BY sort_order, id');
+      // ⚠️ ОПТИМИЗАЦИЯ: SELECT конкретные поля вместо SELECT *
+      const result = await query(
+        'SELECT id, question, answer, sort_order, created_at, updated_at FROM faq ORDER BY sort_order, id'
+      );
       res.status(200).json({ faq: result.rows });
     } catch {
       res.status(500).json({ error: 'Ошибка загрузки FAQ' });
@@ -18,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const result = await query(
-        'INSERT INTO faq (question, answer, sort_order) VALUES ($1, $2, $3) RETURNING *',
+        'INSERT INTO faq (question, answer, sort_order) VALUES ($1, $2, $3) RETURNING id, question, answer, sort_order, created_at, updated_at',
         [question, answer, sort_order || 0]
       );
       res.status(200).json({ faq: result.rows[0] });
@@ -37,12 +41,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (sort_order !== undefined) updates.sort_order = sort_order;
 
       const [setClause, values, nextIdx] = buildUpdateSet('faq', updates);
-      values.push(id);
+      const queryValues: (string | number | boolean | string[] | number[] | null)[] = [...values, id];
 
-      await query(`UPDATE faq SET ${setClause} WHERE id = $${nextIdx}`, values);
+      await query(`UPDATE faq SET ${setClause} WHERE id = $${nextIdx}`, queryValues);
       res.status(200).json({ success: true });
     } catch (_e: unknown) {
-      console.error('FAQ update error:', _e);
+      logger.error('FAQ update error:', _e);
       res.status(400).json({ error: _e instanceof Error ? _e.message : 'Ошибка обновления FAQ' });
     }
   } else if (req.method === 'DELETE') {

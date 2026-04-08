@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Получаем текущего пользователя
@@ -9,104 +11,132 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // Для всех операций нужна авторизация
   if (!currentTelegramId) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return apiError(res, 'Unauthorized', 401);
   }
 
   if (req.method === 'GET') {
     try {
       // ⚠️ КРИТИЧНО: проверяем, что пользователь запрашивает СВОИ адреса
       // Игнорируем telegram_id из query, используем только текущего пользователя
+      // Добавлен LIMIT для безопасности (максимум 100 адресов на пользователя)
       const result = await query(
-        'SELECT * FROM addresses WHERE user_telegram_id = $1 ORDER BY is_default DESC, id',
+        'SELECT id, user_telegram_id, address, street, city, postal_code, phone, is_default, created_at, updated_at FROM addresses WHERE user_telegram_id = $1 ORDER BY is_default DESC, id LIMIT 100',
         [currentTelegramId]
       );
 
-      res.status(200).json({ addresses: result.rows });
+      apiSuccess(res, result.rows);
     } catch (err) {
-      console.error('Get addresses error:', err);
-      res.status(500).json({ error: 'Ошибка загрузки адресов' });
+      logger.error('Get addresses error:', err);
+      apiError(res, 'Ошибка загрузки адресов', 500);
     }
   } else if (req.method === 'POST') {
     try {
       const { address, is_default } = req.body;
 
       if (!address || address.trim().length === 0) {
-        return res.status(400).json({ error: 'Address is required' });
+        return apiError(res, 'Address is required', 400);
       }
 
       if (address.length > 500) {
-        return res.status(400).json({ error: 'Address is too long' });
+        return apiError(res, 'Address is too long', 400);
       }
 
-      // ⚠️ КРИТИЧНО: используем текущего пользователя, игнорируем telegram_id из body
-      if (is_default) {
-        await query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [
-          currentTelegramId,
-        ]);
-      }
+      // 🔒 ИСПОЛЬЗУЕМ ТРАНЗАКЦИЮ для обеспечения целостности адресов
+      // Если устанавливаем как основной, сначала отменяем основной статус других адресов
+      const result = await transaction(async (client) => {
+        if (is_default) {
+          await client.query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [
+            currentTelegramId,
+          ]);
+        }
 
-      const result = await query(
-        'INSERT INTO addresses (user_telegram_id, address, is_default) VALUES ($1, $2, $3) RETURNING *',
-        [currentTelegramId, address, is_default || false]
-      );
+        const insertRes = await client.query(
+          'INSERT INTO addresses (user_telegram_id, address, is_default) VALUES ($1, $2, $3) RETURNING *',
+          [currentTelegramId, address, is_default || false]
+        );
+        
+        return insertRes.rows[0];
+      });
 
-      res.status(200).json({ address: result.rows[0] });
+      apiSuccess(res, result, 201);
     } catch (err) {
-      console.error('Post address error:', err);
-      res.status(500).json({ error: 'Ошибка добавления адреса' });
+      logger.error('Post address error:', err);
+      apiError(res, 'Ошибка добавления адреса', 500);
     }
   } else if (req.method === 'DELETE') {
     try {
       const { id } = req.query;
-      if (!id || Array.isArray(id)) return res.status(400).json({ error: 'id required' });
+      if (!id || Array.isArray(id)) return apiError(res, 'id required', 400);
 
-      // Проверяем принадлежность адреса пользователю
-      const addrRes = await query('SELECT user_telegram_id FROM addresses WHERE id = $1', [id]);
-      if (!addrRes.rows[0]) {
-        return res.status(404).json({ error: 'Address not found' });
-      }
+      // 🔒 ИСПОЛЬЗУЕМ ТРАНЗАКЦИЮ для проверки принадлежности и удаления
+      await transaction(async (client) => {
+        const addrRes = await client.query('SELECT user_telegram_id FROM addresses WHERE id = $1 FOR UPDATE', [id]);
+        if (!addrRes.rows[0]) {
+          throw new Error('Address not found');
+        }
 
-      if (Number(addrRes.rows[0].user_telegram_id) !== currentTelegramId) {
-        return res.status(403).json({ error: "Forbidden: cannot delete another user's address" });
-      }
+        if (Number(addrRes.rows[0].user_telegram_id) !== currentTelegramId) {
+          throw new Error('Forbidden');
+        }
 
-      await query('DELETE FROM addresses WHERE id = $1', [id]);
+        // HIGH-009 FIX: Use soft delete instead of hard DELETE
+        await client.query(
+          'UPDATE addresses SET is_active = false, deleted_at = NOW() WHERE id = $1',
+          [id]
+        );
+      });
 
-      res.status(200).json({ success: true });
+      apiSuccess(res, { success: true, id });
     } catch (err) {
-      console.error('Delete address error:', err);
-      res.status(500).json({ error: 'Ошибка удаления адреса' });
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg === 'Address not found') {
+        return apiError(res, 'Address not found', 404);
+      }
+      if (errMsg === 'Forbidden') {
+        return apiError(res, "Forbidden: cannot delete another user's address", 403);
+      }
+      logger.error('Delete address error:', err);
+      apiError(res, 'Ошибка удаления адреса', 500);
     }
   } else if (req.method === 'PUT') {
     try {
       const { id, is_default } = req.body;
-      if (!id) return res.status(400).json({ error: 'id required' });
+      if (!id) return apiError(res, 'id required', 400);
 
-      // Проверяем принадлежность адреса пользователю
-      const addrRes = await query('SELECT user_telegram_id FROM addresses WHERE id = $1', [id]);
-      if (!addrRes.rows[0]) {
-        return res.status(404).json({ error: 'Address not found' });
-      }
+      // 🔒 ИСПОЛЬЗУЕМ ТРАНЗАКЦИЮ для проверки принадлежности и обновления
+      await transaction(async (client) => {
+        const addrRes = await client.query('SELECT user_telegram_id FROM addresses WHERE id = $1 FOR UPDATE', [id]);
+        if (!addrRes.rows[0]) {
+          throw new Error('Address not found');
+        }
 
-      if (Number(addrRes.rows[0].user_telegram_id) !== currentTelegramId) {
-        return res.status(403).json({ error: "Forbidden: cannot modify another user's address" });
-      }
+        if (Number(addrRes.rows[0].user_telegram_id) !== currentTelegramId) {
+          throw new Error('Forbidden');
+        }
 
-      if (is_default) {
-        await query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [
-          currentTelegramId,
-        ]);
-      }
+        if (is_default) {
+          await client.query('UPDATE addresses SET is_default = false WHERE user_telegram_id = $1', [
+            currentTelegramId,
+          ]);
+        }
 
-      await query('UPDATE addresses SET is_default = $1 WHERE id = $2', [is_default || false, id]);
+        await client.query('UPDATE addresses SET is_default = $1 WHERE id = $2', [is_default || false, id]);
+      });
 
-      res.status(200).json({ success: true });
+      apiSuccess(res, { success: true, id });
     } catch (err) {
-      console.error('Put address error:', err);
-      res.status(500).json({ error: 'Ошибка обновления адреса' });
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg === 'Address not found') {
+        return apiError(res, 'Address not found', 404);
+      }
+      if (errMsg === 'Forbidden') {
+        return apiError(res, "Forbidden: cannot modify another user's address", 403);
+      }
+      logger.error('Put address error:', err);
+      apiError(res, 'Ошибка обновления адреса', 500);
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    apiError(res, 'Method not allowed', 405);
   }
 }
 export default rateLimit(handler, RATE_LIMIT_PRESETS.normal);

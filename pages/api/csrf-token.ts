@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Endpoint для получения CSRF токена
  * GET /api/csrf-token
@@ -32,7 +33,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       header: 'X-CSRF-Token',
     });
   } catch (err) {
-    console.error('CSRF token generation error:', err);
+    logger.error('CSRF token generation error:', err);
     return res.status(500).json({ error: 'Failed to generate CSRF token' });
   }
 }

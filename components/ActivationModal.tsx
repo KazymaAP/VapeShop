@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../lib/frontend/auth';
+import { logger } from '@/lib/logger';
+import { FORM_LIMITS } from '../lib/constants';
 
 interface Category {
   id: string;
@@ -71,12 +73,15 @@ export default function ActivationModal({
         fetchWithAuth('/api/categories'),
         fetchWithAuth('/api/brands'),
       ]);
-      const catsData = await catsRes.json();
-      const brandsData = await brandsRes.json();
+      // Параллельно парсим оба JSON ответа
+      const [catsData, brandsData] = await Promise.all([
+        catsRes.json(),
+        brandsRes.json(),
+      ]);
       setCategories(catsData.categories || []);
       setBrands(brandsData.brands || []);
     } catch (err) {
-      console.error('Error fetching categories/brands:', err);
+      logger.error('Error fetching categories/brands:', err);
     }
   };
 
@@ -108,7 +113,7 @@ export default function ActivationModal({
       setError('Название категории должно быть минимум 2 символа');
       return false;
     }
-    if (catName && catName.length > 100) {
+    if (catName && catName.length > FORM_LIMITS.CATEGORY_NAME_MAX_LENGTH) {
       setError('Название категории не может быть больше 100 символов');
       return false;
     }
@@ -123,7 +128,7 @@ export default function ActivationModal({
       setError('Название бренда должно быть минимум 2 символа');
       return false;
     }
-    if (brandName && brandName.length > 100) {
+    if (brandName && brandName.length > FORM_LIMITS.BRAND_NAME_MAX_LENGTH) {
       setError('Название бренда не может быть больше 100 символов');
       return false;
     }
@@ -145,7 +150,7 @@ export default function ActivationModal({
       return false;
     }
 
-    if (validUrls.length > 10) {
+    if (validUrls.length > FORM_LIMITS.MAX_IMAGE_URLs) {
       setError('Максимум 10 изображений');
       return false;
     }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 interface PickupPoint {
   id: string;
@@ -69,7 +70,7 @@ export default function DeliverySelector({
       const addressesData = await addressesRes.json();
       setSavedAddresses(addressesData.addresses || []);
     } catch (err) {
-      console.error('Error fetching delivery options:', err);
+      logger.error('Error fetching delivery options:', err);
     }
     setLoading(false);
   };

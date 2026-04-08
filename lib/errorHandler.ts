@@ -1,5 +1,6 @@
 import { NextApiResponse } from 'next';
 import { HTTP_STATUS, ERROR_MESSAGES, LOG_LEVELS } from './constants';
+import { logger } from './logger';
 
 export interface ApiErrorResponse {
   error: string;
@@ -52,7 +53,7 @@ function logError(
   if (process.env.NODE_ENV === 'production') {
     // Отправить на сервис логирования (Sentry, LogRocket и т.д.)
   } else {
-    console.error('[API Error]', JSON.stringify(logEntry, null, 2));
+    logger.error('[API Error]', { logEntry });
   }
 }
 
@@ -165,4 +166,42 @@ export function handleApiError(
     statusCode,
     process.env.NODE_ENV === 'production' ? ERROR_MESSAGES.INTERNAL_ERROR : defaultMessage
   );
+}
+
+/**
+ * Обертка для API handlers с глобальной обработкой ошибок
+ * Гарантирует что ВСЕ необработанные ошибки будут логированы и возвращен корректный ответ
+ * 
+ * Использование:
+ * export default withErrorHandler(async (req, res) => {
+ *   // handler code
+ * });
+ */
+import { NextApiRequest } from 'next';
+
+export function withErrorHandler(
+  handler: (req: NextApiRequest, res: NextApiResponse<ApiErrorResponse | unknown>) => Promise<void>
+) {
+  return async (req: NextApiRequest, res: NextApiResponse<ApiErrorResponse | unknown>) => {
+    try {
+      await handler(req, res);
+    } catch (error) {
+      if (!res.headersSent) {
+        handleApiError(
+          error,
+          res as NextApiResponse<ApiErrorResponse>,
+          ERROR_MESSAGES.INTERNAL_ERROR,
+          `${req.method} ${req.url}`
+        );
+      } else {
+        // Ответ уже был отправлен, только логируем
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logError(LOG_LEVELS.ERROR, 'Error after response sent', error, {
+          method: req.method,
+          url: req.url,
+          errorMessage,
+        });
+      }
+    }
+  };
 }

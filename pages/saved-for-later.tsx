@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useTelegramWebApp } from '../lib/telegram';
+import { EmptyState } from '../components/EmptyState';
 
 interface SavedItem {
   id: string;
@@ -67,14 +68,25 @@ export default function SavedForLaterPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bgDark flex items-center justify-center">
+        <p className="text-textSecondary">Загрузка...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bgDark p-4">
       <h1 className="text-2xl font-bold mb-6 text-neon">Отложенное</h1>
 
       {items.length === 0 ? (
-        <p className="text-center text-textSecondary py-8">Нет отложенных товаров</p>
+        <EmptyState
+          type="no-products"
+          title="Отложенных товаров нет"
+          description="Нажмите на иконку сердца на товаре, чтобы добавить его в отложенное"
+          action={{ label: 'Вернуться в каталог', href: '/' }}
+        />
       ) : (
         <div className="space-y-4">
           {items.map((item) => (

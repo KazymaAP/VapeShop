@@ -2,10 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 
   try {
@@ -14,7 +15,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const telegramId = await getTelegramIdFromRequest(req);
 
     if (!telegramId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return apiError(res, 'Unauthorized', 401);
     }
 
     const ordersRes = await query(
@@ -39,9 +40,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       items: order.items.filter((i: { product_id: string | null }) => i.product_id !== null),
     }));
 
-    res.status(200).json({ orders });
+    return apiSuccess(res, { orders }, 200);
   } catch {
-    res.status(500).json({ error: 'Ошибка загрузки заказов' });
+    return apiError(res, 'Ошибка загрузки заказов', 500);
   }
 }
 

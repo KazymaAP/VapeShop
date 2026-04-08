@@ -2,7 +2,7 @@
  * Компоненты для PHASE 4 функций
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 // ===== DELIVERY SELECTOR =====
 interface DeliverySelectorProps {

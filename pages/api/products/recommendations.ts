@@ -1,8 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return apiError(res, 'Method not allowed', 405);
+  }
+
   const userId = getTelegramId(req);
 
   try {
@@ -17,7 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     );
 
     if (userOrdersResult.rows.length === 0) {
-      return res.status(200).json({ data: [] });
+      return apiSuccess(res, [], 200);
     }
 
     const productIds = userOrdersResult.rows.map((r) => r.product_id);
@@ -39,10 +45,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       [productIds]
     );
 
-    res.status(200).json({ data: recommendedResult.rows });
+    return apiSuccess(res, recommendedResult.rows, 200);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch recommendations' });
+    logger.error(err instanceof Error ? err.message : 'Unknown error');
+    return apiError(res, 'Failed to fetch recommendations', 500);
   }
 }
 

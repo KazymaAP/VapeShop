@@ -5,9 +5,9 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
-import { ApiResponse } from '@/types/api';
+import type { ApiResponse, ApiError } from '@/types/api';
 
 interface RatingPayload {
   productId: string;
@@ -15,33 +15,35 @@ interface RatingPayload {
   reviewText?: string;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
+type ApiResponseType = ApiResponse | ApiError;
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponseType>) {
   if (req.method === 'POST') {
     return handlePost(req, res);
   } else if (req.method === 'GET') {
     return handleGet(req, res);
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Method not allowed', timestamp: Date.now() });
   }
 }
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse) {
+async function handlePost(req: NextApiRequest, res: NextApiResponse<ApiResponseType>) {
   try {
     // Требуем авторизацию
     const telegram_id = await getTelegramIdFromRequest(req);
     if (!telegram_id) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ success: false, error: 'Unauthorized', timestamp: Date.now() });
     }
 
     const { productId, rating, reviewText }: RatingPayload = req.body;
 
     // Валидация
     if (!productId || !rating) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ success: false, error: 'Missing required fields', timestamp: Date.now() });
     }
 
     if (rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      return res.status(400).json({ success: false, error: 'Rating must be between 1 and 5', timestamp: Date.now() });
     }
 
     // Проверяем, что пользователь купил этот товар (опционально)
@@ -54,7 +56,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     );
 
     if (orderCheck.rows.length === 0) {
-      return res.status(403).json({ error: 'You can only rate products you purchased' });
+      return res.status(403).json({ success: false, error: 'You can only rate products you purchased', timestamp: Date.now() });
     }
 
     // Сохраняем рейтинг (upsert)
@@ -79,36 +81,41 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     if (avgRating.rows.length > 0) {
       const { avg_rating, count } = avgRating.rows[0];
-      await query(`UPDATE products SET rating = $1, rating_count = $2 WHERE id = $3`, [
-        avg_rating || 0,
-        count || 0,
-        productId,
-      ]);
+      
+      await transaction(async (client) => {
+        await client.query(`UPDATE products SET rating = $1, rating_count = $2 WHERE id = $3`, [
+          avg_rating || 0,
+          count || 0,
+          productId,
+        ]);
+
+        // Логируем действие
+        await client.query(
+          `INSERT INTO audit_log (user_telegram_id, action, details)
+           VALUES ($1, 'rating_product', $2)`,
+          [telegram_id, JSON.stringify({ productId, rating })]
+        );
+      });
     }
 
-    // Логируем действие
-    await query(
-      `INSERT INTO audit_log (user_telegram_id, action, details)
-       VALUES ($1, 'rating_product', $2)`,
-      [telegram_id, JSON.stringify({ productId, rating })]
-    );
-
     return res.status(201).json({
+      success: true,
       message: 'Rating saved successfully',
       data: result.rows[0],
+      timestamp: Date.now(),
     });
-  } catch (err) {
-    console.error('POST /api/product-ratings error:', err);
-    res.status(500).json({ error: 'Failed to save rating' });
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : 'Failed to save rating';
+    return res.status(500).json({ success: false, error, timestamp: Date.now() });
   }
 }
 
-async function handleGet(req: NextApiRequest, res: NextApiResponse) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiResponseType>) {
   try {
     const { productId, limit = 10, offset = 0 } = req.query;
 
     if (!productId) {
-      return res.status(400).json({ error: 'productId is required' });
+      return res.status(400).json({ success: false, error: 'productId is required', timestamp: Date.now() });
     }
 
     // Получаем рейтинги товара с пользовательскими данными
@@ -127,29 +134,25 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       [productId, limit, offset]
     );
 
-    // Получаем агрегированные данные
-    const stats = await query(
-      `SELECT 
-        AVG(rating)::DECIMAL(3,2) as avg_rating,
-        COUNT(*) as total_ratings,
-        SUM(CASE WHEN rating >= 4 THEN 1 ELSE 0 END) as positive_count,
-        SUM(CASE WHEN rating <= 2 THEN 1 ELSE 0 END) as negative_count
-       FROM rating_history
-       WHERE product_id = $1`,
-      [productId]
-    );
+    // Получаем агрегированные данные (для будущих улучшений)
+    // const _stats = await query(
+    //   `SELECT 
+    //     AVG(rating)::DECIMAL(3,2) as avg_rating,
+    //     COUNT(*) as total_ratings,
+    //     SUM(CASE WHEN rating >= 4 THEN 1 ELSE 0 END) as positive_count,
+    //     SUM(CASE WHEN rating <= 2 THEN 1 ELSE 0 END) as negative_count
+    //    FROM rating_history
+    //    WHERE product_id = $1`,
+    //   [productId]
+    // );
 
     return res.status(200).json({
+      success: true,
       data: result.rows,
-      stats: stats.rows[0],
-      pagination: {
-        limit: Number(limit),
-        offset: Number(offset),
-        total: stats.rows[0]?.total_ratings || 0,
-      },
+      timestamp: Date.now(),
     });
-  } catch (err) {
-    console.error('GET /api/product-ratings error:', err);
-    res.status(500).json({ error: 'Failed to fetch ratings' });
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : 'Failed to fetch ratings';
+    return res.status(500).json({ success: false, error, timestamp: Date.now() });
   }
 }

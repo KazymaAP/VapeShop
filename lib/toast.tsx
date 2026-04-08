@@ -4,6 +4,7 @@
  */
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { TIMINGS } from './constants/timings';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -30,7 +31,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addToast = useCallback(
-    (message: string, type: ToastType = 'info', duration = 3000) => {
+    (message: string, type: ToastType = 'info', duration = TIMINGS.TOAST_DURATION) => {
       const id = `toast-${Date.now()}-${Math.random()}`;
       setToasts((prev) => [...prev, { id, message, type, duration }]);
 

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { buildUpdateSet } from '@/lib/sqlBuilder';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -65,13 +66,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (max_uses !== undefined) updates.max_uses = max_uses;
 
       const [setClause, values, nextIdx] = buildUpdateSet('promocodes', updates);
-      values.push(code.toUpperCase());
+      const queryValues: (string | number | boolean | string[] | number[] | null)[] = [...values, code.toUpperCase()];
 
-      await query(`UPDATE promocodes SET ${setClause} WHERE code = $${nextIdx}`, values);
+      await query(`UPDATE promocodes SET ${setClause} WHERE code = $${nextIdx}`, queryValues);
       res.status(200).json({ success: true });
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
-      console.error('Promocodes update error:', error);
+      logger.error('Promocodes update error:', error);
       res.status(400).json({ error: error.message || 'Ошибка обновления промокода' });
     }
   } else if (req.method === 'DELETE') {

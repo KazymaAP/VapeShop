@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
 
 interface ProductImageProps {
   src: string | null | undefined;
   alt: string;
   className?: string;
   priority?: boolean;
+  width?: number;
+  height?: number;
 }
 
 export const ProductImage: React.FC<ProductImageProps> = ({
@@ -12,6 +15,8 @@ export const ProductImage: React.FC<ProductImageProps> = ({
   alt,
   className = '',
   priority = false,
+  width = 400,
+  height = 400,
 }) => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -24,12 +29,14 @@ export const ProductImage: React.FC<ProductImageProps> = ({
 
   return (
     <div className={`relative overflow-hidden bg-cardBg ${className}`}>
-      <img
+      <Image
         src={imageSrc}
         alt={alt}
-        loading={priority ? 'eager' : 'lazy'}
+        width={width}
+        height={height}
+        priority={priority}
         onError={() => setError(true)}
-        onLoad={() => setLoading(false)}
+        onLoadingComplete={() => setLoading(false)}
         className={`w-full h-full object-cover transition-opacity ${loading ? 'opacity-0' : 'opacity-100'}`}
       />
       {loading && (

@@ -13,19 +13,20 @@ export default requireAuth(
 
         if (phone) {
           whereClause += ` AND users.phone = $${paramCount}`;
-          params.push(phone);
+          params.push(typeof phone === 'string' ? phone : phone[0]);
           paramCount++;
         }
 
         if (telegram_id) {
           whereClause += ` AND users.telegram_id = $${paramCount}`;
-          params.push(telegram_id);
+          const telegramIdStr = typeof telegram_id === 'string' ? telegram_id : telegram_id[0];
+          params.push(isNaN(Number(telegramIdStr)) ? telegramIdStr : Number(telegramIdStr));
           paramCount++;
         }
 
         if (order_id) {
           whereClause += ` AND orders.id = $${paramCount}`;
-          params.push(order_id);
+          params.push(typeof order_id === 'string' ? order_id : order_id[0]);
           paramCount++;
         }
 
@@ -38,10 +39,10 @@ export default requireAuth(
           params
         );
 
-        res.status(200).json({ data: result.rows });
-      } catch (err) {
-        console.error('Error searching customer:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(200).json({ success: true, data: result.rows, timestamp: Date.now() });
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err.message : 'Internal Server Error';
+        res.status(500).json({ success: false, error, timestamp: Date.now() });
       }
     } else {
       res.status(405).json({ error: 'Method not allowed' });

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getTelegramIdFromRequest, requireAuth } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -12,12 +13,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         'INSERT INTO analytics_events (user_id, event_name, event_properties) VALUES ($1, $2, $3)',
         [userId || null, eventName, JSON.stringify(eventProperties || {})]
       );
-      res.status(200).json({ success: true });
+      apiSuccess(res, { success: true });
     } catch {
-      res.status(500).json({ error: 'Failed to track event' });
+      apiError(res, 'Failed to track event', 500);
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    apiError(res, 'Method not allowed', 405);
   }
 }
 

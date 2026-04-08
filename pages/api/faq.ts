@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -12,13 +14,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         []
       );
 
-      res.status(200).json(result.rows);
+      apiSuccess(res, result.rows);
     } catch (err) {
-      console.error('FAQ GET error:', err);
-      res.status(500).json({ error: 'Ошибка при получении FAQ' });
+      logger.error('FAQ GET error:', err);
+      apiError(res, 'Ошибка при получении FAQ', 500);
     }
   } else {
-    res.status(405).json({ error: 'Метод не разрешён' });
+    apiError(res, 'Метод не разрешён', 405);
   }
 }
 

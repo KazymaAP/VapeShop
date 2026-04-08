@@ -1,9 +1,9 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import AdminSidebar from './AdminSidebar';
 
 interface AdminLayoutProps {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function AdminLayout({ title, children }: AdminLayoutProps) {

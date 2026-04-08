@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
     const result = await query(
       `SELECT u.telegram_id as id, u.first_name, u.last_name,
@@ -20,7 +21,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({ data: result.rows });
   } catch (err) {
-    console.error(err);
+    logger.error(err instanceof Error ? err.message : 'Unknown error');
     res.status(500).json({ error: 'Failed to fetch leaderboard' });
   }
 }

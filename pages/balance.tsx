@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../lib/telegram';
+import { TextSkeleton } from '../components/SkeletonLoader';
 
 interface BalanceEntry {
   id: string;
@@ -39,7 +40,7 @@ export default function BalancePage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) return <TextSkeleton lines={6} />;
   if (!balanceData) return <div className="text-center py-8 text-textSecondary">Ошибка</div>;
 
   const getTypeColor = (type: string) => {

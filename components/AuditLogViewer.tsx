@@ -6,6 +6,7 @@
 import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import clsx from 'clsx';
+import { TIMINGS } from '@/lib/constants/timings';
 
 interface AuditLog {
   id: number;
@@ -58,13 +59,13 @@ export function AuditLogViewer() {
     `/api/admin/audit-logs?${queryParams}`,
     async (url) => {
       const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch audit logs');
+      if (!res.ok) throw new Error(`Failed to fetch audit logs: HTTP ${res.status}`);
       return res.json();
     },
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      dedupingInterval: 60000, // 1 минута
+      dedupingInterval: TIMINGS.DEDUP_INTERVAL, // 1 minute
     }
   );
 

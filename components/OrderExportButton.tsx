@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Компонент для экспорта заказов в Excel
  * Используется на странице /admin/orders
@@ -59,7 +60,7 @@ export function OrderExportButton({ onExporting }: ExportFiltersProps) {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       setError(`Ошибка экспорта: ${message}`);
-      console.error('Export error:', err);
+      logger.error('Export error:', err);
     } finally {
       setIsExporting(false);
       onExporting?.(false);

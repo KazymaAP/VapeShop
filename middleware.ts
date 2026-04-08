@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { logger } from './lib/logger';
 
 /**
  * Middleware for Next.js Pages Router
@@ -17,26 +18,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get Telegram ID from headers (set by frontend auth)
-  const telegramId = request.headers.get('x-telegram-id');
-  const adminIds = process.env.ADMIN_TELEGRAM_IDS?.split(',') || [];
-
-  // For development: allow X-Telegram-Id header
-  if (process.env.NODE_ENV !== 'production' && telegramId && adminIds.includes(telegramId)) {
-    return NextResponse.next();
-  }
-
-  // For production: Telegram WebApp auth is verified on the frontend
-  // This middleware provides an additional layer but is not the sole protection
-  // Real protection happens in getServerSideProps or API route handlers
-
-  // Log suspicious access attempts
-  console.warn(`[ADMIN MIDDLEWARE] Potential unauthorized access to ${pathname}`, {
-    telegramId: telegramId || 'none',
+  // ВАЖНО: Middleware Pages Router не может проверить Telegram WebApp auth
+  // это требует getServerSideProps который имеет доступ к cookies
+  // 
+  // Реальная защита должна быть в getServerSideProps каждой admin страницы
+  // которая проверяет Telegram initData и роль пользователя
+  
+  // Log попытки доступа к admin панели для мониторинга
+  logger.warn(`[SECURITY] Admin route access attempt to ${pathname}`, {
     timestamp: new Date().toISOString(),
   });
 
-  // Allow the page to load - real auth check happens in getServerSideProps
+  // Позволяем middleware пройти - реальная проверка в getServerSideProps
   return NextResponse.next();
 }
 

@@ -1,5 +1,6 @@
 import { requireAuth, getTelegramId } from '@/lib/auth';
 import { query } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req, res) => {
@@ -18,7 +19,7 @@ export default requireAuth(
         );
         res.status(200).json({ data: result.rows });
       } catch (_err) {
-        console.error('Error fetching deliveries:', _err);
+        logger.error('Error fetching deliveries:', _err);
         res.status(500).json({ error: 'Internal Server Error' });
       }
     } else {

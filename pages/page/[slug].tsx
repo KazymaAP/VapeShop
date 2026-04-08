@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { sanitizeHTML } from '../../lib/sanitize';
 
 interface PageData {
   slug: string;
@@ -102,7 +103,7 @@ export default function StaticPage({ slug }: { slug: string }) {
         <div className="bg-cardBg border border-border rounded-2xl p-6">
           <div
             className="prose prose-invert max-w-none text-textSecondary text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: page.content.replace(/\n/g, '<br />') }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(page.content.replace(/\n/g, '<br />')) }}
           />
           <p className="text-textSecondary text-xs mt-6 pt-4 border-t border-border">
             Обновлено: {new Date(page.updated_at).toLocaleDateString('ru-RU')}

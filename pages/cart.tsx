@@ -9,9 +9,11 @@ import {
   hapticSuccess,
   hapticError,
 } from '../lib/telegram';
+import type { ProductID } from '../types';
 
+// ⚠️ ИСПРАВЛЕНО: Добавлены строгие типы для product_id
 interface CartItem {
-  product_id: string;
+  product_id: ProductID;
   name: string;
   price: number;
   quantity: number;
@@ -52,6 +54,7 @@ export default function CartPage() {
   const [loadingDelivery, setLoadingDelivery] = useState(false);
   const [saveAddressChecked, setSaveAddressChecked] = useState(false);
   const [deliveryError, setDeliveryError] = useState('');
+  const [_cartError, _setCartError] = useState('');
   const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
@@ -88,13 +91,23 @@ export default function CartPage() {
 
   const fetchCart = async () => {
     if (!user) return;
-    const res = await fetch(`/api/cart?telegram_id=${user.id}`);
-    if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
+    try {
+      const res = await fetch(`/api/cart?telegram_id=${user.id}`);
+      if (!res.ok) {
+        // ⚠️ ИСПРАВЛЕНО: Добавлен proper error handling для cart fetch
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Cart API error:', errorData.error || `API Error: ${res.status}`);
+        setItems([]);
+        return;
+      }
+      const data = await res.json();
+      setItems(data.items || []);
+    } catch (err) {
+      // ⚠️ ИСПРАВЛЕНО: Network error handling
+      console.error('Cart fetch error:', err);
+    } finally {
+      setLoading(false);
     }
-    const data = await res.json();
-    setItems(data.items || []);
-    setLoading(false);
   };
 
   const updateQuantity = async (productId: string, quantity: number) => {
@@ -102,19 +115,39 @@ export default function CartPage() {
       await removeItem(productId);
       return;
     }
-    await fetch('/api/cart', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: user?.id, product_id: productId, quantity }),
-    });
-    fetchCart();
+    try {
+      // ⚠️ ИСПРАВЛЕНО: Добавлен error handling в updateQuantity
+      const res =await fetch('/api/cart', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_id: user?.id, product_id: productId, quantity }),
+      });
+      if (!res.ok) {
+        _setCartError('Failed to update cart');
+        return;
+      }
+      await fetchCart();
+    } catch (err) {
+      _setCartError('Network error while updating cart');
+      console.error('Update quantity error:', err);
+    }
   };
 
   const removeItem = async (productId: string) => {
-    await fetch(`/api/cart?telegram_id=${user?.id}&product_id=${productId}`, {
-      method: 'DELETE',
-    });
-    fetchCart();
+    try {
+      // ⚠️ ИСПРАВЛЕНО: Добавлен error handling в removeItem
+      const res = await fetch(`/api/cart?telegram_id=${user?.id}&product_id=${productId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        _setCartError('Failed to remove item');
+        return;
+      }
+      await fetchCart();
+    } catch (err) {
+      _setCartError('Network error while removing item');
+      console.error('Remove item error:', err);
+    }
   };
 
   const applyPromo = async () => {

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для дашборда админа с графиками выручки
  * GET /api/admin/dashboard-stats?period=day|week|month
@@ -110,7 +111,7 @@ export default requireAuth(
         timestamp: Date.now(),
       });
     } catch (err) {
-      console.error('Dashboard stats error:', err);
+      logger.error('Dashboard stats error:', err);
       res
         .status(500)
         .json({ success: false, error: 'Failed to fetch dashboard stats', timestamp: Date.now() });

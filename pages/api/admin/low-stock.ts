@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для уведомлений о низком остатке товара
  * GET /api/admin/low-stock - получить товары с низким остатком
@@ -5,7 +6,7 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
 import { ApiResponse, ApiError } from '@/types/api';
 import { getBot } from '@/lib/notifications';
@@ -50,7 +51,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       threshold,
     });
   } catch (err) {
-    console.error('GET /api/admin/low-stock error:', err);
+    logger.error('GET /api/admin/low-stock error:', err);
     res.status(500).json({ error: 'Failed to fetch low stock items' });
   }
 }
@@ -88,32 +89,34 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
         try {
           await bot.api.sendMessage(admin.telegram_id, message);
         } catch (err) {
-          console.error(`Failed to send notification to ${admin.telegram_id}:`, err);
+          logger.error(`Failed to send notification to ${admin.telegram_id}:`, err);
         }
       }
 
       // Обновляем флаг stock_alert_sent
-      await query(`UPDATE products SET stock_alert_sent = true WHERE id = ANY($1::uuid[])`, [
-        productIds,
-      ]);
+      await transaction(async (client) => {
+        await client.query(`UPDATE products SET stock_alert_sent = true WHERE id = ANY($1::uuid[])`, [
+          productIds,
+        ]);
 
-      // Логируем
-      await query(
-        `INSERT INTO audit_log (user_telegram_id, action, details)
-         VALUES ($1, 'notify_low_stock', $2)`,
-        [telegram_id, JSON.stringify({ count: productIds.length, adminCount: admins.rows.length })]
-      );
+        // Логируем
+        await client.query(
+          `INSERT INTO audit_log (user_telegram_id, action, details)
+           VALUES ($1, 'notify_low_stock', $2)`,
+          [telegram_id, JSON.stringify({ count: productIds.length, adminCount: admins.rows.length })]
+        );
+      });
 
       return res.status(200).json({
         message: `Notifications sent to ${admins.rows.length} admins`,
         productsNotified: productIds.length,
       });
     } catch (err) {
-      console.error('Bot notification error:', err);
+      logger.error('Bot notification error:', err);
       return res.status(500).json({ error: 'Failed to send notifications' });
     }
   } catch (err) {
-    console.error('POST /api/admin/low-stock error:', err);
+    logger.error('POST /api/admin/low-stock error:', err);
     res.status(500).json({ error: 'Failed to process low stock notification' });
   }
 }

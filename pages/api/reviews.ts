@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Получаем текущего пользователя для проверки принадлежности
@@ -31,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json({ reviews: result.rows });
     } catch (err) {
-      console.error('Get reviews error:', err);
+      logger.error('Get reviews error:', err);
       res.status(500).json({ error: 'Ошибка загрузки отзывов' });
     }
   } else if (req.method === 'POST') {
@@ -92,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json({ review: result.rows[0] });
     } catch (err) {
-      console.error('Create review error:', err);
+      logger.error('Create review error:', err);
       res.status(500).json({ error: 'Ошибка создания отзыва' });
     }
   } else if (req.method === 'DELETE') {
@@ -125,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json({ success: true });
     } catch (err) {
-      console.error('Delete review error:', err);
+      logger.error('Delete review error:', err);
       res.status(500).json({ error: 'Ошибка удаления отзыва' });
     }
   } else {

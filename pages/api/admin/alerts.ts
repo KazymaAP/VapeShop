@@ -1,12 +1,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+import { TIMERS, CRON_LIMITS } from '@/lib/constants';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const alerts = [];
 
+      // MEDIUM-004 FIX: Use TIMERS and CRON_LIMITS constants for pending orders alert
       // Заказы, ждущие подтверждения более 1 часа
       const pendingResult = await query(
         `SELECT COUNT(*) as count FROM orders 
@@ -21,10 +24,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
       }
 
+      // MEDIUM-004 FIX: Use CRON_LIMITS constants for low stock alert
       // Товары с низким складом
       const lowStockResult = await query(
-        `SELECT id, name, stock FROM products WHERE stock < 5 LIMIT 5`,
-        []
+        `SELECT id, name, stock FROM products WHERE stock < $1 LIMIT $2`,
+        [CRON_LIMITS.LOW_STOCK_ALERT_LIMIT, CRON_LIMITS.LOW_STOCK_FETCH_LIMIT]
       );
       if (lowStockResult.rows.length > 0) {
         alerts.push({
@@ -37,8 +41,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json({ data: alerts });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Failed to fetch alerts' });
+      // MEDIUM-008 FIX: Include error context instead of generic message
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      logger.error(`Failed to fetch admin alerts (GET /api/admin/alerts): ${errorMsg}`, {
+        error: errorMsg,
+        endpoint: '/api/admin/alerts',
+        method: 'GET',
+      });
+      res.status(500).json({ 
+        error: 'Failed to fetch alerts',
+        details: 'An error occurred while fetching admin alerts. Please try again later.',
+      });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });

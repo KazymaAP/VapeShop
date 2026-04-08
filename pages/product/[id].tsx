@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTelegramWebApp, hapticImpact, hapticSuccess } from '../../lib/telegram';
+import { logger } from '../../lib/logger';
 
 const DEFAULT_PRODUCT_IMAGE = '/no-image.png';
 
@@ -55,7 +56,7 @@ export default function ProductPage() {
     const fetchProduct = async () => {
       const res = await fetch(`/api/products/${id}`);
       if (!res.ok) {
-        throw new Error(`API Error: ${res.status}`);
+        throw new Error(`Failed to load product (HTTP ${res.status}): GET /api/products/${id}`);
       }
       const data = await res.json();
       setProduct(data);
@@ -73,7 +74,13 @@ export default function ProductPage() {
         setIsInCompare(ids.includes(id));
       }
     } catch (err) {
-      console.error('Ошибка при проверке списка сравнения:', err);
+      // MEDIUM-008 FIX: Use logger with context instead of console.error
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      logger.error(`Failed to check compare list for product ${id}`, {
+        error: errorMsg,
+        productId: id,
+        context: 'localStorage parse error',
+      });
     }
   }, [id]);
 

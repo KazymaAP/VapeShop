@@ -25,7 +25,17 @@ cp .env.local.example .env.local
 # Отредактируй .env.local с твоими ключами
 
 # 4. Запусти миграции БД
-# (на production используй Vercel PostgreSQL или Neon)
+
+```bash
+# Development (локальная PostgreSQL)
+npm run migrate
+
+# Production (Neon PostgreSQL)
+npm run migrate:prod -- --connection-string=$NEON_DATABASE_URL
+```
+
+> **⚠️ ВАЖНО**: Миграции должны быть запущены ДО первого запуска приложения!
+> Все миграции находятся в папке `db/migrations/` и выполняются в порядке нумерации.
 
 # 5. Запусти dev сервер
 npm run dev
@@ -148,16 +158,32 @@ vape-shop/
 
 ## 🧪 Тестирование
 
+### Unit Тесты
+
 ```bash
-# Unit тесты
+# Запустить все тесты
 npm run test
 
-# E2E тесты
-npm run test:e2e
+# Запустить тесты в режиме watch (автоперезагрузка)
+npm run test:watch
 
-# Lint и type check
+# Сгенерировать отчет покрытия
+npm run test:coverage
+```
+
+**Покрытие**: Unit тесты для критичных компонентов:
+- ✅ `__tests__/lib/auth.test.ts` - Аутентификация и авторизация
+- ✅ `__tests__/api/cart.test.ts` - API корзины (GET, POST, PUT, DELETE)
+- ✅ `__tests__/lib/payments.test.ts` - Обработка платежей и рефералов
+
+### Линтинг и Type Check
+
+```bash
+# ESLint проверка
 npm run lint
-npm run type-check
+
+# TypeScript type check (добавить, если нужен)
+npm run type-check  # Если настроен в scripts
 ```
 
 ## 📚 Дополнительные документы
@@ -166,6 +192,7 @@ npm run type-check
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Детальная архитектура
 - [API_REFERENCE.md](./docs/API_REFERENCE.md) - Все API endpoints
 - [SCHEMA.md](./docs/SCHEMA.md) - Схема базы данных
+- [docs/act1/FINAL_REPORT.md](./docs/act1/FINAL_REPORT.md) - Итоговый отчет улучшений
 
 ## 🤝 Контрибьютинг
 

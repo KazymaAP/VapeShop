@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../../lib/db';
+import { query, transaction } from '../../../../lib/db';
 import { requireAuth, getTelegramId } from '../../../../lib/auth';
+import { logger } from '@/lib/logger';
 
 interface ErrorResponse {
   error?: string;
@@ -33,21 +34,23 @@ async function handleDelete(
       return res.status(400).json({ error: 'Нельзя удалить активированный товар' });
     }
 
-    // Удаляем товар
-    await query('DELETE FROM price_import WHERE id = $1', [id]);
+    // Удаляем товар в транзакции
+    await transaction(async (client) => {
+      await client.query('DELETE FROM price_import WHERE id = $1', [id]);
 
-    // Логируем действие
-    await query(
-      `INSERT INTO audit_log (user_id, action, target_type, target_id, details, status)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [telegramId, 'delete_price_import', JSON.stringify({ price_import_id: id })]
-    ).catch((err) => {
-      console.error('Logging error:', err);
+      // Логируем действие
+      await client.query(
+        `INSERT INTO audit_log (user_id, action, target_type, target_id, details, status)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [telegramId, 'delete_price_import', JSON.stringify({ price_import_id: id })]
+      ).catch((err) => {
+        logger.error('Logging error:', err);
+      });
     });
 
     res.status(200).json({ message: 'Товар удалён' });
   } catch (err) {
-    console.error('Delete price import error:', err);
+    logger.error('Delete price import error:', err);
     res.status(500).json({ error: 'Ошибка удаления товара' });
   }
 }

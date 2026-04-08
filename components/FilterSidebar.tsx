@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import clsx from 'clsx';
 import useSWR from 'swr';
+import { LIMITS } from '@/lib/constants/timings';
 
 interface FilterSidebarProps {
   onFilterChange?: (filters: FilterState) => void;
@@ -52,7 +53,7 @@ export function FilterSidebar({ onFilterChange, className }: FilterSidebarProps)
     '/api/products/filters',
     async (url) => {
       const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to load filters');
+      if (!res.ok) throw new Error(`Failed to load filters: HTTP ${res.status}`);
       return res.json();
     },
     { revalidateOnFocus: false }
@@ -103,7 +104,7 @@ export function FilterSidebar({ onFilterChange, className }: FilterSidebarProps)
   const data = filtersData?.data;
   const categories = data?.categories || [];
   const brands = data?.brands || [];
-  const priceRange = data?.priceRange || { min: 0, max: 10000 };
+  const priceRange = data?.priceRange || { min: LIMITS.MIN_PRICE, max: LIMITS.MAX_PRICE };
 
   return (
     <>

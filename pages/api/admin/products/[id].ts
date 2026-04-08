@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для инлайн-редактирования товаров в таблице админа
  * PATCH /api/admin/products/{id} - обновить одно поле товара
@@ -103,7 +104,7 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse<ApiR
       timestamp: Date.now(),
     });
   } catch (err) {
-    console.error('Inline edit error:', err);
+    logger.error('Inline edit error:', err);
     res
       .status(500)
       .json({ success: false, error: 'Failed to update product', timestamp: Date.now() });

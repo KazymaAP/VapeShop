@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const userId = await getTelegramIdFromRequest(req);
@@ -27,7 +28,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
     } catch (err) {
-      console.error('Balance fetch error:', err);
+      logger.error('Balance fetch error:', err);
       res.status(500).json({ error: 'Failed to fetch balance' });
     }
   } else if (req.method === 'POST') {
@@ -46,7 +47,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json({ data: { balance: newBalance.rows[0].balance } });
     } catch (err) {
-      console.error('Balance update error:', err);
+      logger.error('Balance update error:', err);
       res.status(500).json({ error: 'Failed to update balance' });
     }
   } else {

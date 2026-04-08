@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -13,7 +14,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json(result.rows);
     } catch (err) {
-      console.error('Banners list error:', err);
+      logger.error('Banners list error:', err);
       res.status(500).json({ error: 'Ошибка при получении баннеров' });
     }
   } else if (req.method === 'POST') {
@@ -24,23 +25,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(400).json({ error: 'URL изображения обязателен' });
       }
 
-      const result = await query(
-        `INSERT INTO banners (image_url, link, title, description, order_index, is_active)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id`,
-        [
-          image_url,
-          link || null,
-          title || null,
-          description || null,
-          order_index || 0,
-          is_active !== false,
-        ]
-      );
+      const result = await transaction(async (client) => {
+        return await client.query(
+          `INSERT INTO banners (image_url, link, title, description, order_index, is_active)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING id`,
+          [
+            image_url,
+            link || null,
+            title || null,
+            description || null,
+            order_index || 0,
+            is_active !== false,
+          ]
+        );
+      });
 
       res.status(201).json({ success: true, id: result.rows[0].id, message: 'Баннер создан' });
     } catch (err) {
-      console.error('Banner create error:', err);
+      logger.error('Banner create error:', err);
       res.status(500).json({ error: 'Ошибка при создании баннера' });
     }
   } else {

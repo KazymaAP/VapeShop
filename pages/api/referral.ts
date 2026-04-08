@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для реферальной системы
  * GET /api/referral/code - получить или создать реферальный код
@@ -7,13 +8,17 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const telegramId =
-    (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
+  let telegramId: number | null =
+    ((req as unknown as Record<string, unknown>).telegramId as number | null) || null;
+  
+  if (!telegramId) {
+    telegramId = await getTelegramIdFromRequest(req);
+  }
 
   if (!telegramId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -55,7 +60,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           timestamp: Date.now(),
         });
       } catch (err) {
-        console.error(err);
+        logger.error(err instanceof Error ? err.message : 'Unknown error');
         res.status(500).json({ success: false, error: 'Failed to get/create referral code' });
       }
     } else if (action === 'bonus') {
@@ -81,7 +86,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           timestamp: Date.now(),
         });
       } catch (err) {
-        console.error(err);
+        logger.error(err instanceof Error ? err.message : 'Unknown error');
         res.status(500).json({ success: false, error: 'Failed to get bonus info' });
       }
     } else if (action === 'history') {
@@ -102,7 +107,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           timestamp: Date.now(),
         });
       } catch (err) {
-        console.error(err);
+        logger.error(err instanceof Error ? err.message : 'Unknown error');
         res.status(500).json({ success: false, error: 'Failed to get referral history' });
       }
     } else {
@@ -167,34 +172,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           return res.status(400).json({ success: false, error: 'You already used this code' });
         }
 
-        // Начисляем бонусы
-        await query('BEGIN');
+        // Начисляем бонусы в транзакции
         try {
-          // Создаём запись об использовании кода
-          const useResult = await query(
-            `INSERT INTO referral_uses (referral_code_id, referrer_telegram_id, referred_user_telegram_id, bonus_amount)
-             VALUES ($1, $2, $3, $4)
-             RETURNING id, bonus_amount`,
-            [refCode.id, refCode.user_telegram_id, telegramId, refCode.bonus_amount]
-          );
+          await transaction(async (client) => {
+            // Создаём запись об использовании кода
+            const useRes = await client.query(
+              `INSERT INTO referral_uses (referral_code_id, referrer_telegram_id, referred_user_telegram_id, bonus_amount)
+               VALUES ($1, $2, $3, $4)
+               RETURNING id`,
+              [refCode.id, refCode.user_telegram_id, telegramId, refCode.bonus_amount]
+            );
 
-          // Начисляем бонус рефереру
-          await query(`SELECT add_user_bonus($1, $2, $3, $4)`, [
-            refCode.user_telegram_id,
-            refCode.bonus_amount,
-            'Реферальный бонус',
-            useResult.rows[0].id,
-          ]);
+            // Обновляем счётчик бонусов
+            await client.query(`SELECT add_user_bonus($1, $2, $3, $4)`, [
+              refCode.user_telegram_id,
+              refCode.bonus_amount,
+              'Реферальный бонус',
+              useRes.rows[0].id,
+            ]);
 
-          // Обновляем счётчик использований кода
-          await query(`UPDATE referral_codes SET used_count = used_count + 1 WHERE id = $1`, [
-            refCode.id,
-          ]);
-
-          await query('COMMIT');
-
-          // Отправляем уведомление рефереру через бота
-          // TODO: отправить сообщение в Telegram о начислении бонуса
+            // Обновляем счётчик использований кода
+            await client.query(`UPDATE referral_codes SET used_count = used_count + 1 WHERE id = $1`, [
+              refCode.id,
+            ]);
+          });
 
           res.status(200).json({
             success: true,
@@ -205,11 +206,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             timestamp: Date.now(),
           });
         } catch (err) {
-          await query('ROLLBACK');
+          logger.error(err instanceof Error ? err.message : 'Unknown error');
           throw err;
         }
       } catch (err) {
-        console.error(err);
+        logger.error(err instanceof Error ? err.message : 'Unknown error');
         res.status(500).json({ success: false, error: 'Failed to use referral code' });
       }
     } else {

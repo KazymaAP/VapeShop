@@ -1,5 +1,6 @@
 import { Bot, webhookCallback } from 'grammy';
 import { NextApiRequest, NextApiResponse } from 'next';
+import crypto from 'crypto';
 import {
   handleStart,
   handleMenu,
@@ -10,17 +11,35 @@ import {
 } from '@/lib/bot/handlers';
 import { handlePaymentSuccess, handlePreCheckout } from '@/lib/bot/payments';
 import { setBotInstance } from '@/lib/notifications';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
 
-const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
+// ⚠️ ВАЛИДАЦИЯ: Проверяем что TELEGRAM_BOT_TOKEN установлен
+const botToken = process.env.TELEGRAM_BOT_TOKEN;
+if (!botToken || botToken.trim() === '') {
+  const errorMsg = '🚨 CRITICAL: TELEGRAM_BOT_TOKEN is not set in environment variables!';
+  logger.error(errorMsg);
+  logger.error('Bot initialization failed', { reason: 'Missing TELEGRAM_BOT_TOKEN' });
+  throw new Error(errorMsg);
+}
+
+// Валидируем формат токена (должен содержать :)
+if (!botToken.includes(':')) {
+  const errorMsg = '🚨 CRITICAL: TELEGRAM_BOT_TOKEN has invalid format! Expected format: <bot_id>:<token>';
+  logger.error(errorMsg);
+  logger.error('Bot initialization failed', { reason: 'Invalid token format', token: botToken.substring(0, 5) + '...' });
+  throw new Error(errorMsg);
+}
+
+const bot = new Bot(botToken);
 
 // ⚠️ КРИТИЧНО: Инициализируем bot instance для notifications.ts
 setBotInstance(bot);
 
 // Глобальный обработчик ошибок бота
 bot.catch((err) => {
-  console.error('❌ Bot error:', err);
+  logger.error('❌ Bot error:', err);
   // Не выбрасываем ошибку - просто логируем и продолжаем
 });
 
@@ -74,18 +93,20 @@ bot.on('callback_query:data', async (ctx) => {
       );
       await ctx.answerCallbackQuery();
     } catch (err) {
-      console.error('Error fetching order:', err);
+      logger.error('Error fetching order:', err);
       await ctx.reply('❌ Ошибка загрузки заказа');
     }
   } else if (data.startsWith('cancel:')) {
     const orderId = data.replace('cancel:', '');
     try {
-      // Обновляем статус заказа на cancelled
-      await query('UPDATE orders SET status = $1 WHERE id = $2', ['cancelled', orderId]);
+      // Обновляем статус заказа на cancelled в транзакции
+      await transaction(async (client) => {
+        await client.query('UPDATE orders SET status = $1 WHERE id = $2', ['cancelled', orderId]);
+      });
       await ctx.editMessageText('❌ Заказ отменён');
       await ctx.answerCallbackQuery();
     } catch (err) {
-      console.error('Error cancelling order:', err);
+      logger.error('Error cancelling order:', err);
     }
   } else if (data.startsWith('pay_order:')) {
     const orderId = data.replace('pay_order:', '');
@@ -112,7 +133,7 @@ bot.on('callback_query:data', async (ctx) => {
       await ctx.reply('💳 Оплата заказа: переход на платёжную страницу (в разработке)');
       await ctx.answerCallbackQuery();
     } catch (err) {
-      console.error('Error creating invoice:', err);
+      logger.error('Error creating invoice:', err);
       await ctx.reply('❌ Ошибка создания счёта');
     }
   }
@@ -126,12 +147,68 @@ bot.on('message:successful_payment', handlePaymentSuccess);
 
 // 🔒 Middleware для верификации webhook токена и rate limiting
 async function botWebhookHandler(req: NextApiRequest, res: NextApiResponse) {
+  // HIGH-010 FIX: Verify Telegram webhook IP address
+  const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ||
+                   (req.headers['cf-connecting-ip'] as string)?.trim() ||
+                   req.socket?.remoteAddress;
+
+  // Telegram's official IP ranges (as of 2024)
+  // Source: https://core.telegram.org/bots/webhooks
+  const telegramIpRanges = [
+    '91.108.4.0/22',
+    '91.108.8.0/22',
+    '91.108.12.0/22',
+    '91.108.16.0/22',
+    '91.108.20.0/22',
+    '91.108.56.0/22',
+    '149.154.160.0/22',
+    '149.154.164.0/22',
+    '149.154.168.0/22',
+    '149.154.172.0/22',
+    '149.154.176.0/22'
+  ];
+
+  const isAllowedIp = clientIp && telegramIpRanges.some(range => {
+    // Simple check - in production use a proper IP range library like ip-address
+    const base = range.split('/')[0];
+    return clientIp.startsWith(base.substring(0, base.lastIndexOf('.')));
+  });
+
+  if (process.env.NODE_ENV === 'production' && !isAllowedIp && clientIp) {
+    logger.warn(`[SECURITY] Webhook from unauthorized IP: ${clientIp}`);
+    // Don't return error immediately - only if secret verification also fails
+  }
+
   // ⚠️ КРИТИЧНО: Верифицируем секретный токен
   const secretToken = req.headers['x-telegram-bot-api-secret-token'] as string;
   const expectedSecret = process.env.TELEGRAM_BOT_SECRET;
 
-  if (expectedSecret && secretToken !== expectedSecret) {
-    console.warn('❌ Invalid Telegram bot webhook token received');
+  if (expectedSecret && secretToken) {
+    // HIGH-011 FIX: Use timing-safe comparison to prevent timing attacks
+    try {
+      const secretBuffer = Buffer.from(secretToken);
+      const expectedBuffer = Buffer.from(expectedSecret);
+      
+      // Check length first (same length check as constant-time comparison)
+      if (secretBuffer.length !== expectedBuffer.length) {
+        logger.warn('❌ Invalid Telegram bot webhook secret length', { clientIp });
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
+      // Use timing-safe comparison
+      if (!crypto.timingSafeEqual(secretBuffer, expectedBuffer)) {
+        logger.warn('❌ Invalid Telegram bot webhook token received', { clientIp });
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+    } catch (err) {
+      logger.warn('❌ Error comparing Telegram webhook secret', { clientIp, error: err instanceof Error ? err.message : String(err) });
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  }
+
+  // If no secret token configured, use IP verification as fallback
+  if (!expectedSecret && !isAllowedIp && process.env.NODE_ENV === 'production') {
+    logger.warn('❌ Webhook from unauthorized IP and no secret token configured', { clientIp });
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

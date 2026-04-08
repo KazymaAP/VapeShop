@@ -4,6 +4,7 @@ import fs from 'fs';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
 
 export const config = { api: { bodyParser: false } };
 
@@ -138,7 +139,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       throw txErr;
     }
   } catch (err) {
-    console.error('Import error:', err);
+    logger.error('Import error:', err);
     res.status(500).json({ error: 'Ошибка импорта CSV' });
   }
 }

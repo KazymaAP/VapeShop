@@ -4,6 +4,7 @@ import { requireAuth, getTelegramId } from '@/lib/auth';
 import { validateProduct, validatePagination } from '@/lib/validate';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 import { ApiResponse } from '../../../types/api';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -76,7 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(201).json(response);
     } catch (err) {
-      console.error('Product creation error:', err);
+      logger.error('Product creation error:', err);
       res
         .status(500)
         .json({ error: 'Ошибка создания товара', success: false, timestamp: Date.now() });
@@ -182,7 +183,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json(response);
     } catch (err) {
-      console.error('Product update error:', err);
+      logger.error('Product update error:', err);
       res
         .status(500)
         .json({ error: 'Ошибка обновления товара', success: false, timestamp: Date.now() });
@@ -260,7 +261,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json(response);
     } catch (err) {
-      console.error('Product list error:', err);
+      logger.error('Product list error:', err);
       res
         .status(500)
         .json({ error: 'Ошибка загрузки товаров', success: false, timestamp: Date.now() });
@@ -294,7 +295,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json({ success: true, message: 'Product deactivated' });
     } catch (err) {
-      console.error('Delete product error:', err);
+      logger.error('Delete product error:', err);
       res.status(500).json({ error: 'Ошибка удаления товара' });
     }
   } else {

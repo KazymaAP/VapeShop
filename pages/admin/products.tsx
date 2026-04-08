@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../../lib/telegram';
 import AdminSidebar from '../../components/AdminSidebar';
+import { TIMINGS } from '@/lib/constants/timings';
 
 interface Product {
   id: string;
@@ -42,7 +43,7 @@ export default function AdminProducts() {
     if (!user) return;
     const debounceTimer = setTimeout(() => {
       fetchProducts();
-    }, 300);
+    }, TIMINGS.SEARCH_DEBOUNCE);
 
     return () => clearTimeout(debounceTimer);
   }, [user, search]);

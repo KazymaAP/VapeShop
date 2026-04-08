@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -21,22 +22,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       const { event_type, is_enabled, min_stock } = req.body;
 
-      if (event_type !== undefined && is_enabled !== undefined) {
-        await query(
-          `INSERT INTO notification_settings (event_type, is_enabled)
-           VALUES ($1, $2)
-           ON CONFLICT (event_type) DO UPDATE SET is_enabled = $2`,
-          [event_type, is_enabled]
-        );
-      }
+      await transaction(async (client) => {
+        if (event_type !== undefined && is_enabled !== undefined) {
+          await client.query(
+            `INSERT INTO notification_settings (event_type, is_enabled)
+             VALUES ($1, $2)
+             ON CONFLICT (event_type) DO UPDATE SET is_enabled = $2`,
+            [event_type, is_enabled]
+          );
+        }
 
-      if (min_stock !== undefined) {
-        await query(
-          `INSERT INTO settings (key, value) VALUES ('min_stock_alert', $1)
-           ON CONFLICT (key) DO UPDATE SET value = $1`,
-          [min_stock]
-        );
-      }
+        if (min_stock !== undefined) {
+          await client.query(
+            `INSERT INTO settings (key, value) VALUES ('min_stock_alert', $1)
+             ON CONFLICT (key) DO UPDATE SET value = $1`,
+            [min_stock]
+          );
+        }
+      });
 
       res.status(200).json({ success: true });
     } catch {
@@ -54,22 +57,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
       }
 
-      if (action === 'clear_abandoned_carts') {
-        // Добавляем WHERE условие - удаляем только заказы старше 7 дней (не используемые)
-        await query("DELETE FROM abandoned_carts WHERE created_at < NOW() - INTERVAL '7 days'", []);
-      } else if (action === 'clear_admin_logs') {
-        // Добавляем WHERE условие - удаляем только логи старше 90 дней
-        await query("DELETE FROM admin_logs WHERE created_at < NOW() - INTERVAL '90 days'", []);
-      } else {
-        return res.status(400).json({ error: 'Invalid action' });
-      }
+      await transaction(async (client) => {
+        if (action === 'clear_abandoned_carts') {
+          // Добавляем WHERE условие - удаляем только заказы старше 7 дней (не используемые)
+          await client.query("DELETE FROM abandoned_carts WHERE created_at < NOW() - INTERVAL '7 days'", []);
+        } else if (action === 'clear_admin_logs') {
+          // Добавляем WHERE условие - удаляем только логи старше 90 дней
+          await client.query("DELETE FROM admin_logs WHERE created_at < NOW() - INTERVAL '90 days'", []);
+        } else {
+          throw new Error('Invalid action: unknown settings operation');
+        }
+      });
 
       // Логируем это действие как критическое
-      console.warn(`[ADMIN ACTION] ${action} executed by admin`);
+      logger.warn(`[ADMIN ACTION] ${action} executed by admin`);
 
       res.status(200).json({ success: true, message: `${action} completed successfully` });
     } catch (err) {
-      console.error('Error in DELETE handler:', err);
+      logger.error('Error in DELETE handler:', err);
       res.status(500).json({ error: 'Ошибка выполнения действия' });
     }
   } else {

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для управления ролями пользователей (только для super_admin)
  * GET /api/admin/roles - список пользователей с фильтром по роли
@@ -62,7 +63,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResp>) {
         timestamp: Date.now(),
       });
     } catch (err) {
-      console.error('Users fetch error:', err);
+      logger.error('Users fetch error:', err);
       return res
         .status(500)
         .json({ success: false, error: 'Failed to fetch users', timestamp: Date.now() });
@@ -115,7 +116,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResp>) {
         timestamp: Date.now(),
       });
     } catch (err) {
-      console.error('Role update error:', err);
+      logger.error('Role update error:', err);
       return res
         .status(500)
         .json({ success: false, error: 'Failed to update role', timestamp: Date.now() });

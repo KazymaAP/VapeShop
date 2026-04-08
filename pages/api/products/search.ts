@@ -5,11 +5,11 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { ApiResponse } from '@/types/api';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 
   try {
@@ -17,11 +17,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     // Валидация
     if (!q || typeof q !== 'string') {
-      return res.status(400).json({ error: 'Search query required' });
+      return apiError(res, 'Search query required', 400);
     }
 
     if (q.length < 2) {
-      return res.status(200).json({ data: [] });
+      return apiSuccess(res, [], 200);
     }
 
     const searchTerm = q.toLowerCase().trim();
@@ -117,14 +117,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       }
     }
 
-    return res.status(200).json({
-      data: result.rows,
-      query: searchTerm,
-      type,
-      count: result.rows.length,
-    });
-  } catch (err) {
-    console.error('Search error:', err);
-    res.status(500).json({ error: 'Search failed' });
+    return apiSuccess(res, result.rows, 200);
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : 'Search failed';
+    return apiError(res, error, 500);
   }
 }

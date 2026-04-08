@@ -3,7 +3,7 @@
  * Используются для добавления медиа-запросов и Tailwind классов
  */
 
-import React from 'react';
+import { useState, useEffect } from 'react';
 
 /**
  * Класс для адаптивной сетки
@@ -132,9 +132,9 @@ export const DESKTOP_BREAKPOINT = 1024;
  * Используется только в браузере
  */
 export function useResponsive() {
-  const [windowSize, setWindowSize] = React.useState({ width: 0, height: 0 });
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       setWindowSize({
         width: window.innerWidth,

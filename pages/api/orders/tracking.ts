@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для получения трекинга заказа
  * GET /api/orders/tracking?orderId=XXX
@@ -9,6 +10,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
 
 interface TrackingEvent {
   status: string;
@@ -17,27 +19,9 @@ interface TrackingEvent {
   location?: string;
 }
 
-interface TrackingResponse {
-  order_id: string;
-  current_status: string;
-  events: TrackingEvent[];
-  delivery?: {
-    courier_id?: number;
-    courier_name?: string;
-    courier_phone?: string;
-    estimated_delivery?: string;
-    tracking_number?: string;
-  };
-  timestamp: number;
-  success: boolean;
-}
-
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<TrackingResponse | { error: string }>
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 
   try {
@@ -45,11 +29,11 @@ async function handler(
     const telegramId = await getTelegramIdFromRequest(req);
 
     if (!orderId || typeof orderId !== 'string') {
-      return res.status(400).json({ error: 'Order ID required' });
+      return apiError(res, 'Order ID required', 400);
     }
 
     if (!telegramId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return apiError(res, 'Unauthorized', 401);
     }
 
     // Получаем заказ
@@ -61,14 +45,14 @@ async function handler(
     );
 
     if (orderResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
+      return apiError(res, 'Order not found', 404);
     }
 
     const order = orderResult.rows[0];
 
     // Проверяем что пользователь может просматривать этот заказ
     if (Number(order.user_telegram_id) !== telegramId) {
-      return res.status(403).json({ error: 'Forbidden: cannot view this order' });
+      return apiError(res, 'Forbidden: cannot view this order', 403);
     }
 
     // Получаем историю статусов
@@ -124,19 +108,17 @@ async function handler(
       });
     }
 
-    const response: TrackingResponse = {
+    const response = {
       order_id: order.id,
       current_status: order.status,
       events,
       delivery: deliveryInfo,
-      timestamp: Date.now(),
-      success: true,
     };
 
-    res.status(200).json(response);
+    return apiSuccess(res, response, 200);
   } catch (err) {
-    console.error('Tracking error:', err);
-    res.status(500).json({ error: 'Failed to get tracking information' });
+    logger.error('Tracking error:', err);
+    return apiError(res, 'Failed to get tracking information', 500);
   }
 }
 

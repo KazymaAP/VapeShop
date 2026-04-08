@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { transaction } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -8,7 +10,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const userId = getTelegramId(req);
 
     if (!Array.isArray(orderIds) || orderIds.length === 0) {
-      return res.status(400).json({ error: 'Invalid order IDs' });
+      return apiError(res, 'Invalid order IDs', 400);
     }
 
     try {
@@ -22,15 +24,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         WHERE id = ANY(ARRAY[${placeholders}]::bigint[])
       `;
 
-      await query(updateQuery, [...orderIds, newStatus, userId, notes || '']);
+      await transaction(async (client) => {
+        await client.query(updateQuery, [...orderIds, newStatus, userId, notes || '']);
+      });
 
-      res.status(200).json({ success: true, updated: orderIds.length });
+      return apiSuccess(res, { updated: orderIds.length }, 200);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Failed to update orders' });
+      logger.error(err instanceof Error ? err.message : 'Unknown error');
+      return apiError(res, 'Failed to update orders', 500);
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 }
 

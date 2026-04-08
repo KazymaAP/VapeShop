@@ -17,12 +17,10 @@ export type UserRole =
  * Извлекает telegram_id из запроса с ОБЯЗАТЕЛЬНОЙ верификацией
  *
  * ⚠️ КРИТИЧНО: Всегда требуется верификация initData через HMAC!
- * X-Telegram-Id заголовок используется только для локального тестирования,
- * в production должна использоваться только подписанная initData.
+ * X-Telegram-Id заголовок НЕ используется, только HMAC верифицированные данные от Telegram.
  *
- * Приоритет:
- * 1. initData из заголовка Authorization или query (от Telegram WebApp) — ВЕРИФИЦИРОВАННАЯ
- * 2. X-Telegram-Id заголовок ТОЛЬКО если NODE_ENV !== 'production' (для разработки)
+ * Источник данных:
+ * 1. initData из заголовка Authorization или query (от Telegram WebApp) — ВСЕГДА ПРОВЕРЯЕТСЯ
  */
 export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<number | null> {
   try {
@@ -42,30 +40,23 @@ export async function getTelegramIdFromRequest(req: NextApiRequest): Promise<num
       }
     }
 
-    // Если у нас есть initData, пытаемся его верифицировать и распарсить
+    // Если у нас есть initData, ОБЯЗАТЕЛЬНО верифицируем и распарсиваем
     if (initData) {
+      // 🔒 КРИТИЧЕСКАЯ ПРОВЕРКА: Верифицируем HMAC подпись
+      if (!verifyTelegramInitData(initData)) {
+        logger.warn('Invalid Telegram initData signature', {
+          ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+        });
+        return null;
+      }
+
       const user = parseInitData(initData);
       if (user?.id) {
         return user.id;
       }
     }
 
-    // 2. Fallback для локальной разработки: X-Telegram-Id заголовок
-    // ⚠️ ЭТО ТОЛЬКО ДЛЯ ТЕСТИРОВАНИЯ! В production должно быть отключено.
-    if (process.env.NODE_ENV !== 'production') {
-      const headerTelegramId = req.headers['x-telegram-id'];
-      if (headerTelegramId) {
-        const id = parseInt(headerTelegramId as string, 10);
-        if (!isNaN(id)) {
-          logger.warn(
-            `ПРЕДУПРЕЖДЕНИЕ: Используется X-Telegram-Id для тестирования. ` +
-              `На production это должно быть отключено. Telegram ID: ${id}`
-          );
-          return id;
-        }
-      }
-    }
-
+    logger.warn('No valid Telegram initData found in request');
     return null;
   } catch (err) {
     logger.error('getTelegramIdFromRequest error', err);
@@ -258,9 +249,27 @@ export async function hasRequiredRole(
  * Middleware для защиты API эндпоинтов
  *
  * Использование:
+ * ```typescript
  * export default requireAuth(handler, ['admin', 'manager']);
+ * ```
  *
  * Где handler - стандартный Next.js API handler
+ *
+ * Примеры:
+ * 
+ * // 1. Администратор только
+ * export default requireAuth(handler, ['admin']);
+ * 
+ * // 2. Администратор или менеджер
+ * export default requireAuth(handler, ['admin', 'manager']);
+ * 
+ * // 3. Любой аутентифицированный пользователь
+ * export default requireAuth(handler, ['customer', 'buyer', 'seller', 'manager', 'admin', 'super_admin']);
+ * 
+ * // Внутри handler может использоваться:
+ * const telegramId = getTelegramId(req);
+ * const role = await getUserRole(telegramId);
+ * ```
  *
  * Проверяет:
  * 1. telegramId существует

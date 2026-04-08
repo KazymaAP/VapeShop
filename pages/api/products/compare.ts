@@ -1,5 +1,7 @@
 import { requireAuth, getTelegramId } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req, res) => {
@@ -10,7 +12,7 @@ export default requireAuth(
         const result = await query('SELECT * FROM compare_items WHERE user_id = $1', [telegramId]);
 
         if (result.rows.length === 0) {
-          return res.status(200).json({ data: { product_ids: [] } });
+          return apiSuccess(res, { product_ids: [] }, 200);
         }
 
         const productIds = result.rows[0].product_ids;
@@ -18,66 +20,73 @@ export default requireAuth(
           productIds,
         ]);
 
-        res.status(200).json({ data: { product_ids: productIds, products: productsResult.rows } });
+        return apiSuccess(res, {
+          product_ids: productIds,
+          products: productsResult.rows,
+        }, 200, { total: productsResult.rows.length });
       } catch (err) {
-        console.error('Error fetching compare items:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        logger.error('Error fetching compare items:', err);
+        return apiError(res, 'Internal Server Error', 500);
       }
     } else if (req.method === 'POST') {
       try {
         const { productIds } = req.body;
 
-        const existing = await query('SELECT * FROM compare_items WHERE user_id = $1', [
-          telegramId,
-        ]);
-
-        if (existing.rows.length > 0) {
-          await query(
-            'UPDATE compare_items SET product_ids = $1, updated_at = NOW() WHERE user_id = $2',
-            [productIds, telegramId]
-          );
-        } else {
-          await query('INSERT INTO compare_items (user_id, product_ids) VALUES ($1, $2)', [
+        await transaction(async (client) => {
+          const existing = await client.query('SELECT * FROM compare_items WHERE user_id = $1', [
             telegramId,
-            productIds,
           ]);
-        }
 
-        res.status(200).json({ success: true });
+          if (existing.rows.length > 0) {
+            await client.query(
+              'UPDATE compare_items SET product_ids = $1, updated_at = NOW() WHERE user_id = $2',
+              [productIds, telegramId]
+            );
+          } else {
+            await client.query('INSERT INTO compare_items (user_id, product_ids) VALUES ($1, $2)', [
+              telegramId,
+              productIds,
+            ]);
+          }
+        });
+
+        return apiSuccess(res, { items_saved: true }, 200);
       } catch (err) {
-        console.error('Error saving compare items:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        logger.error('Error saving compare items:', err);
+        return apiError(res, 'Internal Server Error', 500);
       }
     } else if (req.method === 'DELETE') {
       try {
         const { productId } = req.body;
 
-        const result = await query('SELECT product_ids FROM compare_items WHERE user_id = $1', [
-          telegramId,
-        ]);
-
-        if (result.rows.length === 0) {
-          return res.status(404).json({ error: 'Compare list not found' });
-        }
-
-        const updated = result.rows[0].product_ids.filter((id: number) => id !== productId);
-
-        if (updated.length === 0) {
-          await query('DELETE FROM compare_items WHERE user_id = $1', [telegramId]);
-        } else {
-          await query('UPDATE compare_items SET product_ids = $1 WHERE user_id = $2', [
-            updated,
+        await transaction(async (client) => {
+          const result = await client.query('SELECT product_ids FROM compare_items WHERE user_id = $1', [
             telegramId,
           ]);
-        }
 
-        res.status(200).json({ success: true });
+          if (result.rows.length === 0) {
+            throw new Error('Compare list not found');
+          }
+
+          const updated = result.rows[0].product_ids.filter((id: number) => id !== productId);
+
+          if (updated.length === 0) {
+            await client.query('DELETE FROM compare_items WHERE user_id = $1', [telegramId]);
+          } else {
+            await client.query('UPDATE compare_items SET product_ids = $1 WHERE user_id = $2', [
+              updated,
+              telegramId,
+            ]);
+          }
+        });
+
+        return apiSuccess(res, { item_removed: true }, 200);
       } catch (err) {
-        console.error('Error deleting from compare:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        logger.error('Error deleting from compare:', err);
+        return apiError(res, 'Internal Server Error', 500);
       }
     } else {
-      res.status(405).json({ error: 'Method not allowed' });
+      return apiError(res, 'Method not allowed', 405);
     }
   },
   ['customer', 'admin']

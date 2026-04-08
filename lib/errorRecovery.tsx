@@ -2,7 +2,8 @@
  * Error Recovery компоненты и утилиты
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { logger } from './logger';
 
 interface RetryableErrorProps {
   message: string;
@@ -102,7 +103,7 @@ export function useRetry(fn: () => Promise<unknown>, options: RetryOptions = {})
           const delay = Math.min(initialDelay * Math.pow(backoffFactor, i), maxDelay);
 
           // Визуальный feedback на UI (опционально)
-          console.log(`Retry attempt ${i + 1} in ${delay}ms`);
+          logger.info(`Retry attempt ${i + 1} in ${delay}ms`);
 
           await new Promise((resolve) => setTimeout(resolve, delay));
         }

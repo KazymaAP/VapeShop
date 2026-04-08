@@ -3,6 +3,7 @@ import { query } from '@/lib/db';
 import { notifyAbandonedCart } from '@/lib/notifications';
 import { logger } from '@/lib/logger';
 import { verifyCronSecret } from '@/lib/auth';
+import { TIMERS, CRON_LIMITS } from '@/lib/constants';
 
 /**
  * Cron API для отправки напоминаний о брошенных корзинах
@@ -33,8 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     logger.info('Abandoned cart reminder job started');
 
-    // Время: 2 часа назад
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    // MEDIUM-004 FIX: Use TIMERS and CRON_LIMITS constants instead of magic numbers
+    const twoHoursAgo = new Date(Date.now() - TIMERS.ABANDONED_CART_TIMEOUT).toISOString();
 
     // 1. Находим кандидатов для напоминания
     const cartsResult = await query(
@@ -45,11 +46,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
          AND u.is_blocked = FALSE
          AND c.items IS NOT NULL
          AND c.items != '[]'
-       LIMIT 100`,
-      [twoHoursAgo]
+       LIMIT $2`,
+      [twoHoursAgo, CRON_LIMITS.ABANDONED_CART_BATCH_SIZE]
     );
 
     logger.info('Abandoned cart job: found candidates', { count: cartsResult.rows.length });
+
+    // ⚠️ ОПТИМИЗИРОВАНО: Батчим все проверки активных заказов в один запрос (предотвращение N+1)
+    const cartUserIds = cartsResult.rows.map(c => c.user_telegram_id);
+    const activeOrdersResult = await query(
+      `SELECT DISTINCT user_telegram_id FROM orders
+       WHERE user_telegram_id = ANY($1)
+         AND created_at > $2
+         AND status IN ('pending', 'new', 'confirmed', 'readyship', 'shipped')`,
+      [cartUserIds, twoHoursAgo]
+    );
+    const usersWithActiveOrders = new Set(activeOrdersResult.rows.map(r => r.user_telegram_id));
+
+    // ⚠️ ОПТИМИЗИРОВАНО: Батчим все проверки abandoned_carts
+    const abandonedCartsResult = await query(
+      `SELECT user_telegram_id, id, reminder_sent FROM abandoned_carts
+       WHERE user_telegram_id = ANY($1)`,
+      [cartUserIds]
+    );
+    const abandonedCartsMap = new Map(
+      abandonedCartsResult.rows.map(r => [r.user_telegram_id, r])
+    );
 
     let processed = 0;
     let notified = 0;
@@ -58,33 +80,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const cart of cartsResult.rows) {
       try {
         const telegramId = cart.user_telegram_id;
-        const items = typeof cart.items === 'string' ? JSON.parse(cart.items) : cart.items;
+        
+        // ⚠️ Парсим JSON с явной обработкой ошибок
+        let items: Record<string, unknown>[] = [];
+        try {
+          items = typeof cart.items === 'string' ? JSON.parse(cart.items) : cart.items;
+          if (!Array.isArray(items)) {
+            logger.warn('Cart items is not an array', { telegramId, cartItems: typeof cart.items });
+            items = [];
+          }
+        } catch (parseErr) {
+          logger.error('Failed to parse cart items JSON', parseErr, { telegramId });
+          errors++;
+          processed++;
+          continue; // Skip this cart
+        }
 
-        // 2. Проверяем, нет ли недавних активных заказов
-        const recentOrdersResult = await query(
-          `SELECT id FROM orders
-           WHERE user_telegram_id = $1
-             AND created_at > $2
-             AND status IN ('pending', 'new', 'confirmed', 'readyship', 'shipped')
-           LIMIT 1`,
-          [telegramId, twoHoursAgo]
-        );
-
-        // Если есть активный заказ - пропускаем
-        if (recentOrdersResult.rows.length > 0) {
+        // 2. Проверяем активные заказы (используем батченый результат выше)
+        if (usersWithActiveOrders.has(telegramId)) {
           logger.info('User has active order, skipping', { telegramId });
           processed++;
           continue;
         }
 
-        // 3. Проверяем запись в abandoned_carts
-        const abandonedResult = await query(
-          `SELECT id, reminder_sent FROM abandoned_carts
-           WHERE user_telegram_id = $1`,
-          [telegramId]
-        );
-
-        const abandoned = abandonedResult.rows[0];
+        // 3. Получаем информацию из батченого результата
+        const abandoned = abandonedCartsMap.get(telegramId);
 
         // Если напоминание уже отправлено - пропускаем
         if (abandoned && abandoned.reminder_sent) {
@@ -98,9 +118,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let totalPrice = 0;
 
         // Извлекаем все product_id сразу
-        const productIds = items
+        const productIds: string[] = items
           .filter((item: Record<string, unknown>) => item.product_id)
-          .map((item: Record<string, unknown>) => item.product_id);
+          .map((item: Record<string, unknown>) => String(item.product_id));
 
         if (productIds.length > 0) {
           // Один запрос вместо N запросов - ЗНАЧИТЕЛЬНО БЫСТРЕЕ!
@@ -115,8 +135,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (item.product_id && productMap.has(item.product_id)) {
               const product = productMap.get(item.product_id);
               const price = parseFloat(product.price);
-              totalItems += item.quantity || 1;
-              totalPrice += price * (item.quantity || 1);
+              const quantity = typeof item.quantity === 'number' ? item.quantity : 1;
+              totalItems += quantity;
+              totalPrice += price * quantity;
             }
           }
         }

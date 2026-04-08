@@ -1,25 +1,41 @@
 import { requireAuth } from '../../../../lib/auth';
 import { query } from '../../../../lib/db';
+import { apiSuccess, apiError } from '../../../../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req, res) => {
-    const { id } = req.query;
+    let { id } = req.query;
+    
+    // Валидация id
+    id = Array.isArray(id) ? id[0] : id;
+    if (!id) {
+      return apiError(res, 'Invalid order ID', 400);
+    }
 
     if (req.method !== 'GET') {
-      return res.status(405).json({ error: 'Method not allowed' });
+      return apiError(res, 'Method not allowed', 405);
     }
 
     try {
-      const orderResult = await query('SELECT * FROM orders WHERE id = $1', [id]);
+      // ⚠️ ОПТИМИЗАЦИЯ: SELECT нужные поля вместо SELECT *
+      const orderResult = await query(
+        `SELECT id, status, courier_id, expected_delivery_date, 
+                delivery_type, total_amount, delivery_address, created_at 
+         FROM orders WHERE id = $1`,
+        [id]
+      );
 
       if (orderResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Order not found' });
+        return apiError(res, 'Order not found', 404);
       }
 
       const order = orderResult.rows[0];
 
+      // ⚠️ ОПТИМИЗАЦИЯ: SELECT конкретные поля
       const statusHistory = await query(
-        'SELECT * FROM order_status_history WHERE order_id = $1 ORDER BY changed_at ASC',
+        `SELECT id, order_id, old_status, new_status, note, changed_at 
+         FROM order_status_history WHERE order_id = $1 ORDER BY changed_at ASC`,
         [id]
       );
 
@@ -30,21 +46,19 @@ export default requireAuth(
           )
         : null;
 
-      res.status(200).json({
-        data: {
-          status: order.status,
-          status_history: statusHistory.rows,
-          expected_delivery: order.expected_delivery_date,
-          delivery_method: order.delivery_type,
-          total_amount: order.total_amount,
-          courier_info: courierInfo?.rows[0] || null,
-          delivery_address: order.delivery_address,
-          created_at: order.created_at,
-        },
-      });
+      return apiSuccess(res, {
+        status: order.status,
+        status_history: statusHistory.rows,
+        expected_delivery: order.expected_delivery_date,
+        delivery_method: order.delivery_type,
+        total_amount: order.total_amount,
+        courier_info: courierInfo?.rows[0] || null,
+        delivery_address: order.delivery_address,
+        created_at: order.created_at,
+      }, 200);
     } catch (err) {
-      console.error('Error fetching tracking:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
+      logger.error('Error fetching tracking:', err);
+      return apiError(res, 'Internal Server Error', 500);
     }
   },
   ['customer', 'manager', 'admin']

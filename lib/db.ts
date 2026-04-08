@@ -1,4 +1,5 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
+import { logger } from './logger';
 
 const connectionString = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL;
 
@@ -64,9 +65,9 @@ export async function queryWithRetry(
 
       // Экспоненциальная задержка перед повтором
       const delay = delayMs * Math.pow(2, attempt - 1);
-      console.warn(
+      logger.warn(
         `DB query retry attempt ${attempt}/${maxRetries} after ${delay}ms:`,
-        errorMessage
+        { errorMessage }
       );
 
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -90,13 +91,24 @@ export async function getClient(): Promise<PoolClient> {
  * Выполнить запросы в транзакции
  *
  * @param callback функция, которая выполняет запросы
+ * @param isolationLevel уровень изоляции (по умолчанию READ_COMMITTED)
+ *                       'SERIALIZABLE' для критических операций (заказы, платежи)
  * @returns результат callback функции
  */
-export async function transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
+export async function transaction<T>(
+  callback: (client: PoolClient) => Promise<T>,
+  isolationLevel: 'READ_UNCOMMITTED' | 'READ_COMMITTED' | 'REPEATABLE_READ' | 'SERIALIZABLE' = 'READ_COMMITTED'
+): Promise<T> {
   const client = await getClient();
 
   try {
     await client.query('BEGIN');
+    
+    // Устанавливаем уровень изоляции для критических операций
+    if (isolationLevel !== 'READ_COMMITTED') {
+      await client.query(`SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`);
+    }
+    
     const result = await callback(client);
     await client.query('COMMIT');
     return result;
@@ -106,4 +118,74 @@ export async function transaction<T>(callback: (client: PoolClient) => Promise<T
   } finally {
     client.release();
   }
+}
+
+/**
+ * Логировать действие в audit_log таблицу
+ * Используется для отслеживания изменений данных
+ */
+export async function logAuditAction(
+  userId: number | string | null,
+  action: string,
+  entityType: string,
+  entityId: string,
+  oldData?: Record<string, unknown>,
+  newData?: Record<string, unknown>,
+  details?: string
+): Promise<void> {
+  try {
+    await query(
+      `INSERT INTO audit_log (user_id, user_telegram_id, action, entity_type, entity_id, old_data, new_data, details, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+      [
+        null,
+        userId || null,
+        action,
+        entityType,
+        entityId,
+        oldData ? JSON.stringify(oldData) : null,
+        newData ? JSON.stringify(newData) : null,
+        details || null,
+      ]
+    );
+  } catch (error) {
+    // Log errors но не бросай, чтобы основная операция не сломалась
+    logger.error('Failed to log audit action:', error);
+  }
+}
+
+/**
+ * Безопасное soft delete с логированием
+ */
+export async function softDelete(
+  tableName: string,
+  id: string,
+  userId: number | string | null,
+  reason?: string
+): Promise<void> {
+  // Сначала получим текущие данные
+  const result = await query(`SELECT * FROM ${tableName} WHERE id = $1`, [id]);
+  
+  if (result.rows.length === 0) {
+    throw new Error(`${tableName} with id ${id} not found`);
+  }
+
+  const oldData = result.rows[0];
+
+  // Soft delete
+  await query(
+    `UPDATE ${tableName} SET deleted_at = NOW(), deleted_by = $1, deletion_reason = $2 WHERE id = $3`,
+    [userId || null, reason || null, id]
+  );
+
+  // Логируем
+  await logAuditAction(
+    userId,
+    'DELETE',
+    tableName,
+    id,
+    oldData,
+    undefined,
+    `Soft delete. Reason: ${reason || 'Not provided'}`
+  );
 }

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 /**
  * PUT/DELETE - обновление/удаление одного промокода
@@ -20,7 +21,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         req.body;
 
       const fields: string[] = ['updated_at = NOW()'];
-      const values: unknown[] = [];
+      const values: (string | number | boolean | string[] | number[] | null)[] = [];
       let idx = 1;
 
       if (discount_type !== undefined) {
@@ -76,7 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
          VALUES ($1, $2, $3)`,
         [telegramId, 'update_promocode', JSON.stringify({ code: code.toUpperCase() })]
       ).catch((err) => {
-        console.error('Logging error:', err);
+        logger.error('Logging error:', err);
       });
 
       res.status(200).json({ promocode: result.rows[0] });
@@ -96,7 +97,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
          VALUES ($1, $2, $3)`,
         [telegramId, 'delete_promocode', JSON.stringify({ code: code.toUpperCase() })]
       ).catch((err) => {
-        console.error('Logging error:', err);
+        logger.error('Logging error:', err);
       });
 
       res.status(200).json({ message: 'Промокод удалён' });
@@ -104,7 +105,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       res.status(405).json({ error: 'Метод не разрешен' });
     }
   } catch (err) {
-    console.error('Promocode handler error:', err);
+    logger.error('Promocode handler error:', err);
     res.status(500).json({ error: 'Ошибка обработки промокода' });
   }
 }

@@ -1,4 +1,5 @@
 import { query } from './db';
+import { logger } from './logger';
 
 export async function trackEvent(
   userId: string | null,
@@ -11,7 +12,7 @@ export async function trackEvent(
       [userId, eventName, JSON.stringify(properties || {})]
     );
   } catch (err) {
-    console.error('Error tracking event:', err);
+    logger.error('Error tracking event:', err);
   }
 }
 
@@ -20,7 +21,7 @@ export async function getUserLevel(userId: string) {
     const result = await query('SELECT * FROM user_levels WHERE user_id = $1', [userId]);
     return result.rows[0] || { level: 1, experience: 0, badges: [] };
   } catch (err) {
-    console.error('Error fetching user level:', err);
+    logger.error('Error fetching user level:', err);
     return { level: 1, experience: 0, badges: [] };
   }
 }
@@ -36,7 +37,7 @@ export async function addExperience(userId: string, amount: number) {
       [userId, newLevel, newExp % 100]
     );
   } catch (err) {
-    console.error('Error adding experience:', err);
+    logger.error('Error adding experience:', err);
   }
 }
 
@@ -48,6 +49,6 @@ export async function addBadge(userId: string, badge: string) {
       await query('UPDATE user_levels SET badges = $1 WHERE user_id = $2', [level.badges, userId]);
     }
   } catch (err) {
-    console.error('Error adding badge:', err);
+    logger.error('Error adding badge:', err);
   }
 }

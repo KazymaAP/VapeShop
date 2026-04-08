@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Sentry инициализация для production error tracking
  * Используется в pages/_app.tsx
@@ -14,7 +15,7 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   Sentry = require('@sentry/nextjs') as SentryModule;
 } catch {
-  console.warn('⚠️ Sentry не установлен, пропускаем инициализацию');
+  logger.warn('⚠️ Sentry не установлен, пропускаем инициализацию');
 }
 
 const environment = process.env.NODE_ENV || 'development';

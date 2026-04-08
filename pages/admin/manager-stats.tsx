@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../../lib/telegram';
+import { TextSkeleton } from '../../components/SkeletonLoader';
 
 interface ManagerStats {
   name: string;
@@ -14,6 +15,7 @@ export default function ManagerStatsPage() {
   const [stats, setStats] = useState<ManagerStats[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadStats();
   }, []);
@@ -34,7 +36,7 @@ export default function ManagerStatsPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) return <TextSkeleton lines={5} />;
 
   return (
     <div className="min-h-screen bg-bgDark p-4">

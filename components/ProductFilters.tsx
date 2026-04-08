@@ -3,6 +3,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { LIMITS } from '@/lib/constants/timings';
 
 interface FilterOption {
   id: string;
@@ -30,7 +31,7 @@ export function ProductFilters({
   onFilterChange,
   brands = [],
   categories = [],
-  priceRange = { min: 0, max: 10000 },
+  priceRange = { min: LIMITS.MIN_PRICE, max: LIMITS.MAX_PRICE },
 }: ProductFiltersProps) {
   const [filters, setFilters] = useState<FilterState>({
     brands: [],

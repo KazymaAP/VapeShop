@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../lib/db';
 import { requireAuth } from '../../../../lib/auth';
+import { apiSuccess, apiError } from '../../../../lib/apiResponse';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const orderId = req.query.id as string;
@@ -16,12 +17,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
          ORDER BY o.updated_at DESC`,
         [orderId]
       );
-      res.status(200).json({ data: result.rows });
+      return apiSuccess(res, result.rows, 200);
     } catch {
-      res.status(500).json({ error: 'Failed to fetch history' });
+      return apiError(res, 'Failed to fetch history', 500);
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 }
 

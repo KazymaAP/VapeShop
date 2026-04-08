@@ -5,18 +5,20 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { ApiResponse } from '@/types/api';
+import { ApiResponse, ApiError } from '@/types/api';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
+type ApiResponseType = ApiResponse | ApiError;
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponseType>) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Method not allowed', timestamp: Date.now() });
   }
 
   try {
     const { userId, limit = 10, exclude_purchased = true } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ error: 'userId required' });
+      return res.status(400).json({ success: false, error: 'userId required', timestamp: Date.now() });
     }
 
     // Получаем категории, которые покупал пользователь
@@ -43,8 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       );
 
       return res.status(200).json({
+        success: true,
         data: popular.rows,
-        type: 'popular',
+        timestamp: Date.now(),
       });
     }
 
@@ -79,12 +82,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const result = await query(query_str, params);
 
     return res.status(200).json({
+      success: true,
       data: result.rows,
-      type: 'category_based',
-      relatedCategories: categories,
+      timestamp: Date.now(),
     });
-  } catch (err) {
-    console.error('Recommendations error:', err);
-    res.status(500).json({ error: 'Failed to fetch recommendations' });
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : 'Failed to fetch recommendations';
+    return res.status(500).json({ success: false, error, timestamp: Date.now() });
   }
 }

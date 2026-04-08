@@ -1,11 +1,12 @@
+'use client';
+
+import { logger } from '@/lib/logger';
 /**
  * Компонент для отображения графиков выручки на дашборде
  * Использует recharts для визуализации
  */
 
-'use client';
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ChartData {
   date: string;
@@ -37,7 +38,7 @@ export function RevenueChart({ period = 'month' }: RevenueChartProps) {
         setData(json.data.revenueChart);
       }
     } catch (err) {
-      console.error('Failed to fetch chart data:', err);
+      logger.error('Failed to fetch chart data:', err);
     } finally {
       setLoading(false);
     }
@@ -140,7 +141,7 @@ export function TopProductsChart({ limit = 10 }: TopProductsChartProps) {
         setProducts(json.data.topProducts.slice(0, limit));
       }
     } catch (err) {
-      console.error('Failed to fetch top products:', err);
+      logger.error('Failed to fetch top products:', err);
     } finally {
       setLoading(false);
     }

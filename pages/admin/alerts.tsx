@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '@/lib/telegram';
+import { TextSkeleton } from '../../components/SkeletonLoader';
+import { TIMERS } from '@/lib/constants';
 
 interface AlertItem {
   name: string;
@@ -27,20 +29,26 @@ export default function AlertsPage() {
         if (response.ok) {
           const data = await response.json();
           setAlerts(data.data || []);
+        } else {
+          const errorMsg = `Failed to load alerts: HTTP ${response.status} ${response.statusText}`;
+          console.error(errorMsg);
         }
       } catch (err) {
-        console.error('Failed to load alerts:', err);
+        const errorMsg = err instanceof Error 
+          ? `Failed to load alerts: ${err.message}` 
+          : 'Failed to load alerts: Unknown error';
+        console.error(errorMsg, err);
       } finally {
         setLoading(false);
       }
     };
 
     loadAlerts();
-    const interval = setInterval(loadAlerts, 30000);
+    const interval = setInterval(loadAlerts, TIMERS.POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [user?.id]);
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) return <TextSkeleton lines={5} />;
 
   const getAlertColor = (type: string) => {
     switch (type) {

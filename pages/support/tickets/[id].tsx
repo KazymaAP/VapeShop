@@ -1,10 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../../../lib/telegram';
 import ChatWindow from '../../../components/ChatWindow';
+import { TextSkeleton } from '../../../components/SkeletonLoader';
+
+interface Ticket {
+  id: string;
+  subject: string;
+  description: string;
+  status: string;
+  priority: string;
+  customer_name: string;
+  created_at: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
 
 export default function SupportTicketPage() {
   const { user } = useTelegramWebApp();
-  const [ticket, setTicket] = useState<Record<string, unknown> | null>(null);
+  const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const ticketId = typeof window !== 'undefined' ? window.location.pathname.split('/')[3] : '';
 
@@ -44,7 +57,7 @@ export default function SupportTicketPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) return <TextSkeleton lines={7} />;
   if (!ticket)
     return <div className="text-center py-8 text-textSecondary">Обращение не найдено</div>;
 

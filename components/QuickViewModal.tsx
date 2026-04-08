@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Quick View модал для быстрого просмотра товара без перехода на полную страницу
  * Показывает: изображение, название, цена, рейтинг, описание, кнопки действия
@@ -41,7 +42,7 @@ export function QuickViewModal({
         setQuantity(1);
       }, 2000);
     } catch (error) {
-      console.error('Failed to add to cart:', error);
+      logger.error('Failed to add to cart:', error);
     } finally {
       setIsAdding(false);
     }

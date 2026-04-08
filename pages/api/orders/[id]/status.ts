@@ -1,12 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../lib/db';
 import { requireAuth, getTelegramId } from '../../../../lib/auth';
+import { apiSuccess, apiError } from '../../../../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: 'Order ID is required' });
+    return apiError(res, 'Order ID is required', 400);
   }
 
   if (req.method === 'GET') {
@@ -19,26 +21,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Order not found' });
+        return apiError(res, 'Order not found', 404);
       }
 
-      res.status(200).json({ order: result.rows[0] });
+      return apiSuccess(res, result.rows[0], 200);
     } catch (err) {
-      console.error('GET order status error:', err);
-      res.status(500).json({ error: 'Ошибка получения статуса' });
+      logger.error('GET order status error:', err);
+      return apiError(res, 'Ошибка получения статуса', 500);
     }
   } else if (req.method === 'PATCH') {
     try {
       const { status } = req.body;
 
       if (!status) {
-        return res.status(400).json({ error: 'Status is required' });
+        return apiError(res, 'Status is required', 400);
       }
 
       // Валидные статусы
       const validStatuses = ['pending', 'confirmed', 'readyship', 'shipped', 'done', 'cancelled'];
       if (!validStatuses.includes(status)) {
-        return res.status(400).json({ error: 'Invalid status' });
+        return apiError(res, 'Invalid status', 400);
       }
 
       // Получаем текущий заказ
@@ -48,7 +50,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       if (orderResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Order not found' });
+        return apiError(res, 'Order not found', 404);
       }
 
       const order = orderResult.rows[0];
@@ -56,7 +58,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Если статус тот же - ничего не делаем
       if (oldStatus === status) {
-        return res.status(200).json({ success: true, message: 'Status unchanged' });
+        return apiSuccess(res, { status_unchanged: true }, 200);
       }
 
       // Обновляем статус в БД
@@ -75,7 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             new_status: status,
           }),
         ]
-      ).catch((err) => console.error('Logging error:', err));
+      ).catch((err) => logger.error('Logging error:', err));
 
       // Отправляем уведомление покупателю
       // (убедитесь что bot инициализирован перед этим)
@@ -85,22 +87,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           await import('../../../../lib/notifications');
         await notifyStatus(order.user_telegram_id, id, status, order.code_6digit);
       } catch (notifyErr) {
-        console.error('Notification error:', notifyErr);
+        logger.error('Notification error:', notifyErr);
         // Не падаем если уведомление не отправилось
       }
 
-      res.status(200).json({
-        success: true,
-        message: `Статус заказа изменён на ${status}`,
+      return apiSuccess(res, {
         old_status: oldStatus,
         new_status: status,
-      });
+      }, 200);
     } catch (err) {
-      console.error('PATCH order status error:', err);
-      res.status(500).json({ error: 'Ошибка обновления статуса' });
+      logger.error('PATCH order status error:', err);
+      return apiError(res, 'Ошибка обновления статуса', 500);
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 }
 

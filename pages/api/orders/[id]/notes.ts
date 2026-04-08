@@ -1,9 +1,17 @@
 import { requireAuth, getTelegramId } from '../../../../lib/auth';
 import { query } from '../../../../lib/db';
+import { apiSuccess, apiError } from '../../../../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req, res) => {
-    const { id } = req.query;
+    let { id } = req.query;
+    
+    // Валидация id
+    id = Array.isArray(id) ? id[0] : id;
+    if (!id) {
+      return apiError(res, 'Invalid order ID', 400);
+    }
 
     if (req.method === 'GET') {
       try {
@@ -11,10 +19,10 @@ export default requireAuth(
           'SELECT * FROM manager_notes_history WHERE order_id = $1 ORDER BY created_at DESC',
           [id]
         );
-        res.status(200).json({ data: result.rows });
+        return apiSuccess(res, result.rows, 200);
       } catch (err) {
-        console.error('Error fetching notes:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        logger.error('Error fetching notes:', err);
+        return apiError(res, 'Internal Server Error', 500);
       }
     } else if (req.method === 'POST') {
       try {
@@ -28,13 +36,13 @@ export default requireAuth(
 
         await query('UPDATE orders SET manager_notes = $1 WHERE id = $2', [note, id]);
 
-        res.status(201).json({ data: noteResult.rows[0] });
+        return apiSuccess(res, noteResult.rows[0], 201);
       } catch (err) {
-        console.error('Error creating note:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        logger.error('Error creating note:', err);
+        return apiError(res, 'Internal Server Error', 500);
       }
     } else {
-      res.status(405).json({ error: 'Method not allowed' });
+      return apiError(res, 'Method not allowed', 405);
     }
   },
   ['manager', 'admin', 'super_admin']

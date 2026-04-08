@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../lib/telegram';
+import { TextSkeleton } from '../components/SkeletonLoader';
 
 interface LeaderboardEntry {
   id: string;
@@ -34,7 +35,7 @@ export default function LeaderboardPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) return <TextSkeleton lines={8} />;
 
   const getRankColor = (rank: number) => {
     if (rank === 1) return 'text-yellow-400';

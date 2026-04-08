@@ -41,7 +41,7 @@ export default function BannersAdminPage() {
         },
       });
 
-      if (!response.ok) throw new Error('Ошибка загрузки');
+      if (!response.ok) throw new Error(`Ошибка загрузки баннеров: HTTP ${response.status}`);
 
       const data = await response.json();
       setBanners(data);
@@ -53,6 +53,8 @@ export default function BannersAdminPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Функция loadBanners определена внутри компонента и вызывается только при монтировании
   useEffect(() => {
     loadBanners();
   }, [isReady, user?.id]);
@@ -74,7 +76,7 @@ export default function BannersAdminPage() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Ошибка создания');
+      if (!response.ok) throw new Error(`Ошибка создания баннера: HTTP ${response.status}`);
 
       setFormData({
         image_url: '',
@@ -107,7 +109,7 @@ export default function BannersAdminPage() {
         },
       });
 
-      if (!response.ok) throw new Error('Ошибка удаления');
+      if (!response.ok) throw new Error(`Ошибка удаления баннера: HTTP ${response.status}`);
 
       await loadBanners();
       alert('Баннер удалён');

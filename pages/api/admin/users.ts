@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 
@@ -49,16 +49,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       const { telegram_id, role, is_blocked } = req.body;
 
-      if (role) {
-        await query('UPDATE users SET role = $1 WHERE telegram_id = $2', [role, telegram_id]);
-      }
+      await transaction(async (client) => {
+        if (role) {
+          await client.query('UPDATE users SET role = $1 WHERE telegram_id = $2', [role, telegram_id]);
+        }
 
-      if (typeof is_blocked === 'boolean') {
-        await query('UPDATE users SET is_blocked = $1 WHERE telegram_id = $2', [
-          is_blocked,
-          telegram_id,
-        ]);
-      }
+        if (typeof is_blocked === 'boolean') {
+          await client.query('UPDATE users SET is_blocked = $1 WHERE telegram_id = $2', [
+            is_blocked,
+            telegram_id,
+          ]);
+        }
+      });
 
       res.status(200).json({ success: true });
     } catch (error) {

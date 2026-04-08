@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API endpoint для поиска товаров с автодополнением
  * Параметры: q (query), limit (максимум результатов)
@@ -63,7 +64,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       timestamp: Date.now(),
     });
   } catch (err) {
-    console.error('Search error:', err);
+    logger.error('Search error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }

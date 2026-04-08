@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useTelegramWebApp } from '../../lib/telegram';
 
 interface TrackingEvent {
@@ -18,14 +19,21 @@ interface TrackingData {
 }
 
 export default function TrackingPage() {
+  const router = useRouter();
   const { user } = useTelegramWebApp();
   const [tracking, setTracking] = useState<TrackingData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const orderId = window.location.pathname.split('/').pop();
-    loadTracking(orderId!);
-  }, []);
+    // ⚠️ ИСПРАВЛЕНО: Используем Next.js router.query вместо window.location
+    // Это работает как на SSR так и на CSR, и не выбросит ошибку на сервере
+    if (!router.isReady) return;
+    
+    const { orderId } = router.query;
+    if (typeof orderId === 'string') {
+      loadTracking(orderId);
+    }
+  }, [router.isReady, router.query]);
 
   const loadTracking = async (orderId: string) => {
     try {

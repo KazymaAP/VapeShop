@@ -1,5 +1,6 @@
 import { requireAuth, getTelegramId } from '../../../../../lib/auth';
 import { query } from '../../../../../lib/db';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req, res) => {
@@ -10,12 +11,18 @@ export default requireAuth(
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Валидация id
+    const deliveryId = Array.isArray(id) ? id[0] : id;
+    if (!deliveryId) {
+      return res.status(400).json({ error: 'Invalid delivery ID' });
+    }
+
     try {
       const { notes } = req.body;
 
       const deliveryResult = await query(
         'SELECT * FROM courier_deliveries WHERE id = $1 AND courier_id = $2',
-        [id, telegramId]
+        [deliveryId, telegramId]
       );
 
       if (deliveryResult.rows.length === 0) {
@@ -24,7 +31,7 @@ export default requireAuth(
 
       await query(
         'UPDATE courier_deliveries SET status = $1, completed_at = NOW(), notes = $2 WHERE id = $3',
-        ['completed', notes, id]
+        ['completed', notes, deliveryId]
       );
 
       await query('UPDATE orders SET status = $1 WHERE id = $2', [
@@ -34,7 +41,7 @@ export default requireAuth(
 
       res.status(200).json({ success: true });
     } catch (_err) {
-      console.error('Error completing delivery:', _err);
+      logger.error('Error completing delivery:', _err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   },

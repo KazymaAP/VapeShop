@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { slug } = req.query;
@@ -22,7 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json(result.rows[0]);
     } catch (err) {
-      console.error('Page GET error:', err);
+      logger.error('Page GET error:', err);
       res.status(500).json({ error: 'Ошибка при получении страницы' });
     }
   } else {

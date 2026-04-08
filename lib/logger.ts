@@ -73,9 +73,9 @@ function writeLog(entry: LogEntry): void {
     // На production отправляем в сервис логирования (Sentry, Datadog и т.д.)
     // Для сейчас - просто в stderr
     if (LOG_LEVELS[entry.level] >= LOG_LEVELS.WARN) {
-      console.error(formatted);
+      process.stderr.write(formatted + '\n');
     } else {
-      console.log(formatted);
+      process.stdout.write(formatted + '\n');
     }
   } else {
     // На development - в консоль с цветами
@@ -87,7 +87,7 @@ function writeLog(entry: LogEntry): void {
       FATAL: '\x1b[35m', // magenta
     };
     const reset = '\x1b[0m';
-    console.log(`${colors[entry.level]}${formatted}${reset}`);
+    logger.info(`${colors[entry.level]}${formatted}${reset}`);
   }
 }
 

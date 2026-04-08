@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../lib/db';
 import { requireAuth } from '../../../../lib/auth';
+import { logger } from '@/lib/logger';
 
 interface PriceImportItem {
   id: string;
@@ -110,7 +111,7 @@ async function handleGet(
       pages,
     });
   } catch (_err) {
-    console.error('Price import GET error:', _err);
+    logger.error('Price import GET error:', _err);
     res.status(500).json({ error: 'Ошибка при загрузке товаров' });
   }
 }

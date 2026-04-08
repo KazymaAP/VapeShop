@@ -2,6 +2,8 @@
  * Конфигурация оптимизации изображений для Next.js
  */
 
+import { logger } from './logger';
+
 export const IMAGE_OPTIMIZATION_CONFIG = {
   // Размеры для разных breakpoints
   sizes: {
@@ -31,9 +33,15 @@ export const IMAGE_OPTIMIZATION_CONFIG = {
 };
 
 /**
- * Утилита для сжатия изображений перед загрузкой на сервер
+ * Browser-based: Утилита для сжатия изображений перед загрузкой на сервер
+ * Используется ТОЛЬКО на клиенте!
  */
-export async function compressImage(file: File, maxWidth = 1200): Promise<Blob> {
+export async function compressImageBrowser(file: File, maxWidth = 1200): Promise<Blob> {
+  // Проверяем что мы в браузере
+  if (typeof document === 'undefined') {
+    throw new Error('compressImageBrowser can only be used in browser context');
+  }
+  
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -60,4 +68,109 @@ export async function compressImage(file: File, maxWidth = 1200): Promise<Blob> 
       };
     };
   });
+}
+
+/**
+ * Server-based: Оптимизация изображения с помощью sharp
+ * Используется ТОЛЬКО на сервере (Next.js API, SSR)
+ * 
+ * @param imageUrl - URL изображения или path
+ * @param options - опции оптимизации
+ */
+export async function optimizeImageServer(
+  imageBuffer: Buffer,
+  options: {
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number;
+    format?: 'webp' | 'jpeg' | 'png';
+  } = {}
+): Promise<Buffer> {
+  // Проверяем что Sharp доступен (Node.js environment)
+  let sharp;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    sharp = require('sharp');
+  } catch (err) {
+    throw new Error('sharp package is required for server-side image optimization. Install it with: npm install sharp');
+  }
+
+  const {
+    maxWidth = 1200,
+    maxHeight = 1200,
+    quality = 85,
+    format = 'webp',
+  } = options;
+
+  try {
+    let pipeline = sharp(imageBuffer);
+
+    // Resize if needed
+    if (maxWidth || maxHeight) {
+      pipeline = pipeline.resize(maxWidth, maxHeight, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      });
+    }
+
+    // Convert to desired format
+    if (format === 'webp') {
+      pipeline = pipeline.webp({ quality });
+    } else if (format === 'jpeg') {
+      pipeline = pipeline.jpeg({ quality, progressive: true });
+    } else if (format === 'png') {
+      pipeline = pipeline.png({ compressionLevel: 9 });
+    }
+
+    return await pipeline.toBuffer();
+  } catch (error) {
+    logger.error('Image optimization error:', error);
+    throw new Error(`Failed to optimize image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Fetch и оптимизировать изображение с URL
+ * Используется на сервере для обработки удалённых изображений
+ */
+export async function fetchAndOptimizeImage(
+  imageUrl: string,
+  options: {
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number;
+    format?: 'webp' | 'jpeg' | 'png';
+  } = {}
+): Promise<Buffer> {
+  try {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 10000);
+    
+    const response = await fetch(imageUrl, {
+      headers: {
+        'User-Agent': 'VapeShop-ImageOptimizer/1.0',
+      },
+      signal: abortController.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.startsWith('image/')) {
+      throw new Error(`Invalid content type: ${contentType}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Оптимизируем
+    return await optimizeImageServer(buffer, options);
+  } catch (error) {
+    logger.error('Fetch and optimize image error:', error);
+    throw new Error(`Failed to fetch and optimize image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }

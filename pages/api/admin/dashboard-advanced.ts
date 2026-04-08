@@ -1,5 +1,6 @@
 import { requireAuth } from '../../../lib/auth';
 import { query } from '../../../lib/db';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req, res) => {
@@ -98,7 +99,7 @@ export default requireAuth(
         top_brands: brandsResult.rows,
       });
     } catch (err) {
-      console.error('dashboard-advanced error:', err);
+      logger.error('dashboard-advanced error:', err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   },

@@ -54,7 +54,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json({ data: orders });
     } catch (err) {
-      console.error('kanban error:', err);
+      logger.error('kanban error:', err);
       res.status(500).json({ error: 'Failed to fetch orders' });
     }
   } else if (req.method === 'PUT') {

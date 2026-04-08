@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import ErrorBoundary from '../../components/ErrorBoundary';
 import {
   LineChart,
   Line,
@@ -13,7 +14,7 @@ import {
 } from 'recharts';
 import { DashboardData } from '../../types/api';
 
-export default function Dashboard() {
+function DashboardContent() {
   const [data, setData] = useState<DashboardData>({
     kpi: { total_revenue: 0, total_orders: 0, avg_order: 0 },
     revenue_by_day: [],
@@ -130,5 +131,13 @@ export default function Dashboard() {
         </div>
       </div>
     </AdminLayout>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <ErrorBoundary>
+      <DashboardContent />
+    </ErrorBoundary>
   );
 }

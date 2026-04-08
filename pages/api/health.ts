@@ -1,6 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 
+// Версия приложения (hardcoded для избежания импорта JSON)
+const APP_VERSION = '1.0.0';
+
 interface HealthResponse {
   success: boolean;
   data?: {
@@ -64,7 +67,7 @@ export default async function handler(
       uptime_seconds: uptime,
       memory_usage_mb: memory,
       timestamp,
-      version: '1.0.0',
+      version: APP_VERSION,
     },
     timestamp,
   });

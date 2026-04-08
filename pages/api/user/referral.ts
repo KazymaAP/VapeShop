@@ -1,6 +1,7 @@
 import { requireAuth, getTelegramId } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req, res) => {
@@ -22,10 +23,12 @@ export default requireAuth(
 
         if (!referralCode) {
           referralCode = crypto.randomBytes(8).toString('hex').substring(0, 10).toUpperCase();
-          await query('UPDATE users SET referral_code = $1 WHERE telegram_id = $2', [
-            referralCode,
-            telegramId,
-          ]);
+          await transaction(async (client) => {
+            await client.query('UPDATE users SET referral_code = $1 WHERE telegram_id = $2', [
+              referralCode,
+              telegramId,
+            ]);
+          });
         }
 
         const statsResult = await query(
@@ -42,12 +45,16 @@ export default requireAuth(
           },
         });
       } catch (err) {
-        console.error('Error fetching referral data:', err);
+        logger.error('Error fetching referral data:', err);
         res.status(500).json({ error: 'Internal Server Error' });
       }
     } else if (req.method === 'POST') {
       try {
         const { code } = req.query;
+        
+        if (!code || typeof code !== 'string') {
+          return res.status(400).json({ error: 'Code parameter is required' });
+        }
 
         const referrerResult = await query(
           'SELECT telegram_id FROM users WHERE referral_code = $1',
@@ -60,14 +67,16 @@ export default requireAuth(
 
         const referrerId = referrerResult.rows[0].telegram_id;
 
-        await query(
-          'INSERT INTO referral_stats (referrer_id, referee_id, bonus_amount, status) VALUES ($1, $2, $3, $4)',
-          [referrerId, telegramId, 0, 'pending']
-        );
+        await transaction(async (client) => {
+          await client.query(
+            'INSERT INTO referral_stats (referrer_id, referee_id, bonus_amount, status) VALUES ($1, $2, $3, $4)',
+            [referrerId, telegramId, 0, 'pending']
+          );
+        });
 
         res.status(201).json({ success: true });
       } catch (err) {
-        console.error('Error using referral code:', err);
+        logger.error('Error using referral code:', err);
         res.status(500).json({ error: 'Internal Server Error' });
       }
     } else {

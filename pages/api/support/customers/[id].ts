@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../lib/db';
 import { requireAuth } from '../../../../lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const customerId = req.query.id as string;
@@ -22,7 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       orders: ordersResult.rows,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err instanceof Error ? err.message : 'Unknown error');
     res.status(500).json({ error: 'Failed to fetch customer' });
   }
 }

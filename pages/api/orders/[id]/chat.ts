@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../lib/db';
 import { requireAuth, getTelegramId } from '../../../../lib/auth';
+import { apiSuccess, apiError } from '../../../../lib/apiResponse';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -12,24 +13,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         'INSERT INTO chat_messages (order_id, user_id, message_text) VALUES ($1, $2, $3)',
         [orderId, userId, text]
       );
-      res.status(200).json({ success: true });
+      return apiSuccess(res, { message_sent: true }, 200);
     } catch {
-      res.status(500).json({ error: 'Failed to send message' });
+      return apiError(res, 'Failed to send message', 500);
     }
   } else if (req.method === 'GET') {
-    const { orderId } = req.query;
+    let { orderId } = req.query;
+    
+    // Валидация orderId
+    orderId = Array.isArray(orderId) ? orderId[0] : orderId;
+    if (!orderId) {
+      return apiError(res, 'Invalid order ID', 400);
+    }
 
     try {
       const result = await query(
         'SELECT * FROM chat_messages WHERE order_id = $1 ORDER BY created_at ASC',
         [orderId]
       );
-      res.status(200).json({ data: result.rows });
+      return apiSuccess(res, result.rows, 200);
     } catch {
-      res.status(500).json({ error: 'Failed to fetch messages' });
+      return apiError(res, 'Failed to fetch messages', 500);
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    return apiError(res, 'Method not allowed', 405);
   }
 }
 

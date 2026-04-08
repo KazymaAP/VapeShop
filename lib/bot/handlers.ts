@@ -1,5 +1,6 @@
 import { Context } from 'grammy';
 import { query } from '../db';
+import { logger } from '../logger';
 import { getMainKeyboard, getAdminKeyboard } from './keyboards';
 
 /**
@@ -9,13 +10,13 @@ import { getMainKeyboard, getAdminKeyboard } from './keyboards';
 export async function handleStart(ctx: Context) {
   const user = ctx.from;
   if (!user) {
-    console.error('❌ ctx.from is undefined in handleStart');
+    logger.error('❌ ctx.from is undefined in handleStart');
     return;
   }
 
   const telegramId = user.id;
   if (!telegramId || telegramId <= 0) {
-    console.error('❌ Invalid telegram_id:', telegramId);
+    logger.error('❌ Invalid telegram_id:', telegramId);
     return;
   }
 
@@ -25,10 +26,11 @@ export async function handleStart(ctx: Context) {
     let referralCode = '';
     let referredBy: number | undefined;
 
-    // Безопасная обработка ctx.match для реферальных кодов
-    const startParamArray = ctx.match;
-    const startParam = Array.isArray(startParamArray)
-      ? startParamArray[0]
+    // ⚠️ ИСПРАВЛЕНО: Добавлена явная типизация для ctx.match
+    // ctx.match может быть: string | string[] | undefined (в зависимости от regex группы)
+    const startParamArray: string | string[] | undefined = ctx.match;
+    const startParam: string | null = Array.isArray(startParamArray)
+      ? startParamArray[0] ?? null
       : typeof startParamArray === 'string'
         ? startParamArray
         : null;
@@ -112,7 +114,7 @@ export async function handleStart(ctx: Context) {
       await ctx.reply('🔐 У вас есть доступ к админ-панели', { reply_markup: getAdminKeyboard() });
     }
   } catch (err) {
-    console.error('❌ Error in handleStart:', err);
+    logger.error('❌ Error in handleStart:', err);
     await ctx.reply('❌ Произошла ошибка. Пожалуйста, попробуйте снова позже.').catch(() => {});
   }
 }
@@ -121,14 +123,14 @@ export async function handleMenu(ctx: Context) {
   try {
     await ctx.reply('📱 Главное меню:', { reply_markup: getMainKeyboard() });
   } catch (err) {
-    console.error('❌ Error in handleMenu:', err);
+    logger.error('❌ Error in handleMenu:', err);
   }
 }
 
 export async function handleOrders(ctx: Context) {
   const telegramId = ctx.from?.id;
   if (!telegramId || telegramId <= 0) {
-    console.error('❌ Invalid telegram_id in handleOrders:', telegramId);
+    logger.error('❌ Invalid telegram_id in handleOrders:', telegramId);
     return;
   }
 
@@ -178,7 +180,7 @@ export async function handleOrders(ctx: Context) {
       },
     });
   } catch (err) {
-    console.error('❌ Error in handleOrders:', err);
+    logger.error('❌ Error in handleOrders:', err);
     await ctx.reply('❌ Ошибка при загрузке заказов. Попробуйте позже.').catch(() => {});
   }
 }

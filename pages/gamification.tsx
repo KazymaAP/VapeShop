@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../lib/telegram';
+import { TextSkeleton } from '../components/SkeletonLoader';
 
 interface UserLevel {
   level: number;
@@ -32,7 +33,7 @@ export default function GamificationPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) return <TextSkeleton lines={7} />;
   if (!level) return <div className="text-center py-8 text-textSecondary">Ошибка загрузки</div>;
 
   const nextLevelExp = 100;

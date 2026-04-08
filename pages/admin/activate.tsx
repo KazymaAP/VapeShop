@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../../lib/telegram';
+import { PAGINATION } from '../../lib/constants';
 import AdminSidebar from '../../components/AdminSidebar';
 import ActivationModal from '../../components/ActivationModal';
 import { fetchWithAuth } from '../../lib/frontend/auth';
@@ -63,7 +64,7 @@ export default function AdminActivate() {
     setError('');
     try {
       const res = await fetchWithAuth(
-        `/api/admin/price-import?is_activated=false&page=${pageNum}&limit=20`
+        `/api/admin/price-import?is_activated=false&page=${pageNum}&limit=${PAGINATION.DEFAULT_LIMIT}`
       );
       if (!res.ok) throw new Error('Ошибка при загрузке товаров');
       const data: PaginationData = await res.json();

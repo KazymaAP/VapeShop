@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../lib/telegram';
+import { logger } from '@/lib/logger';
 
 interface ChatWindowProps {
   orderId?: string;
@@ -41,7 +42,7 @@ export default function ChatWindow({ orderId, supportTicketId }: ChatWindowProps
       const data = await response.json();
       setMessages(data.data || []);
     } catch (err) {
-      console.error('Failed to load messages:', err);
+      logger.error('Failed to load messages:', err);
     } finally {
       setLoading(false);
     }
@@ -70,7 +71,7 @@ export default function ChatWindow({ orderId, supportTicketId }: ChatWindowProps
       setInput('');
       loadMessages();
     } catch (err) {
-      console.error('Failed to send message:', err);
+      logger.error('Failed to send message:', err);
     }
   };
 

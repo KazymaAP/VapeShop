@@ -1,17 +1,31 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAuth } from '@/lib/auth';
+import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 import { Bot } from 'grammy';
+import { logger } from '@/lib/logger';
 
 const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
-      const { message, telegram_ids } = req.body;
+      const { message, telegram_ids, sender_id } = req.body;
 
       if (!message) {
         return res.status(400).json({ error: 'Message required' });
+      }
+
+      // Получаем текущего пользователя
+      const currentTelegramId = await getTelegramIdFromRequest(req);
+      if (!currentTelegramId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // КРИТИЧЕСКАЯ ЗАЩИТА: Проверяем, что sender_id совпадает с текущим пользователем
+      // Это предотвращает спуфирование рассылок от имени другого администратора
+      if (sender_id && sender_id !== currentTelegramId) {
+        logger.warn(`[SECURITY] Broadcast spoofing attempt: user ${currentTelegramId} tried to send from ${sender_id}`);
+        return res.status(403).json({ error: 'Cannot broadcast on behalf of another admin' });
       }
 
       let recipients: number[] = [];
@@ -31,23 +45,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           // Add timeout to prevent hanging on broadcast
           await Promise.race([
             bot.api.sendMessage(telegramId, message),
-            new Promise((_, reject) =>
+            new Promise<void>((_, reject) =>
               setTimeout(() => reject(new Error('Message send timeout')), 10000)
             ),
           ]);
           sent++;
         } catch (err) {
-          console.error(`Failed to send message to ${telegramId}:`, err);
+          logger.error(`Failed to send message to ${telegramId}:`, err);
           failed++;
         }
       }
 
+      // Логируем с текущим пользователем, а не переданным (важно для безопасности)
       await query(
         `INSERT INTO audit_log (user_id, action, target_type, details, status) VALUES ($1, $2, $3, $4, $5)`,
         [
-          req.body.sender_id || null,
+          currentTelegramId,
           'broadcast',
-          JSON.stringify({ sent, failed, total: recipients.length }),
+          'broadcast',
+          JSON.stringify({ sent, failed, total: recipients.length, sender_id: currentTelegramId }),
         ]
       );
 
@@ -57,7 +73,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         failed,
       });
     } catch (err) {
-      console.error('Broadcast error:', err);
+      logger.error('Broadcast error:', err);
       res.status(500).json({ error: 'Ошибка рассылки' });
     }
   } else {

@@ -45,8 +45,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let notified = 0;
     const bot = getBot();
+    const notifiedIds: string[] = [];
 
-    for (const drop of priceDrops.rows) {
+    // HIGH-004 FIX: Send all messages in parallel (Promise.allSettled) instead of sequential
+    const sendPromises = priceDrops.rows.map(async (drop) => {
       try {
         const message = `
 💰 *Цена упала на избранный товар!*
@@ -64,17 +66,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           parse_mode: 'Markdown',
         });
 
-        // Отмечаем как отправлено
+        // Track successful notifications for batch update
+        notifiedIds.push(drop.id);
+        return true;
+      } catch (err) {
+        logger.error(`Failed to notify user ${drop.user_telegram_id}:`, err);
+        return false;
+      }
+    });
+
+    // Wait for all notifications to complete (parallel)
+    const results = await Promise.allSettled(sendPromises);
+    notified = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
+
+    // HIGH-004 FIX: Batch update only successful notifications (single query instead of N queries)
+    if (notifiedIds.length > 0) {
+      try {
         await query(
           `UPDATE price_drop_notifications 
            SET notified = true, notified_at = NOW() 
-           WHERE id = $1`,
-          [drop.id]
+           WHERE id = ANY($1)`,
+          [notifiedIds]
         );
-
-        notified++;
       } catch (err) {
-        console.error(`Failed to notify user ${drop.user_telegram_id}:`, err);
+        logger.error('Failed to mark notifications as sent:', err);
+        // Don't fail the request - notifications were sent, just couldn't mark them
       }
     }
 
@@ -83,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       count: notified,
     });
   } catch (err) {
-    console.error('Price drop notification error:', err);
+    logger.error('Price drop notification error:', err);
     res.status(500).json({ error: 'Failed to process price drop notifications' });
   }
 }

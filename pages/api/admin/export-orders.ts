@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для экспорта заказов в Excel
  * POST /api/admin/export-orders - Export orders to Excel file
@@ -162,7 +163,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       ]
     );
   } catch (err) {
-    console.error('Export orders error:', err);
+    logger.error('Export orders error:', err);
     res.status(500).json({ error: 'Failed to export orders' });
   }
 };

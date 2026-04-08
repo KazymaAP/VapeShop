@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { buildUpdateSet } from '@/lib/sqlBuilder';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -38,14 +39,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (is_active !== undefined) updates.is_active = is_active;
 
       const [setClause, values, nextIdx] = buildUpdateSet('pickup_points', updates);
-      values.push(id);
+      const queryValues: (string | number | boolean | string[] | number[] | null)[] = [...values, id];
 
-      await query(`UPDATE pickup_points SET ${setClause} WHERE id = $${nextIdx}`, values);
+      await query(`UPDATE pickup_points SET ${setClause} WHERE id = $${nextIdx}`, queryValues);
 
       res.status(200).json({ success: true });
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
-      console.error('Pickup points update error:', error);
+      logger.error('Pickup points update error:', error);
       res.status(400).json({ error: error.message || 'Ошибка обновления точки' });
     }
   } else {

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Компонент для загрузки изображений с preview и drag-and-drop
  */
@@ -81,7 +82,7 @@ export function ImageUpload({
 
         // Загружаем на сервер
         const urls = await onUpload(files);
-        console.log('Uploaded:', urls);
+        logger.info('Uploaded files', { count: urls.length });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ошибка загрузки');
         // Удаляем preview'ы при ошибке

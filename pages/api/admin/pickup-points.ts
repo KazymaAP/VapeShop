@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth, getTelegramId } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 /**
  * Admin endpoint for managing pickup points
@@ -38,7 +39,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
     } catch (err) {
-      console.error('Get pickup points error:', err);
+      logger.error('Get pickup points error:', err);
       res.status(500).json({ error: 'Ошибка загрузки пунктов выдачи' });
     }
   }
@@ -69,11 +70,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         telegramId,
         'create_pickup_point',
         JSON.stringify({ pickup_point_id: pickupPoint.id, name }),
-      ]).catch((err) => console.error('Logging error:', err));
+      ]).catch((err) => logger.error('Logging error:', err));
 
       res.status(201).json({ pickup_point: pickupPoint });
     } catch (err) {
-      console.error('Create pickup point error:', err);
+      logger.error('Create pickup point error:', err);
       res.status(500).json({ error: 'Ошибка создания пункта выдачи' });
     }
   }
@@ -143,11 +144,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         telegramId,
         'update_pickup_point',
         JSON.stringify({ pickup_point_id: id, changes }),
-      ]).catch((err) => console.error('Logging error:', err));
+      ]).catch((err) => logger.error('Logging error:', err));
 
       res.status(200).json({ success: true });
     } catch (err) {
-      console.error('Update pickup point error:', err);
+      logger.error('Update pickup point error:', err);
       res.status(500).json({ error: 'Ошибка обновления пункта выдачи' });
     }
   }
@@ -178,11 +179,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         telegramId,
         'delete_pickup_point',
         JSON.stringify({ pickup_point_id: id }),
-      ]).catch((err) => console.error('Logging error:', err));
+      ]).catch((err) => logger.error('Logging error:', err));
 
       res.status(200).json({ success: true });
     } catch (err) {
-      console.error('Delete pickup point error:', err);
+      logger.error('Delete pickup point error:', err);
       res.status(500).json({ error: 'Ошибка удаления пункта выдачи' });
     }
   } else {

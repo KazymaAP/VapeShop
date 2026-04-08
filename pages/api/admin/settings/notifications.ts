@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../../lib/db';
 import { requireAuth, getTelegramId } from '../../../../lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -43,7 +44,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json({ settings, stats });
     } catch (err) {
-      console.error('GET notification settings error:', err);
+      logger.error('GET notification settings error:', err);
       res.status(500).json({ error: 'Ошибка загрузки настроек' });
     }
   } else if (req.method === 'POST') {
@@ -85,7 +86,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           JSON.stringify({ updated_count: updated }),
           'success',
         ]
-      ).catch((err) => console.error('Logging error:', err));
+      ).catch((err) => logger.error('Logging error:', err));
 
       res.status(200).json({
         success: true,
@@ -93,7 +94,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         updated,
       });
     } catch (err) {
-      console.error('POST notification settings error:', err);
+      logger.error('POST notification settings error:', err);
       res.status(500).json({ error: 'Ошибка сохранения настроек' });
     }
   } else if (req.method === 'PUT') {
@@ -130,14 +131,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           new_enabled: is_enabled,
           target_role,
         }),
-      ]).catch((err) => console.error('Logging error:', err));
+      ]).catch((err) => logger.error('Logging error:', err));
 
       res.status(200).json({
         success: true,
         setting: result.rows[0],
       });
     } catch (err) {
-      console.error('PUT notification settings error:', err);
+      logger.error('PUT notification settings error:', err);
       res.status(500).json({ error: 'Ошибка обновления' });
     }
   } else {

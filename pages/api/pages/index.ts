@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { buildUpdateSet } from '@/lib/sqlBuilder';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -27,10 +28,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      const result = await query(
-        'INSERT INTO pages (slug, title, content) VALUES ($1, $2, $3) RETURNING *',
-        [slug, title, content]
-      );
+      const result = await transaction(async (client) => {
+        return await client.query(
+          'INSERT INTO pages (slug, title, content) VALUES ($1, $2, $3) RETURNING *',
+          [slug, title, content]
+        );
+      });
       res.status(200).json({ page: result.rows[0] });
     } catch {
       res.status(500).json({ error: 'Ошибка создания страницы' });
@@ -46,16 +49,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (content !== undefined) updates.content = content;
 
       const [setClause, values, nextIdx] = buildUpdateSet('pages', updates);
-      values.push(slug);
+      const queryValues: (string | number | boolean | string[] | number[] | null)[] = [...values, slug];
 
-      await query(
-        `UPDATE pages SET ${setClause}, updated_at = NOW() WHERE slug = $${nextIdx}`,
-        values
-      );
+      await transaction(async (client) => {
+        await client.query(
+          `UPDATE pages SET ${setClause}, updated_at = NOW() WHERE slug = $${nextIdx}`,
+          queryValues
+        );
+      });
       res.status(200).json({ success: true });
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
-      console.error('Pages update error:', error);
+      logger.error('Pages update error:', error);
       res.status(400).json({ error: error.message || 'Ошибка обновления страницы' });
     }
   } else if (req.method === 'DELETE') {
@@ -63,7 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { slug } = req.query;
       if (!slug) return res.status(400).json({ error: 'slug required' });
 
-      await query('DELETE FROM pages WHERE slug = $1', [slug]);
+      await transaction(async (client) => {
+        await client.query('DELETE FROM pages WHERE slug = $1', [slug]);
+      });
       res.status(200).json({ success: true });
     } catch {
       res.status(500).json({ error: 'Ошибка удаления страницы' });

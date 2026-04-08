@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import { PAGINATION } from '../../lib/constants';
+import { TableRowSkeleton } from '../../components/SkeletonLoader';
 
 interface AuditLog {
   id?: string | number;
@@ -26,6 +28,7 @@ export default function AuditLogs() {
     user_id: '',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     void fetchLogs();
   }, [page, filters]);
@@ -34,7 +37,7 @@ export default function AuditLogs() {
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
-      params.append('limit', '20');
+      params.append('limit', PAGINATION.DEFAULT_LIMIT.toString());
       if (filters.action) params.append('action', filters.action);
       if (filters.target_type) params.append('target_type', filters.target_type);
       if (filters.user_id) params.append('user_id', filters.user_id);
@@ -52,7 +55,15 @@ export default function AuditLogs() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <AdminLayout title="Audit Logs">
+      <div className="space-y-2">
+        {[...Array(5)].map((_, i) => (
+          <TableRowSkeleton key={i} columns={6} />
+        ))}
+      </div>
+    </AdminLayout>
+  );
 
   return (
     <AdminLayout title="Audit Logs">

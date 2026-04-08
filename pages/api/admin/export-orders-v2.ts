@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для экспорта заказов в CSV/Excel
  * GET /api/admin/export-orders?format=csv|xlsx&dateFrom=&dateTo=&status=
@@ -108,7 +109,7 @@ export default requireAuth(async (req: NextApiRequest, res: NextApiResponse) => 
       });
     }
   } catch (err) {
-    console.error('Export orders error:', err);
+    logger.error('Export orders error:', err);
     res.status(500).json({ error: 'Failed to export orders' });
   }
 });

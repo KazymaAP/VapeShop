@@ -4,6 +4,7 @@ import { query } from '@/lib/db';
 import { validatePagination } from '@/lib/validate';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
 import { ApiResponse } from '../../../types/api';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -54,41 +55,64 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     if (date_from) {
+      // ⚠️ ИСПРАВЛЕНО: Добавляем валидацию date parsing
+      const dateFromObj = new Date(String(date_from));
+      if (isNaN(dateFromObj.getTime())) {
+        return res.status(400).json({ 
+          error: 'Invalid date format for date_from. Use ISO 8601 format (YYYY-MM-DD or ISO string)' 
+        });
+      }
       whereClause += ` AND created_at >= $${paramCount}`;
-      params.push(new Date(String(date_from)).toISOString());
+      params.push(dateFromObj.toISOString());
       paramCount++;
     }
 
     if (date_to) {
+      // ⚠️ ИСПРАВЛЕНО: Добавляем валидацию date parsing
+      const dateToObj = new Date(String(date_to));
+      if (isNaN(dateToObj.getTime())) {
+        return res.status(400).json({ 
+          error: 'Invalid date format for date_to. Use ISO 8601 format (YYYY-MM-DD or ISO string)' 
+        });
+      }
       whereClause += ` AND created_at <= $${paramCount}`;
-      params.push(new Date(String(date_to)).toISOString());
+      params.push(dateToObj.toISOString());
       paramCount++;
     }
 
     const offset = (pageNum - 1) * limitNum;
 
-    const countResult = await query(
-      `SELECT COUNT(*) as total FROM audit_log WHERE ${whereClause}`,
-      params
-    );
-    const total = parseInt(countResult.rows[0].total);
-
     const orderBy = sort === '-created_at' ? 'ORDER BY created_at DESC' : 'ORDER BY created_at ASC';
 
+    // ⚠️ ИСПРАВЛЕНО: Используем window function COUNT(*) OVER() вместо отдельного COUNT запроса
+    // Это даёт нам total и лимитированные данные в одном запросе вместо двух
     const logsResult = await query(
-      `SELECT * FROM audit_log WHERE ${whereClause} ${orderBy} LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
+      `SELECT id, user_telegram_id, action, details, created_at,
+              COUNT(*) OVER() as total
+       FROM audit_log 
+       WHERE ${whereClause} 
+       ${orderBy} 
+       LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
       [...params, limitNum, offset]
     );
+
+    // Получаем total из первой строки (все строки имеют одно значение total)
+    const _total = logsResult.rows.length > 0 ? parseInt(logsResult.rows[0].total) : 0;
+    const totalPages = Math.ceil(_total / limitNum);
 
     const response: ApiResponse = {
       success: true,
       data: {
-        logs: logsResult.rows,
+        logs: logsResult.rows.map((row: Record<string, unknown>) => {
+          // Удаляем поле total из каждой строки (не нужно в ответе)
+          const { total: _total, ...logData } = row;
+          return logData;
+        }),
         pagination: {
           page: pageNum,
           limit: limitNum,
-          total,
-          totalPages: Math.ceil(total / limitNum),
+          total: _total,
+          totalPages,
         },
       },
       timestamp: Date.now(),
@@ -96,7 +120,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json(response);
   } catch (err) {
-    console.error('audit-logs error:', err);
+    logger.error('audit-logs error:', err);
     res.status(500).json({ error: 'Internal Server Error', success: false, timestamp: Date.now() });
   }
 }

@@ -1,5 +1,6 @@
 import { Bot } from 'grammy';
 import { query } from './db';
+import { logger } from './logger';
 
 /**
  * Система уведомлений для VapeShop
@@ -42,7 +43,7 @@ export async function isNotificationEnabled(eventType: string): Promise<boolean>
 
     return result.rows[0].is_enabled === true;
   } catch (err) {
-    console.error('isNotificationEnabled error:', err);
+    logger.error('isNotificationEnabled error:', err);
     return true; // На случай ошибки - включено
   }
 }
@@ -63,7 +64,7 @@ export async function getNotificationTargetRole(eventType: string): Promise<stri
 
     return result.rows[0].target_role;
   } catch (err) {
-    console.error('getNotificationTargetRole error:', err);
+    logger.error('getNotificationTargetRole error:', err);
     return null;
   }
 }
@@ -85,7 +86,7 @@ export async function sendNotification(
 ): Promise<boolean> {
   try {
     if (!botInstance) {
-      console.error('Bot instance not initialized');
+      logger.error('Bot instance not initialized');
       return false;
     }
 
@@ -101,12 +102,12 @@ export async function sendNotification(
         `INSERT INTO notification_history (user_telegram_id, event_type, message_text, status)
          VALUES ($1, $2, $3, $4)`,
         [telegramId, eventType, text, 'sent']
-      ).catch((err) => console.error('Logging notification error:', err));
+      ).catch((err) => logger.error('Logging notification error:', err));
     }
 
     return true;
   } catch (err) {
-    console.error(`sendNotification error (${telegramId}):`, err);
+    logger.error(`sendNotification error (${telegramId}):`, err);
 
     // Логируем ошибку в БД
     if (eventType) {
@@ -114,7 +115,7 @@ export async function sendNotification(
         `INSERT INTO notification_history (user_telegram_id, event_type, message_text, status, error_message)
          VALUES ($1, $2, $3, $4, $5)`,
         [telegramId, eventType, text, 'failed', String(err)]
-      ).catch((logErr) => console.error('Logging error notification error:', logErr));
+      ).catch((logErr) => logger.error('Logging error notification error:', logErr));
     }
 
     return false;
@@ -143,27 +144,39 @@ export async function broadcastNotification(
       [role]
     );
 
+    // Отправляем параллельно всем (Promise.allSettled для надёжности)
+    const sendPromises = result.rows.map((row, index) =>
+      new Promise<boolean>((resolve) => {
+        // Добавляем задержку чтобы не заспамить Telegram (распределённо)
+        setTimeout(async () => {
+          try {
+            const success = await sendNotification(row.telegram_id, text, extra, eventType);
+            resolve(success);
+          } catch (err) {
+            logger.error('Failed to send notification', { telegramId: row.telegram_id, error: err });
+            resolve(false);
+          }
+        }, index * 50); // Распределяем отправку через каждые 50ms
+      })
+    );
+
+    const results = await Promise.allSettled(sendPromises);
+    
     let sent = 0;
     let failed = 0;
 
-    // Отправляем каждому
-    for (const row of result.rows) {
-      const success = await sendNotification(row.telegram_id, text, extra, eventType);
-
-      if (success) {
+    results.forEach((result) => {
+      if (result.status === 'fulfilled' && result.value) {
         sent++;
       } else {
         failed++;
       }
+    });
 
-      // Добавляем небольшую задержку чтобы не заспамить Telegram
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-
-    console.log(`Broadcast complete: sent=${sent}, failed=${failed}`);
+    logger.info(`Broadcast complete: sent=${sent}, failed=${failed}`);
     return { sent, failed };
   } catch (err) {
-    console.error('broadcastNotification error:', err);
+    logger.error('broadcastNotification error:', err);
     return { sent: 0, failed: 0 };
   }
 }
@@ -211,7 +224,7 @@ export async function notifyAdminsNewOrder(
 
     return result.sent > 0;
   } catch (err) {
-    console.error('notifyAdminsNewOrder error:', err);
+    logger.error('notifyAdminsNewOrder error:', err);
     return false;
   }
 }
@@ -255,7 +268,7 @@ export async function notifyBuyerOrderCreated(
       'order_status_changed_buyer'
     );
   } catch (err) {
-    console.error('notifyBuyerOrderCreated error:', err);
+    logger.error('notifyBuyerOrderCreated error:', err);
     return false;
   }
 }
@@ -332,7 +345,7 @@ export async function notifyBuyerOrderStatus(
       eventType
     );
   } catch (err) {
-    console.error('notifyBuyerOrderStatus error:', err);
+    logger.error('notifyBuyerOrderStatus error:', err);
     return false;
   }
 }
@@ -376,12 +389,12 @@ export async function notifyAbandonedCart(
          SET reminder_sent = true, reminder_sent_at = NOW()
          WHERE user_telegram_id = $1`,
         [telegramId]
-      ).catch((err) => console.error('Update abandoned cart error:', err));
+      ).catch((err) => logger.error('Update abandoned cart error:', err));
     }
 
     return success;
   } catch (err) {
-    console.error('notifyAbandonedCart error:', err);
+    logger.error('notifyAbandonedCart error:', err);
     return false;
   }
 }
@@ -429,7 +442,7 @@ export async function getNotificationStats(daysBack: number = 7): Promise<{
       by_event,
     };
   } catch (err) {
-    console.error('getNotificationStats error:', err);
+    logger.error('getNotificationStats error:', err);
     return {
       total_sent: 0,
       total_failed: 0,
@@ -441,7 +454,7 @@ export async function getNotificationStats(daysBack: number = 7): Promise<{
 /**
  * Экспортируем публичный интерфейс
  */
-export default {
+const NotificationsAPI = {
   sendNotification,
   broadcastNotification,
   notifyAdminsNewOrder,
@@ -452,3 +465,5 @@ export default {
   getNotificationTargetRole,
   getNotificationStats,
 };
+
+export default NotificationsAPI;

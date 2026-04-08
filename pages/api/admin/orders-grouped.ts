@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для получения заказов, сгруппированных по датам
  * GET /api/admin/orders-grouped - заказы сгруппированные по датам
@@ -100,7 +101,7 @@ export default requireAuth(
         timestamp: Date.now(),
       });
     } catch (err) {
-      console.error('Orders grouping error:', err);
+      logger.error('Orders grouping error:', err);
       res.status(500).json({
         success: false,
         error: 'Failed to fetch grouped orders',

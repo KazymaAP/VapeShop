@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTelegramWebApp } from '../lib/telegram';
+import { TextSkeleton } from '../components/SkeletonLoader';
 
 interface ReferralInfo {
   code: string;
@@ -93,7 +94,7 @@ export default function ReferralPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-textSecondary">Загрузка...</div>;
+  if (loading) return <TextSkeleton lines={8} />;
 
   return (
     <div className="min-h-screen bg-bgDark p-4">

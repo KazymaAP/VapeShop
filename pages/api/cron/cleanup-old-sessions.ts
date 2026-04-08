@@ -7,6 +7,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { verifyCronSecret } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+import { CRON_LIMITS } from '@/lib/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -21,34 +23,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     let cleanedRows = 0;
 
-    // 1. Удаляем истёкшие рефереальные ссылки (старше 365 дней)
+    // 1. HIGH-009 FIX: Use soft delete for audit trail instead of hard DELETE
     const referralResult = await query(
-      `DELETE FROM referrals 
-       WHERE status = 'pending' AND created_at < NOW() - INTERVAL '365 days'`,
+      `UPDATE referrals SET deleted_at = NOW()
+       WHERE status = 'pending' AND created_at < NOW() - INTERVAL '${CRON_LIMITS.CLEANUP_REFERRALS_DAYS} days' AND deleted_at IS NULL`,
       []
     );
     cleanedRows += referralResult.rowCount || 0;
 
-    // 2. Удаляем старые CSV импорты (старше 30 дней)
+    // 2. MEDIUM-004 FIX: Use CRON_LIMITS constants for magic numbers
     const csvResult = await query(
       `DELETE FROM csv_import_progress 
-       WHERE created_at < NOW() - INTERVAL '30 days'`,
+       WHERE created_at < NOW() - INTERVAL '${CRON_LIMITS.CLEANUP_CSV_DAYS} days'`,
       []
     );
     cleanedRows += csvResult.rowCount || 0;
 
-    // 3. Удаляем старые отправленные уведомления (старше 90 дней)
+    // 3. Удаляем старые отправленные уведомления (старше N дней)
     const notifResult = await query(
       `DELETE FROM price_drop_notifications 
-       WHERE notified = true AND notified_at < NOW() - INTERVAL '90 days'`,
+       WHERE notified = true AND notified_at < NOW() - INTERVAL '${CRON_LIMITS.CLEANUP_NOTIFICATIONS_DAYS} days'`,
       []
     );
     cleanedRows += notifResult.rowCount || 0;
 
-    // 4. Удаляем старые записи аудита (старше 180 дней)
+    // 4. Удаляем старые записи аудита (старше N дней)
     const auditResult = await query(
       `DELETE FROM audit_log 
-       WHERE created_at < NOW() - INTERVAL '180 days'`,
+       WHERE created_at < NOW() - INTERVAL '${CRON_LIMITS.CLEANUP_OLD_AUDIT_DAYS} days'`,
       []
     );
     cleanedRows += auditResult.rowCount || 0;
@@ -72,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     cleanedRows += deleteArchivedResult.rowCount || 0;
 
     // Логируем операцию
-    console.log(`Cleanup completed: Removed ${cleanedRows} old records`);
+    logger.info(`Cleanup completed: Removed ${cleanedRows} old records`);
 
     return res.status(200).json({
       message: 'Cleanup completed successfully',
@@ -88,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (err) {
-    console.error('Cleanup job failed:', err);
+    logger.error('Cleanup job failed:', err);
 
     return res.status(500).json({
       error: 'Cleanup job failed',

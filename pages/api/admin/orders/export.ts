@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { requireAuth } from '../../../../lib/auth';
 import { query } from '../../../../lib/db';
 import ExcelJS from 'exceljs';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -106,7 +107,7 @@ export default requireAuth(
         return res.send(buffer);
       }
     } catch (err) {
-      console.error('export error:', err);
+      logger.error('export error:', err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   },

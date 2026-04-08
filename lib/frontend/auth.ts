@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * Фронтенд утилиты для работы с аутентификацией
  * Используются в админке и других местах для отправки Telegram ID на бэкенд
@@ -22,7 +23,7 @@ export function getTelegramIdHeader(): Record<string, string> {
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
 
     if (!user || !user.id) {
-      console.warn('getTelegramIdHeader: Telegram user not found');
+      logger.warn('getTelegramIdHeader: Telegram user not found');
       return {};
     }
 
@@ -30,7 +31,7 @@ export function getTelegramIdHeader(): Record<string, string> {
       'X-Telegram-Id': String(user.id),
     };
   } catch (err) {
-    console.error('getTelegramIdHeader error:', err);
+    logger.error('getTelegramIdHeader error:', err);
     return {};
   }
 }
@@ -54,7 +55,7 @@ export function getInitDataHeader(): Record<string, string> {
     const initData = window.Telegram?.WebApp?.initData;
 
     if (!initData) {
-      console.warn('getInitDataHeader: Telegram initData not found');
+      logger.warn('getInitDataHeader: Telegram initData not found');
       return {};
     }
 
@@ -62,7 +63,7 @@ export function getInitDataHeader(): Record<string, string> {
       Authorization: `Bearer ${initData}`,
     };
   } catch (err) {
-    console.error('getInitDataHeader error:', err);
+    logger.error('getInitDataHeader error:', err);
     return {};
   }
 }
@@ -75,7 +76,7 @@ export function getCurrentTelegramId(): number | null {
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
     return user?.id || null;
   } catch (err) {
-    console.error('getCurrentTelegramId error:', err);
+    logger.error('getCurrentTelegramId error:', err);
     return null;
   }
 }
@@ -87,7 +88,7 @@ export function getCurrentUser() {
   try {
     return window.Telegram?.WebApp?.initDataUnsafe?.user || null;
   } catch (err) {
-    console.error('getCurrentUser error:', err);
+    logger.error('getCurrentUser error:', err);
     return null;
   }
 }
@@ -136,7 +137,7 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
  * const data = await fetchWithAuthAndHandle('/api/admin/products', {
  *   method: 'GET',
  *   onUnauthorized: () => router.push('/login'),
- *   onForbidden: () => console.error('Insufficient permissions')
+ *   onForbidden: () => logger.error('Insufficient permissions')
  * });
  */
 export async function fetchWithAuthAndHandle(

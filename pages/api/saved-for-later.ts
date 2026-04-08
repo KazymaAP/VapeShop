@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для отложенной корзины (Save for later)
  * GET /api/saved-for-later - получить сохранённые товары
@@ -10,8 +11,12 @@ import { query } from '@/lib/db';
 import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const telegramId =
-    (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
+  let telegramId: number | null =
+    ((req as unknown as Record<string, unknown>).telegramId as number | null) || null;
+  
+  if (!telegramId) {
+    telegramId = await getTelegramIdFromRequest(req);
+  }
 
   if (!telegramId) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -44,7 +49,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         timestamp: Date.now(),
       });
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : 'Unknown error');
       res.status(500).json({ success: false, error: 'Failed to get saved items' });
     }
   } else if (req.method === 'POST') {
@@ -83,7 +88,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         timestamp: Date.now(),
       });
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : 'Unknown error');
       res.status(500).json({ success: false, error: 'Failed to save item' });
     }
   } else if (req.method === 'DELETE') {
@@ -106,7 +111,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         timestamp: Date.now(),
       });
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : 'Unknown error');
       res.status(500).json({ success: false, error: 'Failed to remove item' });
     }
   } else if (req.method === 'PUT') {
@@ -148,7 +153,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         throw err;
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : 'Unknown error');
       res.status(500).json({ success: false, error: 'Failed to move item' });
     }
   } else {

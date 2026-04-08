@@ -2,11 +2,12 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { hapticImpact, hapticSuccess } from '../lib/telegram';
 import { Skeleton } from './Skeleton';
+import type { ProductID } from '../types';
 
 const DEFAULT_PRODUCT_IMAGE = '/no-image.png';
 
 interface ProductCardProps {
-  id: string;
+  id: ProductID;
   name: string;
   price: number;
   image?: string;
@@ -16,7 +17,7 @@ interface ProductCardProps {
   isNew?: boolean;
   isHit?: boolean;
   loading?: boolean;
-  onAddToCart: (id: string) => void;
+  onAddToCart: (id: ProductID) => void;
 }
 
 export default function ProductCard({
@@ -65,22 +66,22 @@ export default function ProductCard({
 
   return (
     <div
-      className="bg-cardBg border border-border rounded-2xl overflow-hidden transition-all duration-200 hover:border-neon hover:shadow-neon hover:-translate-y-1"
+      className="bg-cardBg border border-border rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden transition-all duration-200 hover:border-neon hover:shadow-neon hover:-translate-y-1"
       role="article"
     >
-      <div className="relative aspect-square bg-gradient-to-br from-[#1f1f2a] to-[#131318] flex items-center justify-center">
+      <div className="relative aspect-square bg-gradient-to-br from-[#1f1f2a] to-[#131318] flex items-center justify-center p-2 sm:p-3 md:p-4">
         {promotion && (
-          <span className="absolute top-3 left-3 bg-danger text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+          <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-danger text-white text-xs font-bold px-2 py-1 rounded-full z-10">
             Акция
           </span>
         )}
         {isNew && !promotion && (
-          <span className="absolute top-3 left-3 bg-neon text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+          <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-neon text-white text-xs font-bold px-2 py-1 rounded-full z-10">
             Новинка
           </span>
         )}
         {isHit && !promotion && !isNew && (
-          <span className="absolute top-3 left-3 bg-warning text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+          <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-warning text-white text-xs font-bold px-2 py-1 rounded-full z-10">
             Хит
           </span>
         )}
@@ -105,26 +106,26 @@ export default function ProductCard({
           />
         )}
       </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-textPrimary truncate" role="heading" aria-level={3}>
+      <div className="p-3 sm:p-3.5 md:p-4">
+        <h3 className="font-semibold text-sm sm:text-base text-textPrimary truncate" role="heading" aria-level={3}>
           {name}
         </h3>
         {specification && (
           <p
-            className="text-sm text-textSecondary truncate"
+            className="text-xs sm:text-sm text-textSecondary truncate"
             aria-label={`Спецификация: ${specification}`}
           >
             {specification}
           </p>
         )}
         <div
-          className="mt-2 text-neon text-xl font-bold"
+          className="mt-2 text-neon text-lg sm:text-xl font-bold"
           role="doc-credit"
           aria-label={`Цена: ${price.toLocaleString('ru-RU')} рублей`}
         >
           {price.toLocaleString('ru-RU')} ₽
         </div>
-        <div className="mt-1 text-xs">
+        <div className="mt-1 text-xs sm:text-sm">
           {stock > 0 ? (
             <span className="text-success" aria-label={`В наличии ${stock} штук`}>
               ● осталось {stock} шт
@@ -138,7 +139,7 @@ export default function ProductCard({
         <button
           onClick={addToCart}
           disabled={stock === 0}
-          className="mt-3 w-full bg-gradient-to-r from-[#7c3aed] to-neon rounded-full py-2.5 text-white font-semibold flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50 ripple"
+          className="mt-3 w-full bg-gradient-to-r from-[#7c3aed] to-neon rounded-full py-2 sm:py-2.5 text-white text-sm sm:text-base font-semibold flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50 ripple"
           aria-label={`Добавить ${name} в корзину`}
         >
           <svg

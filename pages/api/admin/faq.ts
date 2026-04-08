@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -13,7 +14,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json(result.rows);
     } catch (err) {
-      console.error('FAQ list error:', err);
+      logger.error('FAQ list error:', err);
       res.status(500).json({ error: 'Ошибка при получении FAQ' });
     }
   } else if (req.method === 'POST') {
@@ -33,7 +34,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(201).json({ success: true, id: result.rows[0].id, message: 'Вопрос добавлен' });
     } catch (err) {
-      console.error('FAQ create error:', err);
+      logger.error('FAQ create error:', err);
       res.status(500).json({ error: 'Ошибка при добавлении вопроса' });
     }
   } else {

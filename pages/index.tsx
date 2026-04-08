@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTelegramWebApp } from '../lib/telegram';
+import { TIMERS } from '../lib/constants';
+import { logger } from '../lib/logger';
 import ProductCard from '../components/ProductCard';
+import type { ProductID } from '../types';
+// Skeleton loading handled by ProductCard
 
 const DEFAULT_PRODUCT_IMAGE = '/no-image.png';
 
 interface Product {
-  id: string;
+  id: ProductID;
   name: string;
   specification: string | null;
   price: number;
@@ -64,7 +68,7 @@ export default function Home() {
 
     const res = await fetch(`/api/products?${params}`);
     if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
+      throw new Error(`Failed to fetch products (HTTP ${res.status}): ${params.toString()}`);
     }
     const data = await res.json();
     setProducts(data.products);
@@ -75,7 +79,7 @@ export default function Home() {
   const fetchFilters = async () => {
     const res = await fetch('/api/products?filters=1');
     if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
+      throw new Error(`Failed to fetch product filters (HTTP ${res.status})`);
     }
     const data = await res.json();
     setCategories(data.categories);
@@ -86,7 +90,7 @@ export default function Home() {
     if (!user) return;
     const res = await fetch(`/api/cart?telegram_id=${user.id}`);
     if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
+      throw new Error(`Failed to fetch cart for user ${user.id} (HTTP ${res.status})`);
     }
     const data = await res.json();
     const count =
@@ -114,7 +118,12 @@ export default function Home() {
           setPriceMin(filters.priceMin || '');
           setPriceMax(filters.priceMax || '');
         } catch (err) {
-          console.error('Ошибка восстановления фильтров:', err);
+          // MEDIUM-008 FIX: Use logger with context instead of console.error
+          const errorMsg = err instanceof Error ? err.message : String(err);
+          logger.error('Failed to restore catalog filters from localStorage', {
+            error: errorMsg,
+            context: 'Filter recovery on component mount',
+          });
         }
       }
     }
@@ -127,7 +136,7 @@ export default function Home() {
         setPage(1);
         fetchProducts();
       }
-    }, 300);
+    }, TIMERS.SEARCH_DEBOUNCE);
 
     return () => clearTimeout(debounceTimer);
   }, [search]);

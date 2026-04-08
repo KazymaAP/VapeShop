@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 /**
  * API для сравнения товаров
  * GET /api/compare - получить текущее сравнение
@@ -5,16 +6,16 @@
  * DELETE /api/compare - очистить сравнение
  */
 
-import { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { query, transaction } from '@/lib/db';
 import { requireAuth, getTelegramIdFromRequest } from '@/lib/auth';
+import { apiSuccess, apiError } from '@/lib/apiResponse';
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const telegramId =
-    (req as Record<string, unknown>).telegramId || (await getTelegramIdFromRequest(req));
+async function compareHandler(req: NextApiRequest, res: NextApiResponse) {
+  const telegramId = await getTelegramIdFromRequest(req);
 
   if (!telegramId) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
+    return apiError(res, 'Unauthorized', 401);
   }
 
   if (req.method === 'GET') {
@@ -44,33 +45,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       if (result.rows.length === 0) {
-        return res.status(200).json({
-          success: true,
-          data: null,
-          timestamp: Date.now(),
-        });
+        return apiSuccess(res, null);
       }
 
-      res.status(200).json({
-        success: true,
-        data: result.rows[0],
-        timestamp: Date.now(),
-      });
+      apiSuccess(res, result.rows[0]);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, error: 'Failed to get comparison' });
+      logger.error(err instanceof Error ? err.message : 'Unknown error');
+      apiError(res, 'Failed to get comparison', 500);
     }
   } else if (req.method === 'POST') {
     const { product_ids, note } = req.body;
 
     if (!Array.isArray(product_ids) || product_ids.length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, error: 'product_ids must be a non-empty array' });
+      return apiError(res, 'product_ids must be a non-empty array', 400);
     }
 
     if (product_ids.length > 4) {
-      return res.status(400).json({ success: false, error: 'Maximum 4 products allowed' });
+      return apiError(res, 'Maximum 4 products allowed', 400);
     }
 
     try {
@@ -82,44 +73,39 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // HIGH-026 FIX: cnt из pg может быть string, нужно преобразовать
       if (parseInt(productsCheck.rows[0].cnt, 10) !== product_ids.length) {
-        return res.status(404).json({ success: false, error: 'One or more products not found' });
+        return apiError(res, 'One or more products not found', 404);
       }
 
-      // Сохраняем сравнение
-      const result = await query(
-        `INSERT INTO product_comparisons (user_telegram_id, product_ids, note)
-         VALUES ($1, $2, $3)
-         ON CONFLICT DO NOTHING
-         RETURNING id`,
-        [telegramId, product_ids, note || null]
-      );
-
-      res.status(200).json({
-        success: true,
-        data: { id: result.rows[0]?.id },
-        message: 'Comparison saved',
-        timestamp: Date.now(),
+      // Сохраняем сравнение в транзакции
+      const result = await transaction(async (client) => {
+        return await client.query(
+          `INSERT INTO product_comparisons (user_telegram_id, product_ids, note)
+           VALUES ($1, $2, $3)
+           ON CONFLICT DO NOTHING
+           RETURNING id`,
+          [telegramId, product_ids, note || null]
+        );
       });
+
+      apiSuccess(res, { id: result.rows[0]?.id }, 201);
     } catch (_err) {
-      console.error(_err);
-      res.status(500).json({ success: false, error: 'Failed to save comparison' });
+      logger.error(_err instanceof Error ? _err.message : 'Unknown error');
+      apiError(res, 'Failed to save comparison', 500);
     }
   } else if (req.method === 'DELETE') {
     try {
-      await query(`DELETE FROM product_comparisons WHERE user_telegram_id = $1`, [telegramId]);
-
-      res.status(200).json({
-        success: true,
-        message: 'Comparison cleared',
-        timestamp: Date.now(),
+      await transaction(async (client) => {
+        await client.query(`DELETE FROM product_comparisons WHERE user_telegram_id = $1`, [telegramId]);
       });
+
+      apiSuccess(res, { success: true });
     } catch (_err) {
-      console.error(_err);
-      res.status(500).json({ success: false, error: 'Failed to delete comparison' });
+      logger.error(_err instanceof Error ? _err.message : 'Unknown error');
+      apiError(res, 'Failed to delete comparison', 500);
     }
   } else {
-    res.status(405).json({ success: false, error: 'Method not allowed' });
+    apiError(res, 'Method not allowed', 405);
   }
 }
 
-export default requireAuth(handler, ['customer']);
+export default requireAuth(compareHandler, ['customer']);

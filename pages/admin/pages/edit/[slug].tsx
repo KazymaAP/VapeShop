@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import { useTelegramWebApp } from '../../../../lib/telegram';
+import { sanitizeHTML } from '../../../../lib/sanitize';
 import 'react-quill/dist/quill.snow.css';
 
 // Динамическая загрузка ReactQuill для избежания ошибок SSR
@@ -215,7 +216,7 @@ export default function EditPagePage() {
           <h2 className="text-xl font-bold text-neon mb-4">Предпросмотр</h2>
           <div
             className="prose dark:prose-invert max-w-none text-white"
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(content) }}
           />
         </div>
       </div>

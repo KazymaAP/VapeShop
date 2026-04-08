@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { NextApiRequest, NextApiResponse } from 'next';
+import { logger } from '@/lib/logger';
 
 export default requireAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
@@ -26,26 +27,30 @@ export default requireAuth(
           return res.status(400).json({ error: 'Role name required' });
         }
 
-        const roleResult = await query(
-          `INSERT INTO roles (name, description, is_system_role)
-         VALUES ($1, $2, false)
-         RETURNING id, name, description`,
-          [name, description || '']
-        );
+        const roleResult = await transaction(async (client) => {
+          const result = await client.query(
+            `INSERT INTO roles (name, description, is_system_role)
+           VALUES ($1, $2, false)
+           RETURNING id, name, description`,
+            [name, description || '']
+          );
 
-        const roleId = roleResult.rows[0].id;
+          const roleId = result.rows[0].id;
 
-        // Добавить разрешения
-        if (permissions && Array.isArray(permissions)) {
-          for (const perm of permissions) {
-            await query(
-              `INSERT INTO role_permissions (role_id, permission)
-             VALUES ($1, $2)
-             ON CONFLICT DO NOTHING`,
-              [roleId, perm]
-            );
+          // Добавить разрешения
+          if (permissions && Array.isArray(permissions)) {
+            for (const perm of permissions) {
+              await client.query(
+                `INSERT INTO role_permissions (role_id, permission)
+               VALUES ($1, $2)
+               ON CONFLICT DO NOTHING`,
+                [roleId, perm]
+              );
+            }
           }
-        }
+
+          return result;
+        });
 
         return res.status(201).json(roleResult.rows[0]);
       } else if (req.method === 'PUT') {
@@ -56,29 +61,31 @@ export default requireAuth(
           return res.status(400).json({ error: 'Role id required' });
         }
 
-        // Проверить что это не система роль
-        const roleCheck = await query(`SELECT is_system_role FROM roles WHERE id = $1`, [id]);
+        await transaction(async (client) => {
+          // Проверить что это не система роль
+          const roleCheck = await client.query(`SELECT is_system_role FROM roles WHERE id = $1`, [id]);
 
-        if (roleCheck.rows[0].is_system_role) {
-          return res.status(403).json({ error: 'Cannot edit system role' });
-        }
-
-        // Обновить описание
-        if (description !== undefined) {
-          await query(`UPDATE roles SET description = $1 WHERE id = $2`, [description, id]);
-        }
-
-        // Обновить разрешения
-        if (permissions && Array.isArray(permissions)) {
-          await query(`DELETE FROM role_permissions WHERE role_id = $1`, [id]);
-          for (const perm of permissions) {
-            await query(
-              `INSERT INTO role_permissions (role_id, permission)
-             VALUES ($1, $2)`,
-              [id, perm]
-            );
+          if (roleCheck.rows[0].is_system_role) {
+            throw new Error('Cannot edit system role');
           }
-        }
+
+          // Обновить описание
+          if (description !== undefined) {
+            await client.query(`UPDATE roles SET description = $1 WHERE id = $2`, [description, id]);
+          }
+
+          // Обновить разрешения
+          if (permissions && Array.isArray(permissions)) {
+            await client.query(`DELETE FROM role_permissions WHERE role_id = $1`, [id]);
+            for (const perm of permissions) {
+              await client.query(
+                `INSERT INTO role_permissions (role_id, permission)
+               VALUES ($1, $2)`,
+                [id, perm]
+              );
+            }
+          }
+        });
 
         return res.status(200).json({ success: true });
       } else if (req.method === 'DELETE') {
@@ -89,22 +96,24 @@ export default requireAuth(
           return res.status(400).json({ error: 'Role id required' });
         }
 
-        // Проверить что это не система роль
-        const roleCheck = await query(`SELECT is_system_role FROM roles WHERE id = $1`, [id]);
+        await transaction(async (client) => {
+          // Проверить что это не система роль
+          const roleCheck = await client.query(`SELECT is_system_role FROM roles WHERE id = $1`, [id]);
 
-        if (roleCheck.rows[0].is_system_role) {
-          return res.status(403).json({ error: 'Cannot delete system role' });
-        }
+          if (roleCheck.rows[0].is_system_role) {
+            throw new Error('Cannot delete system role');
+          }
 
-        await query(`DELETE FROM role_permissions WHERE role_id = $1`, [id]);
-        await query(`DELETE FROM roles WHERE id = $1`, [id]);
+          await client.query(`DELETE FROM role_permissions WHERE role_id = $1`, [id]);
+          await client.query(`DELETE FROM roles WHERE id = $1`, [id]);
+        });
 
         return res.status(200).json({ success: true });
       } else {
         return res.status(405).json({ error: 'Method not allowed' });
       }
     } catch (_err) {
-      console.error('rbac error:', _err);
+      logger.error('rbac error:', _err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   },

@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
+import { query, transaction } from '@/lib/db';
 import { getTelegramIdFromRequest } from '@/lib/auth';
 import { rateLimit, RATE_LIMIT_PRESETS } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Получаем текущего пользователя для проверки принадлежности
@@ -14,20 +15,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
+      // ⚠️ ИСПРАВЛЕНО: Добавлен LIMIT 200 для безопасности
+      // Один SQL joinов вместо N+1 запросов (раньше может было LEFT JOIN для каждого товара)
       const result = await query(
-        `SELECT p.*, b.name as brand_name, c.name as category_name
+        `SELECT p.id, p.name, p.price, p.specification, p.stock, p.images,
+                p.is_active, p.is_promotion, p.is_hit, p.is_new, p.rating,
+                b.name as brand_name, c.name as category_name,
+                w.added_at
          FROM wishlist w
          JOIN products p ON w.product_id = p.id
          LEFT JOIN brands b ON p.brand_id = b.id
          LEFT JOIN categories c ON p.category_id = c.id
          WHERE w.user_telegram_id = $1 AND p.is_active = true
-         ORDER BY w.added_at DESC`,
+         ORDER BY w.added_at DESC
+         LIMIT 200`,
         [currentTelegramId]
       );
 
-      res.status(200).json({ products: result.rows });
+      res.status(200).json({ success: true, products: result.rows, count: result.rows.length });
     } catch (err) {
-      console.error('Get favorites error:', err);
+      logger.error('Get favorites error:', err);
       res.status(500).json({ error: 'Ошибка загрузки избранного' });
     }
   } else if (req.method === 'POST') {
@@ -56,7 +63,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(200).json({ success: true });
     } catch (err) {
-      console.error('Add favorite error:', err);
+      logger.error('Add favorite error:', err);
       res.status(500).json({ error: 'Ошибка добавления в избранное' });
     }
   } else if (req.method === 'DELETE') {
@@ -68,14 +75,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { product_id } = req.query;
       if (!product_id) return res.status(400).json({ error: 'Missing field: product_id' });
 
-      await query('DELETE FROM wishlist WHERE user_telegram_id = $1 AND product_id = $2', [
-        currentTelegramId,
-        product_id,
-      ]);
+      await transaction(async (client) => {
+        await client.query('DELETE FROM wishlist WHERE user_telegram_id = $1 AND product_id = $2', [
+          currentTelegramId,
+          product_id,
+        ]);
+      });
 
       res.status(200).json({ success: true });
     } catch (err) {
-      console.error('Delete favorite error:', err);
+      logger.error('Delete favorite error:', err);
       res.status(500).json({ error: 'Ошибка удаления из избранного' });
     }
   } else {

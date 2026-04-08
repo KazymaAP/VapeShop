@@ -5,10 +5,46 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { logger } from './logger';
+
+// Типов для Amplitude SDK
+interface AmplitudeInstance {
+  init: (apiKey: string, userId: string | null, options: AmplitudeConfig) => void;
+  getInstance: () => AmplitudeInstance;
+  logEvent: (eventName: string, properties?: Record<string, unknown>) => void;
+  setUserId: (userId: string) => void;
+  setUserProperties: (properties: Record<string, unknown>) => void;
+}
+
+interface AmplitudeConfig {
+  saveEvents: boolean;
+  includeUtm: boolean;
+  includeFbclid: boolean;
+  trackingOptions: {
+    country: boolean;
+    city: boolean;
+    region: boolean;
+    dma: boolean;
+    ip_address: boolean;
+    language: boolean;
+    platform: boolean;
+    carrier: boolean;
+    device_model: boolean;
+    device_manufacturer: boolean;
+    os_name: boolean;
+    os_version: boolean;
+    browser: boolean;
+    browser_version: boolean;
+    referrer: boolean;
+    referring_domain: boolean;
+  };
+}
 
 declare global {
   interface Window {
-    amplitude?: Record<string, unknown>;
+    amplitude?: {
+      getInstance: () => AmplitudeInstance;
+    };
   }
 }
 
@@ -17,7 +53,7 @@ export function initAmplitude() {
 
   const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
   if (!apiKey) {
-    console.warn('Amplitude API key not configured');
+    logger.warn('Amplitude API key not configured');
     return;
   }
 
@@ -27,8 +63,7 @@ export function initAmplitude() {
   script.async = true;
   script.onload = () => {
     if (window.amplitude) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window.amplitude as any).getInstance().init(apiKey, null, {
+      window.amplitude.getInstance().init(apiKey, null, {
         saveEvents: true,
         includeUtm: true,
         includeFbclid: true,
@@ -53,8 +88,7 @@ export function initAmplitude() {
       });
 
       // Отслеживаем page views
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window.amplitude as any).getInstance().logEvent('page_view', {
+      window.amplitude.getInstance().logEvent('page_view', {
         path: window.location.pathname,
         timestamp: new Date().toISOString(),
       });
@@ -65,8 +99,7 @@ export function initAmplitude() {
 
 export function trackEvent(eventName: string, properties?: Record<string, unknown>) {
   if (typeof window !== 'undefined' && window.amplitude) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window.amplitude as any).getInstance().logEvent(eventName, {
+    window.amplitude.getInstance().logEvent(eventName, {
       ...properties,
       timestamp: new Date().toISOString(),
     });
@@ -75,15 +108,13 @@ export function trackEvent(eventName: string, properties?: Record<string, unknow
 
 export function setUserId(userId: string) {
   if (typeof window !== 'undefined' && window.amplitude) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window.amplitude as any).getInstance().setUserId(userId);
+    window.amplitude.getInstance().setUserId(userId);
   }
 }
 
 export function setUserProperties(properties: Record<string, unknown>) {
   if (typeof window !== 'undefined' && window.amplitude) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window.amplitude as any).getInstance().setUserProperties(properties);
+    window.amplitude.getInstance().setUserProperties(properties);
   }
 }
 

@@ -1,91 +1,130 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const navItems = [
+interface NavItem {
+  key: string;
+  label: string;
+  icon: string;
+  href: string;
+  roles?: string[];
+}
+
+const navItems: NavItem[] = [
   {
     key: 'dashboard',
     label: 'Дашборд',
     icon: 'M3 9L12 3L21 9L21 20H15V14H9V20H3V9Z',
     href: '/admin',
+    roles: ['admin', 'manager', 'seller', 'courier', 'support'],
   },
   {
     key: 'products',
     label: 'Товары',
     icon: 'M3 3h18v18H3V3zm3 6h6M3 9h18M9 3v18',
     href: '/admin/products',
+    roles: ['admin', 'manager', 'seller'],
   },
   {
     key: 'orders',
     label: 'Заказы',
     icon: 'M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0',
     href: '/admin/orders',
+    roles: ['admin', 'manager', 'support', 'courier'],
   },
   {
     key: 'pickup-points',
     label: 'Пункты самовывоза',
     icon: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0zM12 13a2 2 0 100-4 2 2 0 000 4z',
     href: '/admin/pickup-points',
+    roles: ['admin', 'manager', 'courier'],
   },
   {
     key: 'users',
     label: 'Пользователи',
     icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
     href: '/admin/users',
+    roles: ['admin', 'manager', 'support'],
   },
   {
     key: 'import',
     label: 'Импорт CSV',
     icon: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
     href: '/admin/import',
+    roles: ['admin', 'manager', 'seller'],
   },
   {
     key: 'price-import',
     label: 'Импортированные',
     icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
     href: '/admin/price-import',
+    roles: ['admin', 'manager'],
   },
-  { key: 'activate', label: 'Активация', icon: 'M5 13l4 4L19 7', href: '/admin/activate' },
+  {
+    key: 'activate',
+    label: 'Активация',
+    icon: 'M5 13l4 4L19 7',
+    href: '/admin/activate',
+    roles: ['admin', 'manager'],
+  },
   {
     key: 'promocodes',
     label: 'Промокоды',
     icon: 'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z M7 7h.01',
     href: '/admin/promocodes',
+    roles: ['admin', 'manager'],
   },
   {
     key: 'faq',
     label: 'FAQ',
     icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01',
     href: '/admin/faq',
+    roles: ['admin', 'manager', 'support'],
   },
   {
     key: 'pages',
     label: 'Страницы',
     icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6',
     href: '/admin/pages',
+    roles: ['admin', 'manager'],
   },
   {
     key: 'settings',
     label: 'Настройки',
     icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33-1.82l-.04-.04A10 10 0 0 0 12 17.66a10 10 0 0 0-6.36-2.62l-.04.04a1.65 1.65 0 0 0 .33 1.82l.04.04A10 10 0 0 0 12 17.66M19.4 9a1.65 1.65 0 0 0-.33 1.82l.04.04A10 10 0 0 1 12 6.34a10 10 0 0 1-6.36 2.62l-.04-.04a1.65 1.65 0 0 1 .33-1.82l.04-.04A10 10 0 0 1 12 6.34',
     href: '/admin/settings',
+    roles: ['admin'],
   },
   {
     key: 'broadcast',
     label: 'Рассылка',
     icon: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
     href: '/admin/broadcast',
+    roles: ['admin', 'manager', 'support'],
   },
 ];
 
 export default function AdminSidebar() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string>('admin');
+
+  useEffect(() => {
+    // Получить роль пользователя из локального хранилища или fetch
+    const role = localStorage.getItem('userRole') || 'admin';
+    setUserRole(role);
+  }, []);
 
   const isActive = (href: string) => {
     if (href === '/admin') return router.pathname === '/admin';
     return router.pathname.startsWith(href);
   };
+
+  // Фильтруем элементы навигации по ролям
+  const filteredNavItems = navItems.filter((item) => {
+    if (!item.roles) return true;
+    return item.roles.includes(userRole);
+  });
 
   return (
     <>
@@ -153,7 +192,7 @@ export default function AdminSidebar() {
 
         <nav className="p-3">
           <ul>
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <li key={item.key}>
                 <Link
                   href={item.href}

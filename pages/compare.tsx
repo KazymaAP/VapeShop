@@ -90,6 +90,7 @@ export default function ComparePage() {
     return (
       <div className="min-h-screen bg-bgDark flex flex-col items-center justify-center px-4">
         <svg
+          aria-hidden="true"
           className="w-20 h-20 text-neon opacity-50 mb-4"
           viewBox="0 0 24 24"
           fill="none"
@@ -119,6 +120,7 @@ export default function ComparePage() {
         <div className="flex items-center gap-3">
           <button onClick={() => router.back()} className="text-textSecondary hover:text-neon">
             <svg
+              aria-hidden="true"
               width="24"
               height="24"
               viewBox="0 0 24 24"
@@ -158,6 +160,7 @@ export default function ComparePage() {
                         />
                       ) : (
                         <svg
+                          aria-hidden="true"
                           className="w-8 h-8 text-neon opacity-50"
                           viewBox="0 0 24 24"
                           fill="none"

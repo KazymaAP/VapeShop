@@ -5,6 +5,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
 import clsx from 'clsx';
@@ -191,9 +192,11 @@ export function SearchInput() {
                   >
                     {/* Изображение */}
                     {product.image_url && (
-                      <img
+                      <Image
                         src={product.image_url}
                         alt={product.name}
+                        width={40}
+                        height={40}
                         className="w-10 h-10 object-cover rounded"
                       />
                     )}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
+import { SkeletonLoader } from '../../../components/SkeletonLoader';
 
 interface Product {
   id: number;
@@ -88,7 +89,7 @@ export default function BulkEditProducts() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <SkeletonLoader count={10} />;
 
   return (
     <AdminLayout title="Bulk Edit Products">

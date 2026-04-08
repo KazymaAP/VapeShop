@@ -1,4 +1,5 @@
 import { query } from './db';
+import { logger } from './logger';
 
 export async function getABTestVariant(userId: string, testName: string): Promise<'A' | 'B'> {
   try {
@@ -22,7 +23,7 @@ export async function getABTestVariant(userId: string, testName: string): Promis
 
     return variant;
   } catch (err) {
-    console.error('Error getting AB test variant:', err);
+    logger.error('Error getting AB test variant:', err);
     return 'A';
   }
 }
@@ -39,6 +40,6 @@ export async function recordTestResult(userId: string, testName: string, result:
       ]);
     }
   } catch (err) {
-    console.error('Error recording test result:', err);
+    logger.error('Error recording test result:', err);
   }
 }

@@ -6,6 +6,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyCronSecret } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -37,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupName = `backup-${timestamp}.sql`;
 
-    console.log(`Starting database backup: ${backupName}`);
+    logger.info(`Starting database backup: ${backupName}`);
 
     // Используем pg_dump для резервной копии
     // ВНИМАНИЕ: На Vercel этот скрипт не будет работать с pg_dump
@@ -75,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       size: backupData.size || 'unknown',
     };
 
-    console.log('Database backup completed:', logEntry);
+    logger.info('Database backup completed:', logEntry);
 
     return res.status(200).json({
       message: 'Database backup completed successfully',
@@ -83,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timestamp,
     });
   } catch (err) {
-    console.error('Database backup failed:', err);
+    logger.error('Database backup failed:', err);
 
     return res.status(500).json({
       error: 'Database backup failed',
