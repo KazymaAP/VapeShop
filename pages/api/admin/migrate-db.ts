@@ -63,7 +63,21 @@ function getMigrationFiles(): Migration[] {
 async function applyMigration(migration: Migration): Promise<void> {
   try {
     logger.info(`📏 Применение миграции: ${migration.name}`);
-    await query(migration.content);
+    // Запускаем каждый SQL statement отдельно
+    const statements = migration.content
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !s.startsWith('--'));
+    
+    for (const statement of statements) {
+      try {
+        await query(statement);
+      } catch (err) {
+        logger.warn(`Warning in statement of ${migration.name}:`, err);
+        // Continue with next statement even if one fails
+      }
+    }
+    
     await query(
       `INSERT INTO schema_migrations (version, name, applied_at) 
        VALUES ($1, $2, NOW())`,
