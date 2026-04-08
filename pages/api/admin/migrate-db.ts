@@ -66,9 +66,9 @@ async function applyMigration(migration: Migration): Promise<void> {
     // Запускаем каждый SQL statement отдельно
     const statements = migration.content
       .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'));
-    
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0 && !s.startsWith('--'));
+
     for (const statement of statements) {
       try {
         await query(statement);
@@ -77,7 +77,7 @@ async function applyMigration(migration: Migration): Promise<void> {
         // Continue with next statement even if one fails
       }
     }
-    
+
     await query(
       `INSERT INTO schema_migrations (version, name, applied_at) 
        VALUES ($1, $2, NOW())`,

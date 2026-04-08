@@ -60,7 +60,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     ]);
 
     let result;
-    
+
     if (user.rows.length === 0) {
       // Создаем пользователя если его нет
       const createResult = await query(

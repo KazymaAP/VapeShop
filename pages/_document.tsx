@@ -6,7 +6,7 @@ export default function Document() {
       <Head>
         {/* Telegram WebApp SDK - КРИТИЧЕСКИ ВАЖНО! */}
         <script src="https://telegram.org/js/telegram-web-app.js" async={false} />
-        
+
         {/* Fallback: встроенный Telegram SDK если внешний не загрузился */}
         <script
           dangerouslySetInnerHTML={{
@@ -41,7 +41,7 @@ export default function Document() {
                   }
                 };
               }
-            `
+            `,
           }}
         />
 
@@ -94,7 +94,7 @@ export default function Document() {
                   console.warn('⚠️ Telegram user not found. App may not work correctly outside Telegram.');
                 }
               })();
-            `
+            `,
           }}
         />
       </Head>
